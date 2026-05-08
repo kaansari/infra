@@ -1,0 +1,73 @@
+name: Build and Test Stack
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  # Set these to the full repo names (owner/repo). Edit these values or set them
+  # in repository-level variables if you prefer.
+  CONTRACTS_REPO: 'REPLACE_WITH_OWNER/contracts-repo'
+  SERVICES_REPO: 'REPLACE_WITH_OWNER/services-repo'
+  APPS_REPO: 'REPLACE_WITH_OWNER/apps-repo'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infra
+        uses: actions/checkout@v4
+
+      - name: Checkout contracts repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CONTRACTS_REPO }}
+          path: contracts-repo
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Checkout services repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SERVICES_REPO }}
+          path: services-repo
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Checkout apps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.APPS_REPO }}
+          path: apps-repo
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.26'
+
+      - name: Build contracts
+        working-directory: ./contracts-repo/packages/ceerat-contracts
+        run: |
+          go test ./...
+          go build ./...
+
+      - name: Build user service
+        working-directory: ./services-repo/services/ceerat-user-service
+        run: |
+          go test ./...
+          go build -o ../../infra/bin/ceerat-user-service .
+
+      - name: Build agent, chat client and web UI
+        run: |
+          (cd apps-repo/ai/ceerat-agent-service && go test ./... && go build -o ../../infra/bin/ceerat-agent-service .)
+          (cd apps-repo/ai/ceerat-chatgpt-client && go test ./... && go build -o ../../infra/bin/ceerat-chatgpt-client .)
+          (cd apps-repo/apps/ceerat-web-ui && go test ./... && go build -o ../../infra/bin/ceerat-web-ui .)
+
+      - name: Upload built binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: infra-binaries
+          path: infra/bin/**
