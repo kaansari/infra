@@ -37,14 +37,17 @@ CEERAT_JWT_SECRET="${CEERAT_JWT_SECRET:-dev-secret}"
 JWT_AUTH_ENABLED="${JWT_AUTH_ENABLED:-true}"
 USER_SERVICE_ADDR="${USER_SERVICE_ADDR:-localhost:$CEERAT_SERVICE_PORT}"
 CEERAT_ENV="${CEERAT_ENV:-development}"
+CEERAT_CUSTOMER_UI_PORT="${CEERAT_CUSTOMER_UI_PORT:-3005}"
 
 POSTGRES_LOG="$LOG_DIR/postgres.log"
 SERVICE_LOG="$LOG_DIR/user-service.log"
 WEB_LOG="$LOG_DIR/web-ui.log"
 AGENT_LOG="$LOG_DIR/agent-service.log"
+CUSTOMER_LOG="$LOG_DIR/customer-ui.log"
 SERVICE_PID="$RUN_DIR/user-service.pid"
 WEB_PID="$RUN_DIR/web-ui.pid"
 AGENT_PID="$RUN_DIR/agent-service.pid"
+CUSTOMER_PID="$RUN_DIR/customer-ui.pid"
 
 ensure_dirs() {
   mkdir -p "$RUN_DIR" "$LOG_DIR" "$BIN_DIR" "$(dirname "$CEERAT_PGDATA")"
@@ -70,4 +73,5 @@ print_log_paths() {
   printf '  User service: %s\n' "$SERVICE_LOG"
   printf '  Web UI:       %s\n' "$WEB_LOG"
   printf '  Agent:        %s\n' "$AGENT_LOG"
+  printf '  Customer UI:  %s\n' "$CUSTOMER_LOG"
 }

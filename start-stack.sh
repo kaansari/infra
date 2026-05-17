@@ -95,6 +95,24 @@ start_web_ui() {
   sleep 1
 }
 
+start_customer_ui() {
+  if is_port_listening "$CEERAT_CUSTOMER_UI_PORT"; then
+    echo "Customer UI already listening on http://localhost:$CEERAT_CUSTOMER_UI_PORT"
+    return
+  fi
+
+  echo "Starting customer UI on http://localhost:$CEERAT_CUSTOMER_UI_PORT"
+  cd "$ROOT_DIR"
+  nohup env \
+    PORT="$CEERAT_CUSTOMER_UI_PORT" \
+    CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
+    CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
+    CEERAT_ENV="$CEERAT_ENV" \
+    "$BIN_DIR/ceerat-customer-ui" >>"$CUSTOMER_LOG" 2>&1 &
+  echo $! >"$CUSTOMER_PID"
+  sleep 1
+}
+
 ensure_dirs
 
 # Build sequence: contracts -> services -> apps
@@ -149,10 +167,21 @@ else
   echo "Web UI directory not found: $ROOT_DIR/apps-repo/apps/ceerat-web-ui" >&2
 fi
 
+# customer UI
+if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
+  (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-customer-ui" .) || {
+    echo "Customer UI build failed" >&2
+    exit 1
+  }
+else
+  echo "Customer UI directory not found: $ROOT_DIR/apps-repo/apps/ceerat-customer-ui" >&2
+fi
+
 ensure_postgres
 start_user_service
 start_agent_service
 start_web_ui
+start_customer_ui
 
 "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/status.sh"
 print_log_paths

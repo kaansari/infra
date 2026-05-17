@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../services-repo"
+		},
+		{
+			"path": "../apps-repo"
+		},
+		{
+			"path": "../contracts-repo"
+		}
+	]
+}
