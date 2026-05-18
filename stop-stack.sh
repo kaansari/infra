@@ -30,6 +30,7 @@ stop_pidfile() {
 ensure_dirs
 
 stop_pidfile "web UI" "$WEB_PID" "$CEERAT_WEB_UI_PORT"
+stop_pidfile "admin UI" "$ADMIN_PID" "$CEERAT_ADMIN_UI_PORT"
 stop_pidfile "customer UI" "$CUSTOMER_PID" "$CEERAT_CUSTOMER_UI_PORT"
 stop_pidfile "agent service" "$AGENT_PID" "$CEERAT_AGENT_PORT"
 stop_pidfile "user service" "$SERVICE_PID" "$CEERAT_SERVICE_PORT"
@@ -44,4 +45,3 @@ if [[ -x "$PG_CTL" && -d "$CEERAT_PGDATA" ]]; then
 else
   echo "Postgres data directory or pg_ctl not found"
 fi
-

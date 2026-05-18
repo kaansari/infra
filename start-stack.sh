@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+start_detached() {
+  local log_file="$1"
+  local pid_file="$2"
+  shift 2
+
+  nohup perl -MPOSIX=setsid -e 'setsid(); exec @ARGV or die "exec failed: $!\n"' "$@" </dev/null >>"$log_file" 2>&1 &
+  echo $! >"$pid_file"
+}
 
 ensure_postgres() {
   if [[ ! -x "$PG_CTL" || ! -x "$INITDB" || ! -x "$PSQL" ]]; then
@@ -43,7 +53,7 @@ start_user_service() {
 
   echo "Starting user service on localhost:$CEERAT_SERVICE_PORT"
   cd "$ROOT_DIR"
-  nohup env \
+  start_detached "$SERVICE_LOG" "$SERVICE_PID" env \
     PORT="$CEERAT_SERVICE_PORT" \
     DB_HOST="$CEERAT_DB_HOST" \
     DB_PORT="$CEERAT_DB_PORT" \
@@ -52,9 +62,9 @@ start_user_service() {
     DB_NAME="$CEERAT_DB_NAME" \
     JWT_SECRET="$CEERAT_JWT_SECRET" \
     JWT_AUTH_ENABLED="$JWT_AUTH_ENABLED" \
+    CEERAT_USER_ADMIN_PORT="$CEERAT_USER_ADMIN_PORT" \
     CEERAT_ENV="$CEERAT_ENV" \
-    "$BIN_DIR/ceerat-user-service" >>"$SERVICE_LOG" 2>&1 &
-  echo $! >"$SERVICE_PID"
+    "$BIN_DIR/ceerat-user-service"
   sleep 1
 }
 
@@ -66,14 +76,13 @@ start_agent_service() {
 
   echo "Starting agent service on http://localhost:$CEERAT_AGENT_PORT"
   cd "$ROOT_DIR"
-  nohup env \
+  start_detached "$AGENT_LOG" "$AGENT_PID" env \
     PORT="$CEERAT_AGENT_PORT" \
     USER_SERVICE_ADDR="$USER_SERVICE_ADDR" \
     CEERAT_USER_SERVICE_ADDR="$USER_SERVICE_ADDR" \
     OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
     OPENAI_MODEL="${OPENAI_MODEL:-gpt-4.1-mini}" \
-    "$BIN_DIR/ceerat-agent-service" >>"$AGENT_LOG" 2>&1 &
-  echo $! >"$AGENT_PID"
+    "$BIN_DIR/ceerat-agent-service"
   sleep 1
 }
 
@@ -85,13 +94,29 @@ start_web_ui() {
 
   echo "Starting web UI on http://localhost:$CEERAT_WEB_UI_PORT"
   cd "$ROOT_DIR"
-  nohup env \
+  start_detached "$WEB_LOG" "$WEB_PID" env \
     CEERAT_WEB_UI_PORT="$CEERAT_WEB_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
     CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
     CEERAT_ENV="$CEERAT_ENV" \
-    "$BIN_DIR/ceerat-web-ui" >>"$WEB_LOG" 2>&1 &
-  echo $! >"$WEB_PID"
+    "$BIN_DIR/ceerat-web-ui"
+  sleep 1
+}
+
+start_admin_ui() {
+  if is_port_listening "$CEERAT_ADMIN_UI_PORT"; then
+    echo "Admin UI already listening on http://localhost:$CEERAT_ADMIN_UI_PORT"
+    return
+  fi
+
+  echo "Starting admin UI on http://localhost:$CEERAT_ADMIN_UI_PORT"
+  cd "$ROOT_DIR"
+  start_detached "$ADMIN_LOG" "$ADMIN_PID" env \
+    CEERAT_ADMIN_UI_PORT="$CEERAT_ADMIN_UI_PORT" \
+    CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
+    CEERAT_ADMIN_API_BASE_URL="$CEERAT_ADMIN_API_BASE_URL" \
+    CEERAT_ENV="$CEERAT_ENV" \
+    "$BIN_DIR/ceerat-admin-ui"
   sleep 1
 }
 
@@ -103,13 +128,12 @@ start_customer_ui() {
 
   echo "Starting customer UI on http://localhost:$CEERAT_CUSTOMER_UI_PORT"
   cd "$ROOT_DIR"
-  nohup env \
+  start_detached "$CUSTOMER_LOG" "$CUSTOMER_PID" env \
     PORT="$CEERAT_CUSTOMER_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
     CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
     CEERAT_ENV="$CEERAT_ENV" \
-    "$BIN_DIR/ceerat-customer-ui" >>"$CUSTOMER_LOG" 2>&1 &
-  echo $! >"$CUSTOMER_PID"
+    "$BIN_DIR/ceerat-customer-ui"
   sleep 1
 }
 
@@ -167,6 +191,16 @@ else
   echo "Web UI directory not found: $ROOT_DIR/apps-repo/apps/ceerat-web-ui" >&2
 fi
 
+# admin UI
+if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" ]]; then
+  (cd "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-admin-ui" .) || {
+    echo "Admin UI build failed" >&2
+    exit 1
+  }
+else
+  echo "Admin UI directory not found: $ROOT_DIR/apps-repo/apps/ceerat-admin-ui" >&2
+fi
+
 # customer UI
 if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-customer-ui" .) || {
@@ -181,8 +215,8 @@ ensure_postgres
 start_user_service
 start_agent_service
 start_web_ui
+start_admin_ui
 start_customer_ui
 
-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/status.sh"
+"$SCRIPT_DIR/status.sh"
 print_log_paths
-
