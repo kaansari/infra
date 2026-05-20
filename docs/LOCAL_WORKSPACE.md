@@ -26,7 +26,6 @@ go work init \
   ./contracts-repo/packages/ceerat-contracts \
   ./services-repo/services/ceerat-user-service \
   ./apps-repo/ai/ceerat-agent-service \
-  ./apps-repo/ai/ceerat-chatgpt-client \
   ./apps-repo/apps/ceerat-admin-ui \
   ./apps-repo/apps/ceerat-web-ui \
   ./apps-repo/apps/ceerat-customer-ui
