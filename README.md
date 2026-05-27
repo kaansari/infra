@@ -31,7 +31,7 @@ USE_LOCAL_DB=false infra/start-stack.sh
 Or customize env vars inline:
 
 ```bash
-ROOT_DIR=/Users/kaansari/go/src/github.com/kaansari DB_PASSWORD=secret infra/start-stack.sh
+ROOT_DIR="/path/to/your/ceerat-workspace" DB_PASSWORD=secret infra/start-stack.sh
 ```
 
 Stop the stack:

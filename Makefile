@@ -32,6 +32,7 @@ start-customer-ui: ensure-dirs
 		PORT="$(CUSTOMER_PORT)" \
 		CEERAT_API_BASE_URL="localhost:50051" \
 		CEERAT_AGENT_BASE_URL="http://localhost:8088" \
+		CEERAT_CUSTOMER_UI_ROOT="$(STACK_ROOT)/apps-repo/apps/ceerat-customer-ui" \
 		CEERAT_ENV="development" \
 		"$(CUSTOMER_BIN)" </dev/null >>"$(CUSTOMER_LOG)" 2>&1 &
 	@echo $$! >"$(CUSTOMER_PID)"

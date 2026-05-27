@@ -22,4 +22,5 @@ status_line "User service" "$CEERAT_SERVICE_PORT" "grpc://localhost:$CEERAT_SERV
 status_line "Agent" "$CEERAT_AGENT_PORT" "http://localhost:$CEERAT_AGENT_PORT"
 status_line "Web UI" "$CEERAT_WEB_UI_PORT" "http://localhost:$CEERAT_WEB_UI_PORT"
 status_line "Admin UI" "$CEERAT_ADMIN_UI_PORT" "http://localhost:$CEERAT_ADMIN_UI_PORT"
+status_line "Customer UI" "$CEERAT_CUSTOMER_UI_PORT" "http://localhost:$CEERAT_CUSTOMER_UI_PORT"
 status_line "Admin API" "$CEERAT_USER_ADMIN_PORT" "$CEERAT_ADMIN_API_BASE_URL"

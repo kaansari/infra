@@ -16,7 +16,7 @@ Go can build each module on its own, but local cross-repo development works best
 From the shared parent directory:
 
 ```bash
-cd /Users/kaansari/go/src/github.com/kaansari
+cd /path/to/your/ceerat-workspace
 ```
 
 Create or recreate the workspace:

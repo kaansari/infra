@@ -98,6 +98,7 @@ start_web_ui() {
     CEERAT_WEB_UI_PORT="$CEERAT_WEB_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
     CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
+    CEERAT_WEB_UI_ROOT="$ROOT_DIR/apps-repo/apps/ceerat-web-ui" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-web-ui"
   sleep 1
@@ -132,6 +133,7 @@ start_customer_ui() {
     PORT="$CEERAT_CUSTOMER_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
     CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
+    CEERAT_CUSTOMER_UI_ROOT="$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-customer-ui"
   sleep 1
