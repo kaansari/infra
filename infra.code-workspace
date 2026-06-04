@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "../ceerat-platform-builder-agent"
+		},
+		{
+			"path": "../atscrawler"
 		}
 	]
 }
