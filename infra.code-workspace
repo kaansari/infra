@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "../atscrawler"
+		},
+		{
+			"path": "../apps-repo"
 		}
 	]
 }
