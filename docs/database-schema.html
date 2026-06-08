@@ -7,16 +7,17 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #f6f7f9;
+      --bg: #f7f8fb;
       --panel: #ffffff;
-      --ink: #17202a;
-      --muted: #5b6876;
-      --line: #d8dee6;
+      --ink: #18212f;
+      --muted: #5d6978;
+      --line: #d9e0ea;
+      --soft: #edf7f5;
       --accent: #0f766e;
-      --accent-2: #2563eb;
-      --warn: #b45309;
-      --soft: #eef7f6;
-      --code: #f2f4f7;
+      --blue: #2563eb;
+      --amber: #b45309;
+      --rose: #be123c;
+      --code: #f2f5f8;
     }
 
     * { box-sizing: border-box; }
@@ -27,8 +28,8 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.5;
     }
-    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
-    h1, h2, h3 { line-height: 1.18; margin: 0 0 12px; }
+    main { max-width: 1220px; margin: 0 auto; padding: 32px 24px 60px; }
+    h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
     h1 { font-size: 32px; }
     h2 { font-size: 23px; margin-top: 34px; padding-top: 8px; }
     h3 { font-size: 18px; margin-top: 18px; }
@@ -40,7 +41,7 @@
       padding: 1px 5px;
       font-size: 0.94em;
     }
-    .hero, .panel {
+    .hero, .panel, .table-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -54,7 +55,7 @@
       margin-top: 18px;
     }
     .metric {
-      background: #fbfcfd;
+      background: #fbfcfe;
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 12px;
@@ -72,7 +73,7 @@
     th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th {
       font-size: 12px;
-      color: #374151;
+      color: #394557;
       background: #f9fafb;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -91,27 +92,13 @@
     }
     .tag.pk { border-color: #99f6e4; background: var(--soft); color: #115e59; }
     .tag.fk { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
-    .tag.warn { border-color: #fed7aa; background: #fff7ed; color: var(--warn); }
+    .tag.warn { border-color: #fed7aa; background: #fff7ed; color: var(--amber); }
+    .tag.hot { border-color: #fecdd3; background: #fff1f2; color: var(--rose); }
     .columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
-    .table-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-    }
+    .table-card { padding: 14px; }
     .table-card h3 { margin-top: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .table-card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); }
     .table-card li { margin: 3px 0; }
-    .diagram-wrap { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; }
-    svg { max-width: 100%; min-width: 1040px; height: auto; display: block; }
-    .node rect { fill: #ffffff; stroke: #ccd5df; stroke-width: 1.2; rx: 8; }
-    .node text { font-size: 13px; fill: #17202a; font-weight: 650; }
-    .node .sub { font-size: 11px; fill: #667085; font-weight: 500; }
-    .rel { stroke: #64748b; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .logical { stroke: #b45309; stroke-dasharray: 5 4; }
-    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; color: var(--muted); font-size: 13px; }
-    .swatch { display: inline-block; width: 24px; height: 0; border-top: 2px solid #64748b; transform: translateY(-3px); margin-right: 6px; }
-    .swatch.logical { border-top-color: #b45309; border-top-style: dashed; }
     .note {
       border-left: 4px solid var(--accent);
       background: var(--soft);
@@ -120,145 +107,64 @@
       color: #134e4a;
       margin-top: 14px;
     }
+    .warning {
+      border-left-color: var(--amber);
+      background: #fff7ed;
+      color: #7c2d12;
+    }
+    .map {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+    .map div {
+      border: 1px solid var(--line);
+      background: #fbfcfe;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .map strong { display: block; margin-bottom: 6px; }
+    .small { font-size: 13px; color: var(--muted); }
   </style>
 </head>
 <body>
 <main>
   <section class="hero">
     <h1>Ceerat OLTP Database Schema</h1>
-    <p>Generated from the local PostgreSQL database configured by <code>infra/.env</code>. This document describes the current transactional application database, not the proposed separate BI/analytics database.</p>
+    <p>Code-derived reference for the current transactional PostgreSQL schema owned by <code>ceerat-user-service</code>. This replaces the older live snapshot that only covered users, customers, services, orders, RBAC, and a legacy patients table.</p>
     <div class="meta">
-      <div class="metric"><span>Database</span><strong>postgres</strong></div>
-      <div class="metric"><span>Host</span><strong>localhost:55434</strong></div>
+      <div class="metric"><span>Source of truth</span><strong>GORM AutoMigrate</strong></div>
+      <div class="metric"><span>Owner service</span><strong>ceerat-user-service</strong></div>
       <div class="metric"><span>Schema</span><strong>public</strong></div>
-      <div class="metric"><span>PostgreSQL</span><strong>14.20</strong></div>
-      <div class="metric"><span>Tables</span><strong>9</strong></div>
-      <div class="metric"><span>Generated</span><strong>2026-05-18</strong></div>
+      <div class="metric"><span>Tables</span><strong>24 service-owned</strong></div>
+      <div class="metric"><span>Generated</span><strong>2026-06-08</strong></div>
+      <div class="metric"><span>Live DB check</span><strong>Unavailable</strong></div>
     </div>
-    <div class="note">Sensitive values such as passwords, JWT secrets, API keys, and user password hashes are intentionally not included.</div>
+    <div class="note">Source files inspected: <code>../services-repo/services/ceerat-user-service/main.go</code>, <code>internal/models/models.go</code>, and <code>migrations/20260602_seed_rbac.sql</code>.</div>
+    <div class="note warning">Local PostgreSQL at <code>localhost:55434</code> was not running when this document was refreshed, so row counts, physical sizes, and PostgreSQL version are intentionally omitted.</div>
   </section>
 
-  <h2>Schema Diagram</h2>
-  <div class="diagram-wrap">
-    <svg viewBox="0 0 1040 620" role="img" aria-label="Ceerat database relationship diagram">
-      <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="#64748b"></path>
-        </marker>
-      </defs>
-
-      <path class="rel" d="M260 126 C315 126, 315 126, 370 126"></path>
-      <path class="rel" d="M530 125 C595 125, 595 125, 660 125"></path>
-      <path class="rel" d="M530 158 C590 194, 600 222, 660 258"></path>
-      <path class="rel" d="M820 290 C875 290, 875 290, 930 290"></path>
-      <path class="rel" d="M820 262 C865 205, 875 182, 920 126"></path>
-      <path class="rel" d="M820 126 C865 126, 875 126, 920 126"></path>
-      <path class="rel" d="M530 328 C590 328, 600 328, 660 328"></path>
-      <path class="logical rel" d="M260 166 C438 212, 482 285, 660 292"></path>
-      <path class="logical rel" d="M260 198 C438 260, 482 350, 660 358"></path>
-
-      <g class="node" transform="translate(40 80)">
-        <rect width="220" height="150"></rect>
-        <text x="16" y="28">users</text>
-        <text class="sub" x="16" y="52">PK id</text>
-        <text class="sub" x="16" y="72">unique email</text>
-        <text class="sub" x="16" y="92">role text</text>
-        <text class="sub" x="16" y="112">auth identity</text>
-      </g>
-
-      <g class="node" transform="translate(370 80)">
-        <rect width="160" height="105"></rect>
-        <text x="16" y="28">customers</text>
-        <text class="sub" x="16" y="52">PK id</text>
-        <text class="sub" x="16" y="72">FK user_id</text>
-      </g>
-
-      <g class="node" transform="translate(660 80)">
-        <rect width="160" height="105"></rect>
-        <text x="16" y="28">customer_services</text>
-        <text class="sub" x="16" y="52">FK customer_id</text>
-        <text class="sub" x="16" y="72">FK service_id</text>
-      </g>
-
-      <g class="node" transform="translate(920 80)">
-        <rect width="110" height="105"></rect>
-        <text x="16" y="28">services</text>
-        <text class="sub" x="16" y="52">PK id</text>
-        <text class="sub" x="16" y="72">catalog</text>
-      </g>
-
-      <g class="node" transform="translate(660 245)">
-        <rect width="160" height="140"></rect>
-        <text x="16" y="28">orders</text>
-        <text class="sub" x="16" y="52">PK id</text>
-        <text class="sub" x="16" y="72">FK customer_id</text>
-        <text class="sub" x="16" y="92">unique order_number</text>
-        <text class="sub" x="16" y="112">user_id indexed</text>
-      </g>
-
-      <g class="node" transform="translate(930 245)">
-        <rect width="110" height="120"></rect>
-        <text x="16" y="28">order_services</text>
-        <text class="sub" x="16" y="52">FK order_id</text>
-        <text class="sub" x="16" y="72">FK service_id</text>
-        <text class="sub" x="16" y="92">priced line</text>
-      </g>
-
-      <g class="node" transform="translate(40 310)">
-        <rect width="220" height="105"></rect>
-        <text x="16" y="28">roles</text>
-        <text class="sub" x="16" y="52">PK id</text>
-        <text class="sub" x="16" y="72">unique name</text>
-      </g>
-
-      <g class="node" transform="translate(370 310)">
-        <rect width="160" height="105"></rect>
-        <text x="16" y="28">role_permissions</text>
-        <text class="sub" x="16" y="52">FK role_id</text>
-        <text class="sub" x="16" y="72">unique role+method</text>
-      </g>
-
-      <g class="node" transform="translate(40 485)">
-        <rect width="220" height="85"></rect>
-        <text x="16" y="28">patients</text>
-        <text class="sub" x="16" y="52">legacy/isolated table</text>
-      </g>
-    </svg>
-    <div class="legend">
-      <span><span class="swatch"></span>Declared foreign key</span>
-      <span><span class="swatch logical"></span>Logical association / indexed reference without declared FK</span>
-    </div>
+  <h2>Schema Map</h2>
+  <div class="panel map">
+    <div><strong>Identity and RBAC</strong><code>users</code>, <code>roles</code>, <code>role_permissions</code></div>
+    <div><strong>Customer commerce</strong><code>customers</code>, <code>services</code>, <code>customer_services</code>, <code>carts</code>, <code>cart_items</code>, <code>orders</code>, <code>order_services</code></div>
+    <div><strong>Career domain</strong><code>companies</code>, <code>jobs</code>, <code>skills</code>, <code>skill_profiles</code>, <code>skill_profile_skills</code>, <code>resumes</code></div>
+    <div><strong>Job workflow</strong><code>job_carts</code>, <code>job_cart_items</code>, <code>job_applications</code>, <code>job_application_submissions</code></div>
+    <div><strong>Metrics and AI</strong><code>career_market_metrics</code>, <code>customer_career_metrics</code>, <code>ai_threads</code>, <code>ai_thread_messages</code></div>
   </div>
 
   <h2>Executive Summary</h2>
   <div class="panel">
     <table>
-      <thead><tr><th>Area</th><th>Tables</th><th>Description</th></tr></thead>
+      <thead><tr><th>Area</th><th>Current State</th><th>Important Details</th></tr></thead>
       <tbody>
-        <tr><td>Identity and RBAC</td><td><code>users</code>, <code>roles</code>, <code>role_permissions</code></td><td>Application users, role names, and gRPC method permissions. <code>users.role</code> is a logical role name, while <code>role_permissions.role_id</code> has a declared FK to <code>roles.id</code>.</td></tr>
-        <tr><td>Customer management</td><td><code>customers</code></td><td>Customer profile and address data. Customers optionally link one-to-one to users via a partial unique index on <code>user_id</code>.</td></tr>
-        <tr><td>Service catalog</td><td><code>services</code></td><td>Catalog of available services with category, type, price, scheduling fields, and agent assignment name.</td></tr>
-        <tr><td>Service assignment</td><td><code>customer_services</code></td><td>Join table associating customers with services and a status.</td></tr>
-        <tr><td>Orders</td><td><code>orders</code>, <code>order_services</code></td><td>Order header and priced service line items. Orders have a declared FK to customers; order line items link to orders and services.</td></tr>
-        <tr><td>Legacy patient data</td><td><code>patients</code></td><td>Standalone table with no declared relationships to the rest of the current Ceerat domain.</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h2>Current Table Counts and Sizes</h2>
-  <div class="panel">
-    <table>
-      <thead><tr><th>Table</th><th>Estimated Rows</th><th>Total Size</th><th>Table Size</th></tr></thead>
-      <tbody>
-        <tr><td><code>customer_services</code></td><td>1</td><td>64 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>customers</code></td><td>3</td><td>48 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>order_services</code></td><td>10</td><td>64 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>orders</code></td><td>3</td><td>96 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>patients</code></td><td>0</td><td>16 kB</td><td>0 bytes</td></tr>
-        <tr><td><code>role_permissions</code></td><td>28</td><td>64 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>roles</code></td><td>3</td><td>48 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>services</code></td><td>8</td><td>32 kB</td><td>8192 bytes</td></tr>
-        <tr><td><code>users</code></td><td>3</td><td>48 kB</td><td>8192 bytes</td></tr>
+        <tr><td>Migration path</td><td>GORM <code>AutoMigrate</code> at service startup plus an RBAC seed SQL migration.</td><td>The model list in <code>main.go</code> is the authoritative table inventory for the OLTP database.</td></tr>
+        <tr><td>Users and authorization</td><td>Users now include <code>status</code>. RBAC tables store role names and gRPC method permissions.</td><td><code>users.role</code> remains a text role name and is not declared as a FK to <code>roles</code>.</td></tr>
+        <tr><td>Service/product commerce</td><td><code>services</code> also backs products using <code>category='product'</code> and <code>type='product'</code>.</td><td>Carts support service or product items through optional references to <code>services.id</code>.</td></tr>
+        <tr><td>Orders</td><td>Orders retain denormalized line-item snapshots in <code>order_services</code>.</td><td><code>orders.user_id</code> is indexed, but no explicit User relation is declared in the model.</td></tr>
+        <tr><td>Career data</td><td>Company/job catalog, skill profiles, resumes, job carts, applications, and provider submissions are now first-class OLTP tables.</td><td>Several workflow tables use composite unique indexes to prevent duplicate saved jobs and duplicate applications.</td></tr>
+        <tr><td>AI threads</td><td>Thread and message persistence is owned by the user service.</td><td>Messages cascade on thread deletion and store <code>metadata_json</code> as <code>jsonb</code>.</td></tr>
+        <tr><td>Removed from docs</td><td>The old <code>patients</code> table is not in the current <code>AutoMigrate</code> list.</td><td>If it exists in a live database, it is legacy drift rather than a current service-owned model.</td></tr>
       </tbody>
     </table>
   </div>
@@ -266,271 +172,123 @@
   <h2>Relationship Inventory</h2>
   <div class="panel">
     <table>
-      <thead><tr><th>Constraint</th><th>From</th><th>To</th><th>Purpose</th></tr></thead>
+      <thead><tr><th>From</th><th>To</th><th>Model Relation</th><th>Notes</th></tr></thead>
       <tbody>
-        <tr><td><code>fk_customers_user</code></td><td><code>customers.user_id</code></td><td><code>users.id</code></td><td>Links a customer profile to an application user.</td></tr>
-        <tr><td><code>fk_customer_services_customer</code></td><td><code>customer_services.customer_id</code></td><td><code>customers.id</code></td><td>Assigns a service to a customer.</td></tr>
-        <tr><td><code>fk_customer_services_service</code></td><td><code>customer_services.service_id</code></td><td><code>services.id</code></td><td>References the assigned service catalog item.</td></tr>
-        <tr><td><code>fk_orders_customer</code></td><td><code>orders.customer_id</code></td><td><code>customers.id</code></td><td>Associates an order with a customer.</td></tr>
-        <tr><td><code>fk_orders_services</code></td><td><code>order_services.order_id</code></td><td><code>orders.id</code></td><td>Associates line items with an order.</td></tr>
-        <tr><td><code>fk_order_services_service</code></td><td><code>order_services.service_id</code></td><td><code>services.id</code></td><td>References the catalog service represented by an order line.</td></tr>
-        <tr><td><code>fk_role_permissions_role</code></td><td><code>role_permissions.role_id</code></td><td><code>roles.id</code></td><td>Assigns gRPC method permissions to a role.</td></tr>
+        <tr><td><code>role_permissions.role_id</code></td><td><code>roles.id</code></td><td><span class="tag fk">FK</span></td><td>Cascade delete declared.</td></tr>
+        <tr><td><code>customers.user_id</code></td><td><code>users.id</code></td><td><span class="tag fk">FK</span></td><td>Partial unique index where <code>user_id &lt;&gt; ''</code>.</td></tr>
+        <tr><td><code>customer_services.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Customer service assignment.</td></tr>
+        <tr><td><code>customer_services.service_id</code></td><td><code>services.id</code></td><td><span class="tag fk">FK</span></td><td>Assigned catalog service.</td></tr>
+        <tr><td><code>carts.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Unique, one cart per customer.</td></tr>
+        <tr><td><code>cart_items.cart_id</code></td><td><code>carts.id</code></td><td><span class="tag fk">FK</span></td><td>Cart line items.</td></tr>
+        <tr><td><code>cart_items.service_id</code></td><td><code>services.id</code></td><td><span class="tag fk">FK</span></td><td>Optional service item.</td></tr>
+        <tr><td><code>cart_items.product_id</code></td><td><code>services.id</code></td><td><span class="tag fk">FK</span></td><td>Optional product item backed by services.</td></tr>
+        <tr><td><code>orders.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Order owner customer.</td></tr>
+        <tr><td><code>order_services.order_id</code></td><td><code>orders.id</code></td><td><span class="tag fk">FK</span></td><td>Order line items.</td></tr>
+        <tr><td><code>order_services.service_id</code></td><td><code>services.id</code></td><td><span class="tag fk">FK</span></td><td>Catalog item plus denormalized snapshot fields.</td></tr>
+        <tr><td><code>jobs.company_id</code></td><td><code>companies.id</code></td><td><span class="tag fk">FK</span></td><td>Job catalog ownership.</td></tr>
+        <tr><td><code>skill_profiles.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Customer-owned skill profile.</td></tr>
+        <tr><td><code>skill_profile_skills.skill_profile_id</code></td><td><code>skill_profiles.id</code></td><td><span class="tag fk">FK</span></td><td>Profile skill rows.</td></tr>
+        <tr><td><code>skill_profile_skills.skill_id</code></td><td><code>skills.id</code></td><td><span class="tag fk">FK</span></td><td>Skill catalog reference.</td></tr>
+        <tr><td><code>resumes.skill_profile_id</code></td><td><code>skill_profiles.id</code></td><td><span class="tag fk">FK</span></td><td>Resume's source skill profile.</td></tr>
+        <tr><td><code>resumes.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag warn">indexed</span></td><td>Used by repositories; no explicit Customer field is declared on the model.</td></tr>
+        <tr><td><code>job_carts.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Unique, one job cart per customer.</td></tr>
+        <tr><td><code>job_cart_items.job_cart_id</code></td><td><code>job_carts.id</code></td><td><span class="tag fk">FK</span></td><td>Unique with <code>job_id</code>.</td></tr>
+        <tr><td><code>job_cart_items.job_id</code></td><td><code>jobs.id</code></td><td><span class="tag fk">FK</span></td><td>Saved job reference.</td></tr>
+        <tr><td><code>job_cart_items.selected_skill_profile_id</code></td><td><code>skill_profiles.id</code></td><td><span class="tag fk">FK</span></td><td>Optional selected profile.</td></tr>
+        <tr><td><code>job_cart_items.selected_resume_id</code></td><td><code>resumes.id</code></td><td><span class="tag fk">FK</span></td><td>Optional selected resume.</td></tr>
+        <tr><td><code>job_applications.job_id</code></td><td><code>jobs.id</code></td><td><span class="tag fk">FK</span></td><td>Unique with <code>customer_id</code>.</td></tr>
+        <tr><td><code>job_applications.skill_profile_id</code></td><td><code>skill_profiles.id</code></td><td><span class="tag fk">FK</span></td><td>Application profile snapshot source.</td></tr>
+        <tr><td><code>job_applications.resume_id</code></td><td><code>resumes.id</code></td><td><span class="tag fk">FK</span></td><td>Submitted resume source.</td></tr>
+        <tr><td><code>job_applications.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag warn">indexed</span></td><td>Used by repositories; no explicit Customer field is declared on the model.</td></tr>
+        <tr><td><code>job_application_submissions.job_application_id</code></td><td><code>job_applications.id</code></td><td><span class="tag fk">FK</span></td><td>Provider submission for an application.</td></tr>
+        <tr><td><code>job_application_submissions.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag fk">FK</span></td><td>Unique with <code>job_id</code>.</td></tr>
+        <tr><td><code>job_application_submissions.job_id</code></td><td><code>jobs.id</code></td><td><span class="tag fk">FK</span></td><td>Submitted job.</td></tr>
+        <tr><td><code>customer_career_metrics.customer_id</code></td><td><code>customers.id</code></td><td><span class="tag warn">logical</span></td><td>Unique metrics per customer/date; no explicit relation field.</td></tr>
+        <tr><td><code>ai_threads.user_id</code></td><td><code>users.id</code></td><td><span class="tag fk">FK</span></td><td>Unique identity with <code>profile</code> and <code>external_thread_id</code>.</td></tr>
+        <tr><td><code>ai_thread_messages.thread_id</code></td><td><code>ai_threads.id</code></td><td><span class="tag fk">FK</span></td><td>Cascade delete declared through thread messages association.</td></tr>
+        <tr><td><code>ai_thread_messages.user_id</code></td><td><code>users.id</code></td><td><span class="tag fk">FK</span></td><td>Message actor identity.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h2>Domain Notes</h2>
+  <h2>Indexes and Uniqueness</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Table</th><th>Unique / Important Indexes</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>Unique <code>email</code>; indexed <code>status</code>.</td></tr>
+        <tr><td><code>roles</code></td><td>Unique <code>name</code>.</td></tr>
+        <tr><td><code>role_permissions</code></td><td>Unique <code>(role_id, grpc_method)</code>; indexed <code>grpc_method</code>.</td></tr>
+        <tr><td><code>customers</code></td><td>Partial unique <code>user_id</code> where <code>user_id &lt;&gt; ''</code>.</td></tr>
+        <tr><td><code>services</code></td><td>Partial unique <code>sku</code> where <code>sku &lt;&gt; ''</code>; indexed <code>active</code>.</td></tr>
+        <tr><td><code>carts</code>, <code>job_carts</code></td><td>Unique <code>customer_id</code>.</td></tr>
+        <tr><td><code>orders</code></td><td>Unique <code>order_number</code>; indexed <code>customer_id</code>, <code>user_id</code>, and <code>status</code>.</td></tr>
+        <tr><td><code>skills</code></td><td>Unique <code>(name, category)</code>.</td></tr>
+        <tr><td><code>job_cart_items</code></td><td>Unique <code>(job_cart_id, job_id)</code>.</td></tr>
+        <tr><td><code>job_applications</code></td><td>Unique <code>(customer_id, job_id)</code>.</td></tr>
+        <tr><td><code>job_application_submissions</code></td><td>Unique <code>(customer_id, job_id)</code>; indexed provider fields.</td></tr>
+        <tr><td><code>career_market_metrics</code></td><td>Unique <code>(scope_type, scope_id, metric_date)</code>.</td></tr>
+        <tr><td><code>customer_career_metrics</code></td><td>Unique <code>(customer_id, metric_date)</code>.</td></tr>
+        <tr><td><code>ai_threads</code></td><td>Unique <code>(user_id, profile, external_thread_id)</code>; indexed <code>(user_id, profile, updated_at desc)</code>.</td></tr>
+        <tr><td><code>ai_thread_messages</code></td><td>Indexed <code>(thread_id, created_at)</code> and <code>(user_id, profile, created_at desc)</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Table Catalog</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Table</th><th>Purpose</th><th>Key Columns</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>Login accounts and actor identity.</td><td><code>id</code>, <code>name</code>, <code>company</code>, <code>email</code>, <code>password</code>, <code>token</code>, <code>role</code>, <code>status</code>, timestamps</td><td><span class="tag pk">PK id</span> <span class="tag hot">password hash</span></td></tr>
+        <tr><td><code>roles</code></td><td>RBAC role definitions.</td><td><code>id</code>, <code>name</code>, <code>description</code>, timestamps</td><td>Default roles are seeded as <code>admin</code>, <code>agent</code>, and <code>customer</code>.</td></tr>
+        <tr><td><code>role_permissions</code></td><td>Allowed gRPC methods per role.</td><td><code>id</code>, <code>role_id</code>, <code>grpc_method</code>, <code>description</code>, timestamps</td><td>RBAC enforcement is method based.</td></tr>
+        <tr><td><code>customers</code></td><td>Customer profile and address data.</td><td><code>id</code>, name/email/phone fields, address fields, <code>user_id</code>, timestamps</td><td>Optional one-to-one user profile link.</td></tr>
+        <tr><td><code>services</code></td><td>Service catalog and product backing table.</td><td><code>id</code>, <code>name</code>, <code>category</code>, <code>price</code>, <code>type</code>, schedule/start fields, <code>agent_name</code>, <code>description</code>, <code>sku</code>, <code>active</code>, timestamps</td><td>Products are represented as service rows with product category/type.</td></tr>
+        <tr><td><code>customer_services</code></td><td>Assigned or ordered services for customers.</td><td><code>id</code>, <code>customer_id</code>, <code>service_id</code>, <code>status</code>, <code>ordered_at</code>, timestamps</td><td>Links customer and catalog service.</td></tr>
+        <tr><td><code>carts</code></td><td>One active commerce cart per customer.</td><td><code>id</code>, <code>customer_id</code>, <code>subtotal</code>, <code>total</code>, timestamps</td><td>Cart items carry totals.</td></tr>
+        <tr><td><code>cart_items</code></td><td>Service/product cart line items.</td><td><code>id</code>, <code>cart_id</code>, <code>item_type</code>, <code>service_id</code>, <code>product_id</code>, <code>quantity</code>, <code>unit_price</code>, <code>total_price</code>, <code>notes</code>, timestamps</td><td>Exactly one of service/product is expected by domain behavior.</td></tr>
+        <tr><td><code>orders</code></td><td>Order headers.</td><td><code>id</code>, <code>customer_id</code>, <code>user_id</code>, <code>order_number</code>, <code>status</code>, schedule/start/due dates, <code>subtotal</code>, <code>tax</code>, <code>total</code>, <code>notes</code>, timestamps</td><td>Default status is <code>draft</code>.</td></tr>
+        <tr><td><code>order_services</code></td><td>Order line item snapshots.</td><td><code>id</code>, <code>order_id</code>, <code>service_id</code>, <code>service_name</code>, <code>category</code>, <code>type</code>, price/quantity totals, agent/date fields, timestamps</td><td>Denormalized service fields preserve order history.</td></tr>
+        <tr><td><code>companies</code></td><td>ATS/imported company catalog.</td><td><code>id</code>, <code>name</code>, <code>website</code>, <code>description</code>, <code>industry</code>, <code>location</code>, <code>source</code>, <code>external_id</code>, <code>source_url</code>, timestamps</td><td>Indexed for catalog search and provider import.</td></tr>
+        <tr><td><code>jobs</code></td><td>Job postings.</td><td><code>id</code>, <code>company_id</code>, title/description/category/location fields, <code>remote_type</code>, <code>employment_type</code>, <code>status</code>, salary/date/source fields, <code>external_job_id</code>, timestamps</td><td>Default status is <code>open</code>.</td></tr>
+        <tr><td><code>skills</code></td><td>Skill catalog.</td><td><code>id</code>, <code>name</code>, <code>category</code>, <code>description</code>, timestamps</td><td>Unique by name and category.</td></tr>
+        <tr><td><code>skill_profiles</code></td><td>Customer skill profile summaries.</td><td><code>id</code>, <code>customer_id</code>, <code>name</code>, <code>summary</code>, <code>years_of_experience</code>, <code>target_role</code>, <code>is_default</code>, timestamps</td><td>Profiles group many skill rows.</td></tr>
+        <tr><td><code>skill_profile_skills</code></td><td>Skills attached to profiles.</td><td><code>id</code>, <code>skill_profile_id</code>, <code>skill_id</code>, <code>level</code>, <code>years_experience</code>, timestamps</td><td>Join table with skill metadata.</td></tr>
+        <tr><td><code>resumes</code></td><td>Resume content and metadata.</td><td><code>id</code>, <code>customer_id</code>, <code>skill_profile_id</code>, <code>title</code>, <code>content</code>, <code>file_url</code>, <code>name</code>, <code>content_text</code>, <code>version</code>, <code>is_active</code>, timestamps</td><td>Stores resume text; avoid exposing raw content unnecessarily.</td></tr>
+        <tr><td><code>job_carts</code></td><td>One active saved-job cart per customer.</td><td><code>id</code>, <code>customer_id</code>, <code>status</code>, timestamps</td><td>Default status is <code>active</code>.</td></tr>
+        <tr><td><code>job_cart_items</code></td><td>Saved jobs plus selected application assets.</td><td><code>id</code>, <code>job_cart_id</code>, <code>job_id</code>, <code>notes</code>, <code>selected_skill_profile_id</code>, <code>selected_resume_id</code>, timestamps</td><td>Prevents duplicate job saves per cart.</td></tr>
+        <tr><td><code>job_applications</code></td><td>Customer application records.</td><td><code>id</code>, <code>customer_id</code>, <code>job_id</code>, <code>skill_profile_id</code>, <code>resume_id</code>, <code>status</code>, <code>cover_letter</code>, <code>resume_snapshot_text</code>, timestamps</td><td>Default status is <code>submitted</code>.</td></tr>
+        <tr><td><code>job_application_submissions</code></td><td>External provider submission tracking.</td><td><code>id</code>, <code>job_application_id</code>, <code>customer_id</code>, <code>job_id</code>, provider IDs/status, <code>application_url</code>, request/response JSON text, <code>error_summary</code>, <code>submitted_at</code>, timestamps</td><td>Supports manual and ATS provider submissions.</td></tr>
+        <tr><td><code>career_market_metrics</code></td><td>Market-level career rollups.</td><td><code>id</code>, <code>scope_type</code>, <code>scope_id</code>, <code>metric_date</code>, count fields, grouped JSON text fields, timestamps</td><td>Rollup table in OLTP service today.</td></tr>
+        <tr><td><code>customer_career_metrics</code></td><td>Customer career rollups.</td><td><code>id</code>, <code>customer_id</code>, <code>metric_date</code>, count fields, <code>applications_by_status_json</code>, timestamps</td><td>One row per customer/date.</td></tr>
+        <tr><td><code>ai_threads</code></td><td>AI conversation thread identity.</td><td><code>id</code>, <code>user_id</code>, <code>profile</code>, <code>external_thread_id</code>, <code>title</code>, timestamps</td><td>Unique external thread per user/profile.</td></tr>
+        <tr><td><code>ai_thread_messages</code></td><td>AI conversation messages.</td><td><code>id</code>, <code>thread_id</code>, <code>user_id</code>, <code>profile</code>, <code>role</code>, <code>content</code>, <code>metadata_json</code>, <code>created_at</code></td><td><code>metadata_json</code> is jsonb with default <code>{}</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Operational Notes</h2>
   <div class="columns">
     <section class="table-card">
-      <h3>RBAC <span class="tag pk">active</span></h3>
-      <p>Roles currently present: <code>admin</code>, <code>agent</code>, and <code>customer</code>. Permission counts are admin: 1, agent: 11, customer: 16.</p>
-      <ul>
-        <li><code>roles.name</code> is unique.</li>
-        <li><code>role_permissions</code> enforces unique <code>(role_id, grpc_method)</code>.</li>
-        <li><code>users.role</code> is text and has no declared FK to <code>roles.name</code>.</li>
-      </ul>
+      <h3>AutoMigrate <span class="tag pk">current</span></h3>
+      <p>The service starts by auto-migrating all 24 models. For production, explicit migrations would make schema changes easier to review and roll back.</p>
     </section>
-
     <section class="table-card">
-      <h3>Orders <span class="tag pk">active</span></h3>
-      <p>All current orders are in <code>draft</code> status. <code>orders.order_number</code> is unique.</p>
-      <ul>
-        <li><code>orders.customer_id</code> has a declared FK to customers.</li>
-        <li><code>orders.user_id</code> is indexed but currently has no declared FK to users.</li>
-        <li><code>order_services</code> stores denormalized price/name fields for historical line item context.</li>
-      </ul>
+      <h3>RBAC Seed <span class="tag pk">active</span></h3>
+      <p><code>migrations/20260602_seed_rbac.sql</code> creates and seeds roles/permissions idempotently. Runtime seed code also ensures defaults exist.</p>
     </section>
-
     <section class="table-card">
-      <h3>Customers <span class="tag pk">active</span></h3>
-      <p>Customers can be attached to users with <code>customers.user_id</code>. A partial unique index enforces one customer profile per non-empty user ID.</p>
+      <h3>Sensitive Fields <span class="tag hot">careful</span></h3>
+      <p><code>users.password</code>, resume content fields, AI message content, and provider request/response summaries may contain sensitive user data.</p>
     </section>
-
     <section class="table-card">
-      <h3>Patients <span class="tag warn">legacy</span></h3>
-      <p>The <code>patients</code> table has no declared foreign keys and currently has zero estimated rows. It appears separate from the current customer/order/service workflow.</p>
+      <h3>BI Boundary <span class="tag warn">watch</span></h3>
+      <p>The OLTP schema currently includes career metric rollup tables. The separate BI database described in requirements is not reflected in this OLTP model list.</p>
     </section>
   </div>
 
-  <h2>Table Details</h2>
-
-  <div class="panel">
-    <h3>users</h3>
-    <p>Application identities and authentication records.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Default</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td></td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>name</td><td>text</td><td>Yes</td><td></td><td>Display name.</td></tr>
-        <tr><td>company</td><td>text</td><td>Yes</td><td></td><td>Company label.</td></tr>
-        <tr><td>email</td><td>text</td><td>No</td><td></td><td>Unique login identifier.</td></tr>
-        <tr><td>password</td><td>text</td><td>No</td><td></td><td>Password hash. Do not expose in APIs/docs.</td></tr>
-        <tr><td>token</td><td>text</td><td>Yes</td><td></td><td>Legacy/token field.</td></tr>
-        <tr><td>role</td><td>text</td><td>No</td><td><code>'admin'::text</code></td><td>Logical role name.</td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>roles</h3>
-    <p>Role catalog for RBAC.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>name</td><td>text</td><td>No</td><td>Unique role name.</td></tr>
-        <tr><td>description</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>role_permissions</h3>
-    <p>RBAC mapping from roles to allowed gRPC methods.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>role_id</td><td>text</td><td>No</td><td><span class="tag fk">FK roles.id</span></td></tr>
-        <tr><td>grpc_method</td><td>text</td><td>No</td><td>Indexed; unique with role_id.</td></tr>
-        <tr><td>description</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>customers</h3>
-    <p>Customer profile and address information.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>first_name</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>last_name</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>email</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>phone</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_line1</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_line2</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_city</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_state</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_country</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>address_postal_code</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>user_id</td><td>text</td><td>Yes</td><td><span class="tag fk">FK users.id</span> partial unique index when non-empty.</td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>services</h3>
-    <p>Service catalog used by customer service assignments and order line items.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>name</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>category</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>price</td><td>numeric</td><td>Yes</td><td></td></tr>
-        <tr><td>type</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>schedule_date</td><td>text</td><td>Yes</td><td>Date stored as text.</td></tr>
-        <tr><td>start_date</td><td>text</td><td>Yes</td><td>Date stored as text.</td></tr>
-        <tr><td>agent_name</td><td>text</td><td>Yes</td><td>Agent stored as name, not FK.</td></tr>
-        <tr><td>description</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>customer_services</h3>
-    <p>Join table assigning services to customers.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>customer_id</td><td>text</td><td>Yes</td><td><span class="tag fk">FK customers.id</span></td></tr>
-        <tr><td>service_id</td><td>text</td><td>Yes</td><td><span class="tag fk">FK services.id</span></td></tr>
-        <tr><td>status</td><td>text</td><td>Yes</td><td></td></tr>
-        <tr><td>ordered_at</td><td>text</td><td>Yes</td><td>Date/time stored as text.</td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>orders</h3>
-    <p>Order header table.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Default</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td></td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>customer_id</td><td>text</td><td>Yes</td><td></td><td><span class="tag fk">FK customers.id</span></td></tr>
-        <tr><td>user_id</td><td>text</td><td>Yes</td><td></td><td>Indexed logical user reference; no declared FK.</td></tr>
-        <tr><td>order_number</td><td>text</td><td>No</td><td></td><td>Unique.</td></tr>
-        <tr><td>status</td><td>text</td><td>No</td><td><code>'draft'::text</code></td><td>Indexed.</td></tr>
-        <tr><td>schedule_date</td><td>text</td><td>Yes</td><td></td><td>Date stored as text.</td></tr>
-        <tr><td>start_date</td><td>text</td><td>Yes</td><td></td><td>Date stored as text.</td></tr>
-        <tr><td>due_date</td><td>text</td><td>Yes</td><td></td><td>Date stored as text.</td></tr>
-        <tr><td>subtotal</td><td>numeric</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>tax</td><td>numeric</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>total</td><td>numeric</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>notes</td><td>text</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>order_services</h3>
-    <p>Order line items with denormalized service information and pricing.</p>
-    <table>
-      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>text</td><td>No</td><td><span class="tag pk">PK</span></td></tr>
-        <tr><td>order_id</td><td>text</td><td>Yes</td><td><span class="tag fk">FK orders.id</span></td></tr>
-        <tr><td>service_id</td><td>text</td><td>Yes</td><td><span class="tag fk">FK services.id</span></td></tr>
-        <tr><td>service_name</td><td>text</td><td>No</td><td>Snapshot of service name.</td></tr>
-        <tr><td>category</td><td>text</td><td>Yes</td><td>Snapshot of service category.</td></tr>
-        <tr><td>type</td><td>text</td><td>Yes</td><td>Snapshot of service type.</td></tr>
-        <tr><td>unit_price</td><td>numeric</td><td>Yes</td><td></td></tr>
-        <tr><td>quantity</td><td>integer</td><td>Yes</td><td></td></tr>
-        <tr><td>total_price</td><td>numeric</td><td>Yes</td><td></td></tr>
-        <tr><td>agent_name</td><td>text</td><td>Yes</td><td>Agent stored as name, not FK.</td></tr>
-        <tr><td>schedule_date</td><td>text</td><td>Yes</td><td>Date stored as text.</td></tr>
-        <tr><td>start_date</td><td>text</td><td>Yes</td><td>Date stored as text.</td></tr>
-        <tr><td>due_date</td><td>text</td><td>Yes</td><td>Date stored as text.</td></tr>
-        <tr><td>created_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-        <tr><td>updated_at</td><td>timestamp with time zone</td><td>Yes</td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="panel">
-    <h3>patients</h3>
-    <p>Standalone patient/testing table with no declared FKs to the current customer/order/service domain.</p>
-    <table>
-      <thead><tr><th>Column Group</th><th>Columns</th></tr></thead>
-      <tbody>
-        <tr><td>Identity</td><td><code>id</code> PK, <code>fname</code>, <code>lname</code>, <code>dob</code>, <code>dos</code>, <code>location</code>, <code>icdcodes</code></td></tr>
-        <tr><td>Test flags</td><td><code>covid_test</code>, <code>covid_test_result</code>, <code>rsv_test</code>, <code>rsv_test_result</code>, <code>strep_test</code>, <code>strep_test_result</code>, <code>flu_test</code>, <code>flu_test_result</code></td></tr>
-        <tr><td>Timestamps</td><td><code>created_at</code>, <code>updated_at</code></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h2>Index Inventory</h2>
-  <div class="panel">
-    <table>
-      <thead><tr><th>Table</th><th>Index</th><th>Definition</th></tr></thead>
-      <tbody>
-        <tr><td>customer_services</td><td>customer_services_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>customer_services</td><td>idx_customer_services_customer_id</td><td><code>btree (customer_id)</code></td></tr>
-        <tr><td>customer_services</td><td>idx_customer_services_service_id</td><td><code>btree (service_id)</code></td></tr>
-        <tr><td>customers</td><td>customers_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>customers</td><td>idx_customers_user_id_unique</td><td><code>UNIQUE btree (user_id) WHERE user_id &lt;&gt; ''</code></td></tr>
-        <tr><td>order_services</td><td>idx_order_services_order_id</td><td><code>btree (order_id)</code></td></tr>
-        <tr><td>order_services</td><td>idx_order_services_service_id</td><td><code>btree (service_id)</code></td></tr>
-        <tr><td>order_services</td><td>order_services_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>orders</td><td>idx_orders_customer_id</td><td><code>btree (customer_id)</code></td></tr>
-        <tr><td>orders</td><td>idx_orders_order_number</td><td><code>UNIQUE btree (order_number)</code></td></tr>
-        <tr><td>orders</td><td>idx_orders_status</td><td><code>btree (status)</code></td></tr>
-        <tr><td>orders</td><td>idx_orders_user_id</td><td><code>btree (user_id)</code></td></tr>
-        <tr><td>orders</td><td>orders_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>patients</td><td>patients_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>role_permissions</td><td>idx_role_permission</td><td><code>UNIQUE btree (role_id, grpc_method)</code></td></tr>
-        <tr><td>role_permissions</td><td>idx_role_permissions_g_rpc_method</td><td><code>btree (grpc_method)</code></td></tr>
-        <tr><td>role_permissions</td><td>role_permissions_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>roles</td><td>idx_roles_name</td><td><code>UNIQUE btree (name)</code></td></tr>
-        <tr><td>roles</td><td>roles_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>services</td><td>services_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-        <tr><td>users</td><td>idx_users_email</td><td><code>UNIQUE btree (email)</code></td></tr>
-        <tr><td>users</td><td>users_pkey</td><td><code>UNIQUE btree (id)</code></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h2>Recommended Follow-Ups</h2>
-  <div class="panel">
-    <table>
-      <thead><tr><th>Recommendation</th><th>Reason</th></tr></thead>
-      <tbody>
-        <tr><td>Consider a declared FK from <code>orders.user_id</code> to <code>users.id</code>.</td><td>The column is indexed and appears to reference users, but referential integrity is not enforced.</td></tr>
-        <tr><td>Consider aligning <code>users.role</code> with <code>roles.name</code>.</td><td>RBAC depends on role names, but the database does not enforce that user roles exist in <code>roles</code>.</td></tr>
-        <tr><td>Evaluate text date fields.</td><td>Several scheduling fields are stored as <code>text</code>; using <code>date</code> or <code>timestamptz</code> would improve validation and reporting.</td></tr>
-        <tr><td>Keep BI/intelligence tables out of this OLTP database.</td><td>Per BI requirements, business events and AI insights should live in a separate analytics database to avoid reporting load on transactional workflows.</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <p class="small" style="margin-top: 26px;">Generated from local source on 2026-06-08. Live row counts and table sizes should be regenerated once the local PostgreSQL stack is running.</p>
 </main>
 </body>
 </html>
