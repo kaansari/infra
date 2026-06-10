@@ -19,6 +19,13 @@ elif [[ -f "$ROOT_DIR/.env" ]]; then
   set +a
 fi
 
+if [[ -f "$ROOT_DIR/infra/typesense.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/infra/typesense.env"
+  set +a
+fi
+
 PG_CTL="${PG_CTL:-/usr/local/opt/postgresql@14/bin/pg_ctl}"
 INITDB="${INITDB:-/usr/local/opt/postgresql@14/bin/initdb}"
 PSQL="${PSQL:-/usr/local/opt/postgresql@14/bin/psql}"

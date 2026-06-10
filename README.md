@@ -44,3 +44,42 @@ Notes:
 - The scripts assume the workspace layout where `services-repo`, `apps-repo`, and `contracts-repo` are in the same parent directory.
 - The scripts start processes with `go run .` — if you prefer built binaries, replace the `go run` lines in `start-stack.sh` with `go build` + `./binary` runs.
 - You can edit `ROOT_DIR` environment variable if your repositories are in a different path.
+
+## Optional Typesense Job Search
+
+Imported ATS jobs remain stored in Postgres as the source of truth. Typesense is an optional derived search index owned by `ceerat-user-service`; the crawler and browser apps do not write to Typesense directly.
+
+Start a local Typesense instance:
+
+```bash
+TYPESENSE_API_KEY=dev_typesense_key docker compose -f infra/docker-compose.typesense.yml up -d
+```
+
+Enable indexing/search when starting the stack:
+
+```bash
+TYPESENSE_HOST=localhost \
+TYPESENSE_PORT=8108 \
+TYPESENSE_PROTOCOL=http \
+TYPESENSE_API_KEY=dev_typesense_key \
+TYPESENSE_COLLECTION_JOBS=jobs \
+infra/start-stack.sh
+```
+
+If any Typesense env var is missing, the user service logs job search as disabled and falls back to database-backed job search.
+
+Indexing behavior:
+- `career.JobService/ImportATSJobs` saves jobs to Postgres first.
+- After a successful save/update, `ceerat-user-service` normalizes and upserts the saved job into Typesense.
+- Typesense errors are logged and do not fail the import.
+
+Rebuild the index from Postgres:
+
+```bash
+curl -X POST http://localhost:8081/api/admin/jobs/search-index/rebuild \
+  -H "Authorization: Bearer $CEERAT_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"recreate":true}'
+```
+
+The rebuild response returns counts only: processed, succeeded, and failed.
