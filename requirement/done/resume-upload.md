@@ -212,6 +212,21 @@ Update:
   - domain-requirements.json
   - platform-overview.html
 
+Implementation phases:
+Phase 1: Contracts and service-owned Career import APIs
+- Implement protobuf contracts, service handlers, repository methods, RBAC/security registration, batch insert APIs, parsing/import validation, and backend tests.
+- Do not implement AI tools or customer UI upload until Phase 1 builds and tests pass.
+- Deliver a Phase 1 summary before starting Phase 2.
+
+Phase 2: AI tools and customer UI upload flow
+- Add customer-safe AI tools that call the Phase 1 service APIs.
+- Add customer UI upload support through same-origin routes only.
+- Add AI/customer UI tests.
+- Run final end-to-end verification.
+
+Codex must preserve this order. If Phase 1 cannot be completed safely, stop and report the blocker instead of building a frontend workaround.
+
+
 Verification:
 Run relevant commands:
 - contracts proto generation/build/tests
@@ -228,3 +243,10 @@ Deliverables:
 3. List changed files.
 4. List tests/build commands run and results.
 5. Note any deferred parser support, such as PDF/DOCX, if not implemented.
+
+Extra Deliverables:
+1. Phase 1 builder-agent findings and backend architecture.
+2. Phase 1 changed files and tests.
+3. Phase 2 AI/customer UI changes.
+4. Final changed files and tests/build commands.
+5. Deferred work, especially PDF/DOCX parsing or advanced deduplication.
