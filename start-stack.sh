@@ -45,6 +45,18 @@ ensure_postgres() {
     -c "ALTER USER $CEERAT_DB_USER PASSWORD '$CEERAT_DB_PASSWORD';" >/dev/null
 }
 
+start_typesense() {
+  if is_port_listening "8108"; then
+    echo "Typesense already listening on localhost:8108"
+    return
+  fi
+
+  echo "Starting Typesense container"
+  cd "$ROOT_DIR/infra"
+  docker-compose -f docker-compose.typesense.yml up -d
+  sleep 2
+}
+
 start_user_service() {
   if is_port_listening "$CEERAT_SERVICE_PORT"; then
     echo "User service already listening on localhost:$CEERAT_SERVICE_PORT"
@@ -160,7 +172,7 @@ fi
 
 echo "Building service (ceerat-user-service)..."
 if [[ -d "$ROOT_DIR/services-repo/services/ceerat-user-service" ]]; then
-  (cd "$ROOT_DIR/services-repo/services/ceerat-user-service" && go test ./... && go build -o "$BIN_DIR/ceerat-user-service" .) || {
+  (cd "$ROOT_DIR/services-repo/services/ceerat-user-service" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-user-service" .) || {
     echo "Service build failed" >&2
     exit 1
   }
@@ -171,7 +183,7 @@ fi
 echo "Building apps..."
 # agent service
 if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" ]]; then
-  (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" && go test ./... && go build -o "$BIN_DIR/ceerat-agent-service" .) || {
+  (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-service" .) || {
     echo "Agent build failed" >&2
     exit 1
   }
@@ -179,19 +191,9 @@ else
   echo "Agent directory not found: $ROOT_DIR/apps-repo/ai/ceerat-agent-service" >&2
 fi
 
-# chatgpt client
-if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-chatgpt-client" ]]; then
-  (cd "$ROOT_DIR/apps-repo/ai/ceerat-chatgpt-client" && go test ./... && go build -o "$BIN_DIR/ceerat-chatgpt-client" .) || {
-    echo "ChatGPT client build failed" >&2
-    exit 1
-  }
-else
-  echo "ChatGPT client directory not found: $ROOT_DIR/apps-repo/ai/ceerat-chatgpt-client" >&2
-fi
-
 # web UI
 if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" ]]; then
-  (cd "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-web-ui" .) || {
+  (cd "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-web-ui" .) || {
     echo "Web UI build failed" >&2
     exit 1
   }
@@ -201,7 +203,7 @@ fi
 
 # admin UI
 if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" ]]; then
-  (cd "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-admin-ui" .) || {
+  (cd "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-admin-ui" .) || {
     echo "Admin UI build failed" >&2
     exit 1
   }
@@ -211,7 +213,7 @@ fi
 
 # customer UI
 if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
-  (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -o "$BIN_DIR/ceerat-customer-ui" .) || {
+  (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-customer-ui" .) || {
     echo "Customer UI build failed" >&2
     exit 1
   }
@@ -220,6 +222,7 @@ else
 fi
 
 ensure_postgres
+start_typesense
 start_user_service
 start_agent_service
 start_web_ui

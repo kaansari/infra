@@ -35,6 +35,14 @@ stop_pidfile "customer UI" "$CUSTOMER_PID" "$CEERAT_CUSTOMER_UI_PORT"
 stop_pidfile "agent service" "$AGENT_PID" "$CEERAT_AGENT_PORT"
 stop_pidfile "user service" "$SERVICE_PID" "$CEERAT_SERVICE_PORT"
 
+# Stop Typesense
+if is_port_listening "8108"; then
+  echo "Stopping Typesense"
+  cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && docker-compose -f docker-compose.typesense.yml down
+else
+  echo "Typesense is not listening on port 8108"
+fi
+
 if [[ -x "$PG_CTL" && -d "$CEERAT_PGDATA" ]]; then
   if is_port_listening "$CEERAT_DB_PORT"; then
     echo "Stopping Postgres on port $CEERAT_DB_PORT"
