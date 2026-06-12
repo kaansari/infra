@@ -28,7 +28,8 @@ go work init \
   ./apps-repo/ai/ceerat-agent-service \
   ./apps-repo/apps/ceerat-admin-ui \
   ./apps-repo/apps/ceerat-web-ui \
-  ./apps-repo/apps/ceerat-customer-ui
+  ./apps-repo/apps/ceerat-customer-ui \
+  ./atscrawler
 ```
 
 Then sync workspace module requirements:
