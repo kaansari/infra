@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ceerat-backend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ceerat-frontend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ceerat-data
