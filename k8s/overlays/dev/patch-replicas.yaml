@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-user-service
+  namespace: ceerat-backend
+spec:
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-agent-service
+  namespace: ceerat-backend
+spec:
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-web-ui
+  namespace: ceerat-frontend
+spec:
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-admin-ui
+  namespace: ceerat-frontend
+spec:
+  replicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-customer-ui
+  namespace: ceerat-frontend
+spec:
+  replicas: 1

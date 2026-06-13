@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: typesense
+  namespace: ceerat-data
+  labels:
+    app.kubernetes.io/name: typesense
+    app.kubernetes.io/part-of: ceerat
+spec:
+  serviceName: typesense
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: typesense
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: typesense
+        app.kubernetes.io/part-of: ceerat
+    spec:
+      containers:
+        - name: typesense
+          image: typesense/typesense:0.25.2
+          args:
+            - --data-dir=/data
+            - --api-key=$(TYPESENSE_API_KEY)
+            - --enable-cors
+          env:
+            - name: TYPESENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: typesense-api-key
+                  key: TYPESENSE_API_KEY
+          ports:
+            - name: http
+              containerPort: 8108
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi

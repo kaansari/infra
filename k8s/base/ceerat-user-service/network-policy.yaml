@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ceerat-user-service-ingress
+  namespace: ceerat-backend
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ceerat-user-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ceerat-backend
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ceerat-frontend
+      ports:
+        - protocol: TCP
+          port: 50051
+        - protocol: TCP
+          port: 8081

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ceerat-agent-service
+  namespace: ceerat-backend
+  labels:
+    app.kubernetes.io/name: ceerat-agent-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ceerat-agent-service
+  ports:
+    - name: http
+      port: 8088
+      targetPort: http
