@@ -19,14 +19,18 @@ spec:
     spec:
       containers:
         - name: ceerat-web-ui
-          image: ceerat-web-ui
+          image: ceerat-apps-repo
           imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/ceerat-web-ui
           ports:
             - name: http
               containerPort: 3000
           env:
             - name: CEERAT_WEB_UI_PORT
               value: "3000"
+            - name: CEERAT_WEB_UI_ROOT
+              value: /app/ceerat-web-ui
             - name: CEERAT_ENV
               valueFrom:
                 configMapKeyRef:
@@ -81,14 +85,18 @@ spec:
     spec:
       containers:
         - name: ceerat-admin-ui
-          image: ceerat-admin-ui
+          image: ceerat-apps-repo
           imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/ceerat-admin-ui
           ports:
             - name: http
               containerPort: 3010
           env:
             - name: CEERAT_ADMIN_UI_PORT
               value: "3010"
+            - name: CEERAT_ADMIN_UI_ROOT
+              value: /app/ceerat-admin-ui
             - name: CEERAT_ENV
               valueFrom:
                 configMapKeyRef:
@@ -143,14 +151,18 @@ spec:
     spec:
       containers:
         - name: ceerat-customer-ui
-          image: ceerat-customer-ui
+          image: ceerat-apps-repo
           imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/ceerat-customer-ui
           ports:
             - name: http
               containerPort: 3005
           env:
             - name: CEERAT_CUSTOMER_UI_PORT
               value: "3005"
+            - name: CEERAT_CUSTOMER_UI_ROOT
+              value: /app/ceerat-customer-ui
             - name: CEERAT_ENV
               valueFrom:
                 configMapKeyRef:

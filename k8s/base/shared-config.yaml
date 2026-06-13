@@ -26,7 +26,7 @@ metadata:
   name: ceerat-db-config
   namespace: ceerat-backend
 data:
-  DB_HOST: cloud-sql-proxy.ceerat-data.svc.cluster.local
+  DB_HOST: postgres.ceerat-data.svc.cluster.local
   DB_PORT: "5432"
   DB_NAME: ceerat
   DB_USER: ceerat

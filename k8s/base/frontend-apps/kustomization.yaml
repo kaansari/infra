@@ -4,12 +4,6 @@ resources:
   - deployments.yaml
   - services.yaml
 images:
-  - name: ceerat-web-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-web-ui
-    newTag: latest
-  - name: ceerat-admin-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-admin-ui
-    newTag: latest
-  - name: ceerat-customer-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-customer-ui
+  - name: ceerat-apps-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-apps-repo
     newTag: latest

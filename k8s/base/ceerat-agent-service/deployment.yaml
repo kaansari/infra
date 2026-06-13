@@ -19,8 +19,10 @@ spec:
     spec:
       containers:
         - name: ceerat-agent-service
-          image: ceerat-agent-service
+          image: ceerat-apps-repo
           imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/ceerat-agent-service
           ports:
             - name: http
               containerPort: 8088

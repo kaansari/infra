@@ -1,5 +1,6 @@
 .env
 .run/
+.k8-build-context/
 logs/
 bin/ceerat-admin-ui
 go.work.sum

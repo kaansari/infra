@@ -11,8 +11,18 @@ ADMIN_PORT ?= 3010
 ADMIN_BIN := $(BIN_DIR)/ceerat-admin-ui
 ADMIN_LOG := $(LOG_DIR)/admin-ui.log
 ADMIN_PID := $(RUN_DIR)/admin-ui.pid
+PROJECT_ID ?= PROJECT_ID
+REGION ?= us
+K8S_REPOSITORY ?= ceerat
+K8S_REGISTRY ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(K8S_REPOSITORY)
+IMAGE_TAG ?= dev
+K8S_OVERLAY ?= k8s
+KUBECTL ?= kubectl
+DOCKER ?= docker
+PUSH ?= false
+K8S_CONTEXT_DIR ?= $(ROOT_DIR)/.k8-build-context
 
-.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs
+.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8
 
 all: build-customer-ui
 
@@ -89,3 +99,45 @@ stop-stack:
 
 status-stack:
 	@./status.sh
+
+start-k8:
+	@./k8s-start.sh
+
+stop-k8:
+	@./k8s-stop.sh
+
+status-k8:
+	@./k8s-status.sh
+
+k8-context:
+	@echo "Preparing Docker build context in $(K8S_CONTEXT_DIR)"
+	@rm -rf "$(K8S_CONTEXT_DIR)"
+	@mkdir -p "$(K8S_CONTEXT_DIR)"
+	@sed '/\.\/atscrawler/d' "$(STACK_ROOT)/go.work" >"$(K8S_CONTEXT_DIR)/go.work"
+	@cp "$(STACK_ROOT)/go.work.sum" "$(K8S_CONTEXT_DIR)/go.work.sum"
+	@cp -R "$(STACK_ROOT)/contracts-repo" "$(K8S_CONTEXT_DIR)/contracts-repo"
+	@cp -R "$(STACK_ROOT)/apps-repo" "$(K8S_CONTEXT_DIR)/apps-repo"
+	@cp -R "$(STACK_ROOT)/services-repo" "$(K8S_CONTEXT_DIR)/services-repo"
+	@rm -rf "$(K8S_CONTEXT_DIR)/contracts-repo/.git" "$(K8S_CONTEXT_DIR)/apps-repo/.git" "$(K8S_CONTEXT_DIR)/services-repo/.git"
+
+k8-build: k8-context
+	@echo "Building Ceerat Kubernetes images with tag $(IMAGE_TAG)"
+	@$(DOCKER) build -f "$(ROOT_DIR)/k8s/dockerfiles/apps-repo.Dockerfile" -t "$(K8S_REGISTRY)/ceerat-apps-repo:$(IMAGE_TAG)" "$(K8S_CONTEXT_DIR)"
+	@$(DOCKER) build -f "$(ROOT_DIR)/k8s/dockerfiles/services-repo.Dockerfile" -t "$(K8S_REGISTRY)/ceerat-services-repo:$(IMAGE_TAG)" "$(K8S_CONTEXT_DIR)"
+
+k8-push:
+	@echo "Pushing Ceerat Kubernetes images to $(K8S_REGISTRY)"
+	@$(DOCKER) push "$(K8S_REGISTRY)/ceerat-apps-repo:$(IMAGE_TAG)"
+	@$(DOCKER) push "$(K8S_REGISTRY)/ceerat-services-repo:$(IMAGE_TAG)"
+
+k8-render:
+	@$(KUBECTL) kustomize "$(ROOT_DIR)/$(K8S_OVERLAY)" | sed -e 's#us-docker.pkg.dev/PROJECT_ID/ceerat#$(K8S_REGISTRY)#g' -e 's#:latest#:$(IMAGE_TAG)#g' -e 's#:dev#:$(IMAGE_TAG)#g' -e 's#:staging#:$(IMAGE_TAG)#g' -e 's#:prod#:$(IMAGE_TAG)#g'
+
+k8-deploy: k8-build
+	@if [ "$(PUSH)" = "true" ]; then \
+		echo "Pushing Ceerat Kubernetes images to $(K8S_REGISTRY)"; \
+		$(DOCKER) push "$(K8S_REGISTRY)/ceerat-apps-repo:$(IMAGE_TAG)"; \
+		$(DOCKER) push "$(K8S_REGISTRY)/ceerat-services-repo:$(IMAGE_TAG)"; \
+	fi
+	@echo "Deploying $(K8S_OVERLAY) with image tag $(IMAGE_TAG)"
+	@$(KUBECTL) kustomize "$(ROOT_DIR)/$(K8S_OVERLAY)" | sed -e 's#us-docker.pkg.dev/PROJECT_ID/ceerat#$(K8S_REGISTRY)#g' -e 's#:latest#:$(IMAGE_TAG)#g' -e 's#:dev#:$(IMAGE_TAG)#g' -e 's#:staging#:$(IMAGE_TAG)#g' -e 's#:prod#:$(IMAGE_TAG)#g' | $(KUBECTL) apply -f -

@@ -11,10 +11,9 @@ resources:
   - ../../base/frontend-apps/deployments.yaml
   - ../../base/frontend-apps/services.yaml
   - ../../base/ingress/ingress.yaml
-  - ../../base/cloud-sql-proxy/secret.yaml
-  - ../../base/cloud-sql-proxy/service-account.yaml
-  - ../../base/cloud-sql-proxy/deployment.yaml
-  - ../../base/cloud-sql-proxy/service.yaml
+  - ../../base/postgres/secret.yaml
+  - ../../base/postgres/statefulset.yaml
+  - ../../base/postgres/service.yaml
   - ../../base/typesense/secret.yaml
   - ../../base/typesense/statefulset.yaml
   - ../../base/typesense/service.yaml
@@ -30,18 +29,9 @@ configMapGenerator:
     literals:
       - CEERAT_ENV=production
 images:
-  - name: ceerat-user-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-user-service
+  - name: ceerat-services-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-services-repo
     newTag: prod
-  - name: ceerat-agent-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-agent-service
-    newTag: prod
-  - name: ceerat-web-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-web-ui
-    newTag: prod
-  - name: ceerat-admin-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-admin-ui
-    newTag: prod
-  - name: ceerat-customer-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-customer-ui
+  - name: ceerat-apps-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-apps-repo
     newTag: prod

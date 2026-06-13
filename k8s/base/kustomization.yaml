@@ -11,26 +11,16 @@ resources:
   - frontend-apps/deployments.yaml
   - frontend-apps/services.yaml
   - ingress/ingress.yaml
-  - cloud-sql-proxy/secret.yaml
-  - cloud-sql-proxy/service-account.yaml
-  - cloud-sql-proxy/deployment.yaml
-  - cloud-sql-proxy/service.yaml
+  - postgres/secret.yaml
+  - postgres/statefulset.yaml
+  - postgres/service.yaml
   - typesense/secret.yaml
   - typesense/statefulset.yaml
   - typesense/service.yaml
 images:
-  - name: ceerat-user-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-user-service
+  - name: ceerat-services-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-services-repo
     newTag: latest
-  - name: ceerat-agent-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-agent-service
-    newTag: latest
-  - name: ceerat-web-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-web-ui
-    newTag: latest
-  - name: ceerat-admin-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-admin-ui
-    newTag: latest
-  - name: ceerat-customer-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-customer-ui
+  - name: ceerat-apps-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-apps-repo
     newTag: latest

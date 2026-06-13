@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cloud-sql-proxy
+  name: postgres
   namespace: ceerat-data
   labels:
-    app.kubernetes.io/name: cloud-sql-proxy
+    app.kubernetes.io/name: postgres
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: cloud-sql-proxy
+    app.kubernetes.io/name: postgres
   ports:
     - name: postgres
       port: 5432

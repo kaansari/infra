@@ -5,6 +5,6 @@ resources:
   - service.yaml
   - network-policy.yaml
 images:
-  - name: ceerat-user-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-user-service
+  - name: ceerat-services-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-services-repo
     newTag: latest

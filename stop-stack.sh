@@ -38,7 +38,14 @@ stop_pidfile "user service" "$SERVICE_PID" "$CEERAT_SERVICE_PORT"
 # Stop Typesense
 if is_port_listening "8108"; then
   echo "Stopping Typesense"
-  cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && docker-compose -f docker-compose.typesense.yml down
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if command -v docker-compose >/dev/null 2>&1; then
+    (cd "$script_dir" && docker-compose -f docker-compose.typesense.yml down) || true
+  elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    (cd "$script_dir" && docker compose -f docker-compose.typesense.yml down) || true
+  else
+    echo "docker compose was not found; Typesense shutdown skipped"
+  fi
 else
   echo "Typesense is not listening on port 8108"
 fi

@@ -11,10 +11,9 @@ resources:
   - ../../base/frontend-apps/deployments.yaml
   - ../../base/frontend-apps/services.yaml
   - ../../base/ingress/ingress.yaml
-  - ../../base/cloud-sql-proxy/secret.yaml
-  - ../../base/cloud-sql-proxy/service-account.yaml
-  - ../../base/cloud-sql-proxy/deployment.yaml
-  - ../../base/cloud-sql-proxy/service.yaml
+  - ../../base/postgres/secret.yaml
+  - ../../base/postgres/statefulset.yaml
+  - ../../base/postgres/service.yaml
   - ../../base/typesense/secret.yaml
   - ../../base/typesense/statefulset.yaml
   - ../../base/typesense/service.yaml
@@ -36,18 +35,9 @@ configMapGenerator:
       - CEERAT_AGENT_BASE_URL=http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
       - CEERAT_ADMIN_API_BASE_URL=http://ceerat-user-service.ceerat-backend.svc.cluster.local:8081
 images:
-  - name: ceerat-user-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-user-service
+  - name: ceerat-services-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-services-repo
     newTag: staging
-  - name: ceerat-agent-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-agent-service
-    newTag: staging
-  - name: ceerat-web-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-web-ui
-    newTag: staging
-  - name: ceerat-admin-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-admin-ui
-    newTag: staging
-  - name: ceerat-customer-ui
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-customer-ui
+  - name: ceerat-apps-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-apps-repo
     newTag: staging

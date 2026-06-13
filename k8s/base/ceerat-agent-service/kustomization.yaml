@@ -4,6 +4,6 @@ resources:
   - deployment.yaml
   - service.yaml
 images:
-  - name: ceerat-agent-service
-    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-agent-service
+  - name: ceerat-apps-repo
+    newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-apps-repo
     newTag: latest
