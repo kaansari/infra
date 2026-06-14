@@ -41,10 +41,16 @@ if is_port_listening "8108"; then
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if command -v docker-compose >/dev/null 2>&1; then
     (cd "$script_dir" && docker-compose -f docker-compose.typesense.yml down) || true
-  elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    (cd "$script_dir" && docker compose -f docker-compose.typesense.yml down) || true
+  elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    if docker compose version >/dev/null 2>&1; then
+      (cd "$script_dir" && docker compose -f docker-compose.typesense.yml down) || true
+    elif docker container inspect ceerat-typesense >/dev/null 2>&1; then
+      docker stop ceerat-typesense >/dev/null || true
+    else
+      echo "docker compose was not found and ceerat-typesense container does not exist; Typesense shutdown skipped"
+    fi
   else
-    echo "docker compose was not found; Typesense shutdown skipped"
+    echo "Docker is not running or not reachable; Typesense shutdown skipped"
   fi
 else
   echo "Typesense is not listening on port 8108"

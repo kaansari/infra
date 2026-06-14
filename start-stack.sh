@@ -46,6 +46,11 @@ ensure_postgres() {
 }
 
 start_typesense() {
+  if [[ "${TYPESENSE_DISABLED:-}" == "true" ]]; then
+    echo "Typesense is disabled"
+    return
+  fi
+
   if is_port_listening "8108"; then
     echo "Typesense already listening on localhost:8108"
     return
@@ -53,7 +58,28 @@ start_typesense() {
 
   echo "Starting Typesense container"
   cd "$ROOT_DIR/infra"
-  docker-compose -f docker-compose.typesense.yml up -d
+  if command -v docker-compose >/dev/null 2>&1; then
+    docker-compose -f docker-compose.typesense.yml up -d
+  elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    if docker compose version >/dev/null 2>&1; then
+      docker compose -f docker-compose.typesense.yml up -d
+    elif docker container inspect ceerat-typesense >/dev/null 2>&1; then
+      docker start ceerat-typesense >/dev/null
+    else
+      docker run -d \
+        --name ceerat-typesense \
+        -p 8108:8108 \
+        -v ceerat-typesense-data:/data \
+        typesense/typesense:29.0 \
+        --data-dir /data \
+        --api-key="${TYPESENSE_API_KEY:-dev_typesense_key}" \
+        --enable-cors >/dev/null
+    fi
+  else
+    echo "Docker is not running or not reachable; Typesense startup skipped"
+    echo "Start Docker/Colima, install Docker Compose, or set TYPESENSE_DISABLED=true to silence this message."
+    return
+  fi
   sleep 2
 }
 

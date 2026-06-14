@@ -407,6 +407,14 @@ Start a local Typesense instance:
 TYPESENSE_API_KEY=dev_typesense_key docker compose -f infra/docker-compose.typesense.yml up -d
 ```
 
+`start-stack.sh` starts Typesense when Docker is available. It supports legacy `docker-compose`, the modern `docker compose` plugin, and a plain `docker run` fallback named `ceerat-typesense` when Compose is not installed.
+
+If Docker itself is not running or not reachable, Typesense startup is skipped and the user service falls back to database-backed job search unless Typesense env vars are provided. To skip Typesense intentionally:
+
+```bash
+TYPESENSE_DISABLED=true infra/start-stack.sh
+```
+
 Enable indexing/search when starting the stack:
 
 ```bash
