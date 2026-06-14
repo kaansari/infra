@@ -1,0 +1,174 @@
+Name:               colima
+Roles:              control-plane,master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=colima
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.5.1
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"62:b3:c0:42:f9:8f"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.5.1
+                    k3s.io/hostname: colima
+                    k3s.io/internal-ip: 192.168.5.1
+                    k3s.io/node-args:
+                      ["server","--write-kubeconfig-mode","644","--disable","traefik","--docker","--flannel-iface","eth0","--https-listen-port","60902"]
+                    k3s.io/node-config-hash: KS5TMD6NNANU2YIHCUDCUGZ2KF36Y6F5JWSZ4Z2CSJSB2ZEQP3GQ====
+                    k3s.io/node-env: {}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Fri, 12 Jun 2026 21:42:29 -0500
+Taints:             <none>
+Unschedulable:      false
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Sun, 14 Jun 2026 13:20:57 -0500   Sun, 14 Jun 2026 07:49:50 -0500   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.5.1
+  Hostname:    colima
+Capacity:
+ cpu:                2
+ ephemeral-storage:  19221248Ki
+ hugepages-2Mi:      0
+ memory:             2014552Ki
+ pods:               110
+Allocatable:
+ cpu:                2
+ ephemeral-storage:  18698430040
+ hugepages-2Mi:      0
+ memory:             2014552Ki
+ pods:               110
+System Info:
+ Machine ID:                 413068a055584073aab50a92b85adfe1
+ System UUID:                06d657a3-709d-e54a-a1e8-f02ebaaa5a19
+ Boot ID:                    5ceea4f9-7bf2-499d-b295-dcbcb5fbc0e6
+ Kernel Version:             6.8.0-64-generic
+ OS Image:                   Ubuntu 24.04.2 LTS
+ Operating System:           linux
+ Architecture:               amd64
+ Container Runtime Version:  docker://28.4.0
+ Kubelet Version:            v1.33.4+k3s1
+ Kube-Proxy Version:         
+PodCIDR:                     10.42.0.0/24
+ProviderID:                  k3s://colima
+Non-terminated Pods:         (15 in total)
+  Namespace                  Name                                       CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
+  ---------                  ----                                       ------------  ----------  ---------------  -------------  ---
+  ceerat-backend             ceerat-agent-service-cb6497949-5gvz7       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-agent-service-cb6497949-m7tp7       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-user-service-6cbf58ddc7-5pmxx       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-user-service-6cbf58ddc7-76b7q       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-data                postgres-0                                 100m (5%)     500m (25%)  256Mi (13%)      1Gi (52%)      20h
+  ceerat-data                typesense-0                                100m (5%)     500m (25%)  256Mi (13%)      1Gi (52%)      20h
+  ceerat-frontend            ceerat-admin-ui-bf95d6db5-kx8qd            50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-admin-ui-bf95d6db5-vvn2x            50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-customer-ui-6d67f8fb9-dn9vz         50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-customer-ui-6d67f8fb9-lc2v6         50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-web-ui-7fb8d97749-5qntk             50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-web-ui-7fb8d97749-l4gj8             50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  kube-system                coredns-64fd4b4794-sq4dx                   100m (5%)     0 (0%)      70Mi (3%)        170Mi (8%)     39h
+  kube-system                local-path-provisioner-774c6665dc-847vh    0 (0%)        0 (0%)      0 (0%)           0 (0%)         39h
+  kube-system                metrics-server-7bfffcd44-6zhfg             100m (5%)     0 (0%)      70Mi (3%)        0 (0%)         39h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                1100m (55%)   4800m (240%)
+  memory             1548Mi (78%)  5802Mi (294%)
+  ephemeral-storage  0 (0%)        0 (0%)
+Name:               colima
+Roles:              control-plane,master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=colima
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.5.1
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"62:b3:c0:42:f9:8f"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.5.1
+                    k3s.io/hostname: colima
+                    k3s.io/internal-ip: 192.168.5.1
+                    k3s.io/node-args:
+                      ["server","--write-kubeconfig-mode","644","--disable","traefik","--docker","--flannel-iface","eth0","--https-listen-port","60902"]
+                    k3s.io/node-config-hash: KS5TMD6NNANU2YIHCUDCUGZ2KF36Y6F5JWSZ4Z2CSJSB2ZEQP3GQ====
+                    k3s.io/node-env: {}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Fri, 12 Jun 2026 21:42:29 -0500
+Taints:             <none>
+Unschedulable:      false
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Sun, 14 Jun 2026 13:20:57 -0500   Fri, 12 Jun 2026 21:42:29 -0500   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Sun, 14 Jun 2026 13:20:57 -0500   Sun, 14 Jun 2026 07:49:50 -0500   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.5.1
+  Hostname:    colima
+Capacity:
+ cpu:                2
+ ephemeral-storage:  19221248Ki
+ hugepages-2Mi:      0
+ memory:             2014552Ki
+ pods:               110
+Allocatable:
+ cpu:                2
+ ephemeral-storage:  18698430040
+ hugepages-2Mi:      0
+ memory:             2014552Ki
+ pods:               110
+System Info:
+ Machine ID:                 413068a055584073aab50a92b85adfe1
+ System UUID:                06d657a3-709d-e54a-a1e8-f02ebaaa5a19
+ Boot ID:                    5ceea4f9-7bf2-499d-b295-dcbcb5fbc0e6
+ Kernel Version:             6.8.0-64-generic
+ OS Image:                   Ubuntu 24.04.2 LTS
+ Operating System:           linux
+ Architecture:               amd64
+ Container Runtime Version:  docker://28.4.0
+ Kubelet Version:            v1.33.4+k3s1
+ Kube-Proxy Version:         
+PodCIDR:                     10.42.0.0/24
+ProviderID:                  k3s://colima
+Non-terminated Pods:         (15 in total)
+  Namespace                  Name                                       CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
+  ---------                  ----                                       ------------  ----------  ---------------  -------------  ---
+  ceerat-backend             ceerat-agent-service-cb6497949-5gvz7       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-agent-service-cb6497949-m7tp7       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-user-service-6cbf58ddc7-5pmxx       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-backend             ceerat-user-service-6cbf58ddc7-76b7q       100m (5%)     500m (25%)  128Mi (6%)       512Mi (26%)    20h
+  ceerat-data                postgres-0                                 100m (5%)     500m (25%)  256Mi (13%)      1Gi (52%)      20h
+  ceerat-data                typesense-0                                100m (5%)     500m (25%)  256Mi (13%)      1Gi (52%)      20h
+  ceerat-frontend            ceerat-admin-ui-bf95d6db5-kx8qd            50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-admin-ui-bf95d6db5-vvn2x            50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-customer-ui-6d67f8fb9-dn9vz         50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-customer-ui-6d67f8fb9-lc2v6         50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-web-ui-7fb8d97749-5qntk             50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  ceerat-frontend            ceerat-web-ui-7fb8d97749-l4gj8             50m (2%)      300m (15%)  64Mi (3%)        256Mi (13%)    20h
+  kube-system                coredns-64fd4b4794-sq4dx                   100m (5%)     0 (0%)      70Mi (3%)        170Mi (8%)     39h
+  kube-system                local-path-provisioner-774c6665dc-847vh    0 (0%)        0 (0%)      0 (0%)           0 (0%)         39h
+  kube-system                metrics-server-7bfffcd44-6zhfg             100m (5%)     0 (0%)      70Mi (3%)        0 (0%)         39h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                1100m (55%)   4800m (240%)
+  memory             1548Mi (78%)  5802Mi (294%)
+  ephemeral-storage  0 (0%)        0 (0%)

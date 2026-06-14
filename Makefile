@@ -22,7 +22,7 @@ DOCKER ?= docker
 PUSH ?= false
 K8S_CONTEXT_DIR ?= $(ROOT_DIR)/.k8-build-context
 
-.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8
+.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
 
 all: build-customer-ui
 
@@ -108,6 +108,9 @@ stop-k8:
 
 status-k8:
 	@./k8s-status.sh
+
+k8-logs:
+	@./k8s-logs.sh
 
 k8-context:
 	@echo "Preparing Docker build context in $(K8S_CONTEXT_DIR)"

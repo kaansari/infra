@@ -135,7 +135,55 @@ kubectl get pods -A
 kubectl get svc -A
 ```
 
-The Ceerat services are `ClusterIP` services, so they are only reachable inside Kubernetes until you port-forward them. If `http://localhost:3000` shows nothing, start a port-forward first.
+`./k8s-status.sh` prints the current context, ingress classes, nodes, Ceerat pods grouped by namespace, services, ingress resources, recent Ceerat events, and quick local access hints.
+
+### Live Visibility
+
+Recommended local dashboard:
+
+```bash
+brew install k9s
+k9s
+```
+
+K9s is the fastest way to inspect pods, deployments, restarts, events, logs, and shells inside the local cluster.
+
+Stream Ceerat logs with the repo helper:
+
+```bash
+./k8s-logs.sh backend
+./k8s-logs.sh frontend
+./k8s-logs.sh user-service
+./k8s-logs.sh customer-ui
+./k8s-logs.sh admin-ui
+./k8s-logs.sh web-ui
+./k8s-logs.sh all --no-follow
+```
+
+`k8s-logs.sh` uses `kubectl logs` by default. If `stern` is installed, namespace and all-pod views use it for better multi-pod streaming:
+
+```bash
+brew install stern
+stern -n ceerat-backend ceerat-user-service
+stern -n ceerat-frontend ceerat-customer-ui
+```
+
+Useful raw Kubernetes checks:
+
+```bash
+kubectl -n ceerat-frontend logs deploy/ceerat-web-ui --tail=50
+kubectl -n ceerat-frontend logs deploy/ceerat-customer-ui --tail=50
+kubectl -n ceerat-frontend logs deploy/ceerat-admin-ui --tail=50
+kubectl -n ceerat-backend logs deploy/ceerat-user-service --tail=50
+kubectl -n ceerat-backend get events --sort-by=.metadata.creationTimestamp
+kubectl -n ceerat-frontend get events --sort-by=.metadata.creationTimestamp
+```
+
+### Local Browser Access
+
+The Ceerat services are `ClusterIP` services, so they are only reachable inside Kubernetes until you port-forward them. For local development, prefer port-forwarding over ingress. Ingress, public hostnames, load balancers, and HTTPS belong to production or production-like environments.
+
+If `http://localhost:3000` shows nothing, start a port-forward first.
 
 Use the quick local mode:
 
@@ -204,14 +252,69 @@ Port-forward the user service gRPC endpoint:
 kubectl -n ceerat-backend port-forward svc/ceerat-user-service 50051:50051
 ```
 
-Useful log checks:
+### Production Ingress
+
+Ingress is the production path for browser traffic. Use it when you are deploying Ceerat behind a real ingress controller, load balancer, DNS, and HTTPS certificate. Do not use ingress as the primary local debugging tool; use `./k8s-start.sh --local`, `k9s`, and `./k8s-logs.sh` for local work.
+
+The ingress manifest uses:
+
+```yaml
+ingressClassName: traefik
+```
+
+This is suitable when the production or production-like cluster uses Traefik. If the target cluster uses Nginx ingress, change the class to `nginx` in the production overlay or patch the deployed ingress.
+
+Check what your cluster has:
 
 ```bash
-kubectl -n ceerat-frontend logs deploy/ceerat-web-ui --tail=50
-kubectl -n ceerat-frontend logs deploy/ceerat-customer-ui --tail=50
-kubectl -n ceerat-frontend logs deploy/ceerat-admin-ui --tail=50
-kubectl -n ceerat-backend logs deploy/ceerat-user-service --tail=50
+kubectl get ingressclass
+kubectl get ingress -A
 ```
+
+Production hostnames should map through DNS to the ingress/load balancer address. Example hostnames:
+
+```text
+https://app.ceerat.com
+https://customer.ceerat.com
+https://admin.ceerat.com
+```
+
+For a production-like local smoke test only, you may map local hostnames in `/etc/hosts` to the ingress address:
+
+```text
+127.0.0.1 app.ceerat.local
+127.0.0.1 customer.ceerat.local
+127.0.0.1 admin.ceerat.local
+```
+
+If the production cluster does not have an ingress controller, install one through the platform's normal infrastructure process. Nginx ingress is a common fallback:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/cloud/deploy.yaml
+kubectl get pods -n ingress-nginx
+kubectl get svc -n ingress-nginx
+```
+
+Then either change the manifest to `ingressClassName: nginx` or patch it locally:
+
+```bash
+kubectl -n ceerat-frontend patch ingress ceerat-web --type merge -p '{"spec":{"ingressClassName":"nginx"}}'
+```
+
+If the ingress controller service shows `EXTERNAL-IP` as `pending`, the cluster does not have a load balancer implementation. In production, fix this through the cloud load balancer or platform networking layer. In local development, use `./k8s-start.sh --local` instead.
+
+Backend and data services should stay internal:
+
+```text
+postgres
+typesense
+ceerat-user-service
+ceerat-agent-service
+```
+
+Do not expose them publicly by default.
+
+### Database Access
 
 Verify seeded database rows:
 
