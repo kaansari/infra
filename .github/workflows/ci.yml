@@ -6,11 +6,10 @@ on:
   workflow_dispatch:
 
 env:
-  # Set these to the full repo names (owner/repo). Edit these values or set them
-  # in repository-level variables if you prefer.
-  CONTRACTS_REPO: 'REPLACE_WITH_OWNER/contracts-repo'
-  SERVICES_REPO: 'REPLACE_WITH_OWNER/services-repo'
-  APPS_REPO: 'REPLACE_WITH_OWNER/apps-repo'
+  CONTRACTS_REPO: 'kaansari/contracts-repo'
+  SERVICES_REPO: 'kaansari/services-repo'
+  APPS_REPO: 'kaansari/apps-repo'
+  GO_VERSION: '1.26.2'
 
 permissions:
   contents: read
@@ -46,7 +45,34 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.26'
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: |
+            contracts-repo/packages/ceerat-contracts/go.sum
+            services-repo/services/ceerat-user-service/go.sum
+            apps-repo/ai/ceerat-agent-service/go.sum
+            apps-repo/apps/ceerat-admin-ui/go.sum
+            apps-repo/apps/ceerat-customer-ui/go.sum
+            apps-repo/apps/ceerat-web-ui/go.sum
+
+      - name: Create CI workspace
+        run: |
+          cat > go.work <<'EOF'
+          go ${{ env.GO_VERSION }}
+
+          use (
+            ./apps-repo/ai/ceerat-agent-service
+            ./apps-repo/apps/ceerat-admin-ui
+            ./apps-repo/apps/ceerat-customer-ui
+            ./apps-repo/apps/ceerat-web-ui
+            ./contracts-repo/packages/ceerat-contracts
+            ./services-repo/services/ceerat-user-service
+          )
+
+          replace github.com/kaansari/ceerat-platform/packages/ceerat-contracts => ./contracts-repo/packages/ceerat-contracts
+          EOF
+
+          mkdir -p bin
 
       - name: Build contracts
         working-directory: ./contracts-repo/packages/ceerat-contracts
@@ -58,16 +84,17 @@ jobs:
         working-directory: ./services-repo/services/ceerat-user-service
         run: |
           go test ./...
-          go build -o ../../infra/bin/ceerat-user-service .
+          go build -buildvcs=false -o ../../../bin/ceerat-user-service .
 
-      - name: Build agent, chat client and web UI
+      - name: Build apps and agent
         run: |
-          (cd apps-repo/ai/ceerat-agent-service && go test ./... && go build -o ../../infra/bin/ceerat-agent-service .)
-          (cd apps-repo/ai/ceerat-chatgpt-client && go test ./... && go build -o ../../infra/bin/ceerat-chatgpt-client .)
-          (cd apps-repo/apps/ceerat-web-ui && go test ./... && go build -o ../../infra/bin/ceerat-web-ui .)
+          (cd apps-repo/ai/ceerat-agent-service && go test ./... && go build -buildvcs=false -o ../../../bin/ceerat-agent-service .)
+          (cd apps-repo/apps/ceerat-web-ui && go test ./... && go build -buildvcs=false -o ../../../bin/ceerat-web-ui .)
+          (cd apps-repo/apps/ceerat-admin-ui && go test ./... && go build -buildvcs=false -o ../../../bin/ceerat-admin-ui .)
+          (cd apps-repo/apps/ceerat-customer-ui && go test ./... && go build -buildvcs=false -o ../../../bin/ceerat-customer-ui .)
 
       - name: Upload built binaries
         uses: actions/upload-artifact@v4
         with:
           name: infra-binaries
-          path: infra/bin/**
+          path: bin/**
