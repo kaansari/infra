@@ -45,10 +45,21 @@ start-customer-ui: ensure-dirs
 		CEERAT_CUSTOMER_UI_ROOT="$(STACK_ROOT)/apps-repo/apps/ceerat-customer-ui" \
 		CEERAT_ENV="development" \
 		"$(CUSTOMER_BIN)" </dev/null >>"$(CUSTOMER_LOG)" 2>&1 &
-	@echo $$! >"$(CUSTOMER_PID)"
+	@sleep 1; \
+	pid=$$(lsof -tiTCP:$(CUSTOMER_PORT) -sTCP:LISTEN 2>/dev/null | head -n 1); \
+	if [ -n "$$pid" ]; then \
+		echo "$$pid" >"$(CUSTOMER_PID)"; \
+	else \
+		echo $$! >"$(CUSTOMER_PID)"; \
+	fi
 
 stop-customer-ui:
-	@if [ -f "$(CUSTOMER_PID)" ]; then \
+	@pid=$$(lsof -tiTCP:$(CUSTOMER_PORT) -sTCP:LISTEN 2>/dev/null | head -n 1); \
+	if [ -n "$$pid" ]; then \
+		echo "Stopping customer UI (pid $$pid)"; \
+		kill $$pid || true; \
+		rm -f "$(CUSTOMER_PID)"; \
+	elif [ -f "$(CUSTOMER_PID)" ]; then \
 		pid=$$(cat "$(CUSTOMER_PID)"); \
 		if kill -0 $$pid >/dev/null 2>&1; then \
 			echo "Stopping customer UI (pid $$pid)"; \
@@ -58,7 +69,7 @@ stop-customer-ui:
 		fi; \
 		rm -f "$(CUSTOMER_PID)"; \
 	else \
-		echo "Customer PID file not found: $(CUSTOMER_PID)"; \
+		echo "Customer UI not running"; \
 	fi
 
 build-admin-ui: ensure-dirs
