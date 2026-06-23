@@ -159,7 +159,6 @@ start_admin_ui() {
   start_detached "$ADMIN_LOG" "$ADMIN_PID" env \
     CEERAT_ADMIN_UI_PORT="$CEERAT_ADMIN_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
-    CEERAT_ADMIN_API_BASE_URL="$CEERAT_ADMIN_API_BASE_URL" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-admin-ui"
   sleep 1
