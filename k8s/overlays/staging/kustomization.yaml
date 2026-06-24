@@ -24,16 +24,16 @@ configMapGenerator:
     literals:
       - CEERAT_ENV=staging
       - CEERAT_API_BASE_URL=ceerat-user-service.ceerat-backend.svc.cluster.local:50051
+      - CEERAT_USER_GRPC_TARGET=ceerat-user-service.ceerat-backend.svc.cluster.local:50051
       - CEERAT_AGENT_BASE_URL=http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
-      - CEERAT_ADMIN_API_BASE_URL=http://ceerat-user-service.ceerat-backend.svc.cluster.local:8081
   - name: ceerat-platform-config
     namespace: ceerat-frontend
     behavior: merge
     literals:
       - CEERAT_ENV=staging
       - CEERAT_API_BASE_URL=ceerat-user-service.ceerat-backend.svc.cluster.local:50051
+      - CEERAT_USER_GRPC_TARGET=ceerat-user-service.ceerat-backend.svc.cluster.local:50051
       - CEERAT_AGENT_BASE_URL=http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
-      - CEERAT_ADMIN_API_BASE_URL=http://ceerat-user-service.ceerat-backend.svc.cluster.local:8081
 images:
   - name: ceerat-services-repo
     newName: us-docker.pkg.dev/PROJECT_ID/ceerat/ceerat-services-repo

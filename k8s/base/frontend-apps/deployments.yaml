@@ -107,11 +107,11 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_API_BASE_URL
-            - name: CEERAT_ADMIN_API_BASE_URL
+            - name: CEERAT_USER_GRPC_TARGET
               valueFrom:
                 configMapKeyRef:
                   name: ceerat-platform-config
-                  key: CEERAT_ADMIN_API_BASE_URL
+                  key: CEERAT_USER_GRPC_TARGET
           readinessProbe:
             tcpSocket:
               port: http

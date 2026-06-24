@@ -20,5 +20,3 @@ spec:
       ports:
         - protocol: TCP
           port: 50051
-        - protocol: TCP
-          port: 8081

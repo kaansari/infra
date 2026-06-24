@@ -18,5 +18,5 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app
 COPY --from=builder /bin/ceerat-user-service /app/ceerat-user-service
 
-EXPOSE 50051 8081
+EXPOSE 50051
 CMD ["/app/ceerat-user-service"]

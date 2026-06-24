@@ -6,8 +6,8 @@ metadata:
 data:
   CEERAT_ENV: production
   CEERAT_API_BASE_URL: ceerat-user-service.ceerat-backend.svc.cluster.local:50051
+  CEERAT_USER_GRPC_TARGET: ceerat-user-service.ceerat-backend.svc.cluster.local:50051
   CEERAT_AGENT_BASE_URL: http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
-  CEERAT_ADMIN_API_BASE_URL: http://ceerat-user-service.ceerat-backend.svc.cluster.local:8081
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -17,8 +17,8 @@ metadata:
 data:
   CEERAT_ENV: production
   CEERAT_API_BASE_URL: ceerat-user-service.ceerat-backend.svc.cluster.local:50051
+  CEERAT_USER_GRPC_TARGET: ceerat-user-service.ceerat-backend.svc.cluster.local:50051
   CEERAT_AGENT_BASE_URL: http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
-  CEERAT_ADMIN_API_BASE_URL: http://ceerat-user-service.ceerat-backend.svc.cluster.local:8081
 ---
 apiVersion: v1
 kind: ConfigMap

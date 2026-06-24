@@ -26,13 +26,9 @@ spec:
           ports:
             - name: grpc
               containerPort: 50051
-            - name: admin-http
-              containerPort: 8081
           env:
             - name: PORT
               value: "50051"
-            - name: CEERAT_USER_ADMIN_PORT
-              value: "8081"
             - name: CEERAT_ENV
               valueFrom:
                 configMapKeyRef:

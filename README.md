@@ -436,10 +436,11 @@ Indexing behavior:
 Rebuild the index from Postgres:
 
 ```bash
-curl -X POST http://localhost:8081/api/admin/jobs/search-index/rebuild \
+grpcurl -plaintext \
   -H "Authorization: Bearer $CEERAT_ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"recreate":true}'
+  -d '{"recreate":true}' \
+  localhost:50051 \
+  admin.AdminService/RebuildJobSearchIndex
 ```
 
 The rebuild response returns counts only: processed, succeeded, and failed.

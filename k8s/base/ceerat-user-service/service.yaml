@@ -13,6 +13,3 @@ spec:
     - name: grpc
       port: 50051
       targetPort: grpc
-    - name: admin-http
-      port: 8081
-      targetPort: admin-http
