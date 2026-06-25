@@ -42,7 +42,7 @@ fi
 
 echo
 echo "Nodes"
-kubectl get nodes
+kubectl get nodes || echo "Unable to list nodes"
 
 echo
 echo "Ceerat pods"
@@ -62,7 +62,7 @@ done
 
 echo
 echo "Ingress"
-kubectl get ingress -A
+kubectl get ingress -A || echo "Unable to list ingress resources"
 
 echo
 echo "Recent Ceerat events"

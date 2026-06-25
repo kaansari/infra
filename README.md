@@ -395,6 +395,21 @@ kubectl config use-context colima
 kubectl get svc -A
 ```
 
+If `kubectl` points at the `colima` context but fails with a refused local API server port, for example:
+
+```text
+The connection to the server 127.0.0.1:60902 was refused
+```
+
+the Colima VM may be running while its Kubernetes API server or kubeconfig port is stale. `./k8s-start.sh` now restarts Colima Kubernetes automatically when it detects this. To recover manually:
+
+```bash
+colima kubernetes stop
+colima kubernetes start
+kubectl config use-context colima
+kubectl cluster-info
+```
+
 For Docker Desktop, stop Kubernetes from Docker Desktop settings.
 
 ## Optional Typesense Job Search

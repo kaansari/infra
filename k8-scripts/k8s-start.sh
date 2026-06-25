@@ -58,6 +58,43 @@ require_command() {
   fi
 }
 
+wait_for_cluster() {
+  local attempts="${1:-18}"
+  local delay="${2:-5}"
+  local attempt
+
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    if kubectl cluster-info >/dev/null 2>&1; then
+      kubectl cluster-info
+      return 0
+    fi
+    if (( attempt < attempts )); then
+      echo "Kubernetes API is not ready yet ($attempt/$attempts); waiting ${delay}s"
+      sleep "$delay"
+    fi
+  done
+
+  kubectl cluster-info
+}
+
+wait_for_nodes() {
+  local attempts="${1:-18}"
+  local delay="${2:-5}"
+  local attempt
+
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    if kubectl get nodes >/dev/null 2>&1; then
+      return 0
+    fi
+    if (( attempt < attempts )); then
+      echo "Kubernetes nodes are not ready yet ($attempt/$attempts); waiting ${delay}s"
+      sleep "$delay"
+    fi
+  done
+
+  kubectl get nodes >/dev/null
+}
+
 start_cluster() {
   case "$K8S_DRIVER" in
     colima)
@@ -88,7 +125,37 @@ start_cluster() {
   fi
 
   echo "Checking Kubernetes cluster"
-  kubectl cluster-info
+  if wait_for_cluster 3 3; then
+    wait_for_nodes 12 5
+    return
+  fi
+
+  if [[ "$K8S_DRIVER" != "colima" ]]; then
+    exit 1
+  fi
+
+  echo
+  echo "Colima is running, but the Kubernetes API is not reachable."
+  echo "Restarting Colima Kubernetes to refresh the local API server and kubeconfig."
+  colima kubernetes stop >/dev/null 2>&1 || true
+  colima kubernetes start
+  kubectl config use-context "${K8S_CONTEXT:-colima}"
+
+  echo "Rechecking Kubernetes cluster"
+  if wait_for_cluster 18 5; then
+    wait_for_nodes 12 5
+    return
+  fi
+
+  echo
+  echo "Colima Kubernetes is still unreachable; restarting the Colima VM with Kubernetes."
+  colima stop
+  colima start --kubernetes
+  kubectl config use-context "${K8S_CONTEXT:-colima}"
+
+  echo "Rechecking Kubernetes cluster after Colima VM restart"
+  wait_for_cluster 24 5
+  wait_for_nodes 18 5
 }
 
 deploy_ceerat() {
