@@ -64,6 +64,7 @@ TYPESENSE_PORT=8108               # Typesense port
 TYPESENSE_PROTOCOL=http           # Protocol (http/https)
 TYPESENSE_API_KEY=dev_typesense_key  # API key for authentication
 TYPESENSE_COLLECTION_JOBS=jobs    # Name of jobs collection
+TYPESENSE_COLLECTION_PRODUCTS=products # Name of products collection
 TYPESENSE_DISABLED=false          # Set to true to disable Typesense
 ```
 

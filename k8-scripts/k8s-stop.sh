@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$SCRIPT_DIR"
 
 K8S_DRIVER="${K8S_DRIVER:-colima}"
@@ -44,7 +45,7 @@ stop_port_forwards
 if [[ "$SKIP_DELETE" != "true" ]]; then
   if kubectl cluster-info >/dev/null 2>&1; then
     echo "Deleting Ceerat Kubernetes resources"
-    make k8-render \
+    make -C "$ROOT_DIR" k8-render \
       K8S_REGISTRY="$K8S_REGISTRY" \
       IMAGE_TAG="$IMAGE_TAG" \
       PROJECT_ID="$PROJECT_ID" \

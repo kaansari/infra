@@ -59,6 +59,21 @@ spec:
                 secretKeyRef:
                   name: ceerat-db-credentials
                   key: DB_PASSWORD
+            - name: TYPESENSE_HOST
+              value: typesense.ceerat-data.svc.cluster.local
+            - name: TYPESENSE_PORT
+              value: "8108"
+            - name: TYPESENSE_PROTOCOL
+              value: http
+            - name: TYPESENSE_COLLECTION_JOBS
+              value: jobs
+            - name: TYPESENSE_COLLECTION_PRODUCTS
+              value: products
+            - name: TYPESENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: typesense-client-api-key
+                  key: TYPESENSE_API_KEY
           readinessProbe:
             tcpSocket:
               port: 50051

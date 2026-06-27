@@ -75,6 +75,12 @@ done
 echo
 echo "Local access"
 cat <<'EOF'
+LoadBalancer mode:
+  ./k8s-start.sh --expose
+  web:      http://localhost:3000
+  customer: http://localhost:3005
+  admin:    http://localhost:3010
+
 Port-forward mode:
   ./k8s-start.sh --local
   web:      http://localhost:3000

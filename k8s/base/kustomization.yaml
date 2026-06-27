@@ -6,6 +6,7 @@ resources:
   - ceerat-user-service/deployment.yaml
   - ceerat-user-service/service.yaml
   - ceerat-user-service/network-policy.yaml
+  - ceerat-user-service/typesense-secret.yaml
   - ceerat-agent-service/deployment.yaml
   - ceerat-agent-service/service.yaml
   - frontend-apps/deployments.yaml

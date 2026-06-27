@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$SCRIPT_DIR"
 
 K8S_DRIVER="${K8S_DRIVER:-colima}"
@@ -14,16 +15,21 @@ PUSH="${PUSH:-false}"
 SKIP_BUILD="${SKIP_BUILD:-false}"
 SKIP_DEPLOY="${SKIP_DEPLOY:-false}"
 LOCAL_PORT_FORWARD="${LOCAL_PORT_FORWARD:-false}"
+LOCAL_EXPOSE="${LOCAL_EXPOSE:-false}"
 RUN_DIR="$SCRIPT_DIR/.run"
 LOG_DIR="$SCRIPT_DIR/logs"
 PORT_FORWARD_PID_FILE="$RUN_DIR/k8s-port-forwards.pid"
 
 usage() {
   cat <<'EOF'
-Usage: ./k8s-start.sh [--local]
+Usage: ./k8s-start.sh [--local|--expose]
 
 Options:
   --local   Start local port-forwards after deploying:
+            web      http://localhost:3000
+            customer http://localhost:3005
+            admin    http://localhost:3010
+  --expose  Expose frontend apps through Kubernetes LoadBalancer Services:
             web      http://localhost:3000
             customer http://localhost:3005
             admin    http://localhost:3010
@@ -38,6 +44,10 @@ while [[ $# -gt 0 ]]; do
       LOCAL_PORT_FORWARD=true
       shift
       ;;
+    --expose)
+      LOCAL_EXPOSE=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -49,6 +59,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$LOCAL_PORT_FORWARD" == "true" && "$LOCAL_EXPOSE" == "true" ]]; then
+  echo "Use either --local or --expose, not both; both modes need ports 3000, 3005, and 3010." >&2
+  exit 1
+fi
 
 require_command() {
   local name="$1"
@@ -160,7 +175,7 @@ start_cluster() {
 
 deploy_ceerat() {
   if [[ "$SKIP_BUILD" != "true" ]]; then
-    make k8-build \
+    make -C "$ROOT_DIR" k8-build \
       K8S_REGISTRY="$K8S_REGISTRY" \
       IMAGE_TAG="$IMAGE_TAG" \
       PROJECT_ID="$PROJECT_ID" \
@@ -168,7 +183,7 @@ deploy_ceerat() {
   fi
 
   if [[ "$SKIP_DEPLOY" != "true" ]]; then
-    make k8-deploy \
+    make -C "$ROOT_DIR" k8-deploy \
       K8S_REGISTRY="$K8S_REGISTRY" \
       IMAGE_TAG="$IMAGE_TAG" \
       PROJECT_ID="$PROJECT_ID" \
@@ -179,6 +194,13 @@ deploy_ceerat() {
 
 wait_for_local_targets() {
   echo "Waiting for frontend deployments before starting local port-forwards"
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=180s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=180s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=180s
+}
+
+wait_for_frontend_targets() {
+  echo "Waiting for frontend deployments"
   kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=180s
   kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=180s
   kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=180s
@@ -236,6 +258,24 @@ start_local_port_forwards() {
   echo "Port-forward logs are in $LOG_DIR/k8s-port-forward-*.log"
 }
 
+expose_frontend_load_balancers() {
+  wait_for_frontend_targets
+
+  echo "Exposing frontend services through Kubernetes LoadBalancer services"
+  kubectl -n ceerat-frontend patch svc ceerat-web-ui --type merge -p '{"spec":{"type":"LoadBalancer"}}'
+  kubectl -n ceerat-frontend patch svc ceerat-customer-ui --type merge -p '{"spec":{"type":"LoadBalancer"}}'
+  kubectl -n ceerat-frontend patch svc ceerat-admin-ui --type merge -p '{"spec":{"type":"LoadBalancer"}}'
+
+  echo
+  echo "Kubernetes frontend URLs:"
+  echo "  web:      http://localhost:3000"
+  echo "  customer: http://localhost:3005"
+  echo "  admin:    http://localhost:3010"
+  echo
+  echo "Service status:"
+  kubectl -n ceerat-frontend get svc ceerat-web-ui ceerat-customer-ui ceerat-admin-ui
+}
+
 require_command kubectl
 require_command make
 require_command docker
@@ -246,4 +286,8 @@ deploy_ceerat
 
 if [[ "$LOCAL_PORT_FORWARD" == "true" ]]; then
   start_local_port_forwards
+fi
+
+if [[ "$LOCAL_EXPOSE" == "true" ]]; then
+  expose_frontend_load_balancers
 fi

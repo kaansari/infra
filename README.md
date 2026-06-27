@@ -181,11 +181,25 @@ kubectl -n ceerat-frontend get events --sort-by=.metadata.creationTimestamp
 
 ### Local Browser Access
 
-The Ceerat services are `ClusterIP` services, so they are only reachable inside Kubernetes until you port-forward them. For local development, prefer port-forwarding over ingress. Ingress, public hostnames, load balancers, and HTTPS belong to production or production-like environments.
+By default, the Ceerat frontend services are `ClusterIP` services. They are internal to Kubernetes until you choose an access mode.
 
-If `http://localhost:3000` shows nothing, start a port-forward first.
+Use LoadBalancer exposure when you want the browser ports available without background `kubectl port-forward` processes:
 
-Use the quick local mode:
+```bash
+./k8s-start.sh --expose
+```
+
+This exposes the frontend apps through Kubernetes Services:
+
+```text
+web:      http://localhost:3000
+customer: http://localhost:3005
+admin:    http://localhost:3010
+```
+
+On local Colima/k3s, this uses the cluster's local service load balancer. On a cloud or production-like cluster, it may allocate real external load balancers depending on the platform. Keep backend and data services internal by default.
+
+If your cluster does not support LoadBalancer Services, use the quick port-forward mode:
 
 ```bash
 ./k8s-start.sh --local
@@ -254,7 +268,7 @@ kubectl -n ceerat-backend port-forward svc/ceerat-user-service 50051:50051
 
 ### Production Ingress
 
-Ingress is the production path for browser traffic. Use it when you are deploying Ceerat behind a real ingress controller, load balancer, DNS, and HTTPS certificate. Do not use ingress as the primary local debugging tool; use `./k8s-start.sh --local`, `k9s`, and `./k8s-logs.sh` for local work.
+Ingress is the hostname-based production path for browser traffic. Use it when you are deploying Ceerat behind a real ingress controller, load balancer, DNS, and HTTPS certificate. For local browser access, use `./k8s-start.sh --expose` when your cluster supports LoadBalancer Services, or `./k8s-start.sh --local` as the port-forward fallback.
 
 The ingress manifest uses:
 
@@ -301,7 +315,7 @@ Then either change the manifest to `ingressClassName: nginx` or patch it locally
 kubectl -n ceerat-frontend patch ingress ceerat-web --type merge -p '{"spec":{"ingressClassName":"nginx"}}'
 ```
 
-If the ingress controller service shows `EXTERNAL-IP` as `pending`, the cluster does not have a load balancer implementation. In production, fix this through the cloud load balancer or platform networking layer. In local development, use `./k8s-start.sh --local` instead.
+If the ingress controller service shows `EXTERNAL-IP` as `pending`, the cluster does not have a load balancer implementation for ingress. In production, fix this through the cloud load balancer or platform networking layer. In local development, use `./k8s-start.sh --expose` for service-level LoadBalancer access, or `./k8s-start.sh --local` if LoadBalancer Services are unavailable.
 
 Backend and data services should stay internal:
 
@@ -412,9 +426,9 @@ kubectl cluster-info
 
 For Docker Desktop, stop Kubernetes from Docker Desktop settings.
 
-## Optional Typesense Job Search
+## Optional Typesense Search
 
-Imported ATS jobs remain stored in Postgres as the source of truth. Typesense is an optional derived search index owned by `ceerat-user-service`; the crawler and browser apps do not write to Typesense directly.
+Jobs and products remain stored in Postgres as the source of truth. Typesense is an optional derived search index owned by `ceerat-user-service`; crawlers and browser apps do not write to Typesense directly.
 
 Start a local Typesense instance:
 
@@ -438,15 +452,17 @@ TYPESENSE_PORT=8108 \
 TYPESENSE_PROTOCOL=http \
 TYPESENSE_API_KEY=dev_typesense_key \
 TYPESENSE_COLLECTION_JOBS=jobs \
+TYPESENSE_COLLECTION_PRODUCTS=products \
 infra/start-stack.sh
 ```
 
-If any Typesense env var is missing, the user service logs job search as disabled and falls back to database-backed job search.
+If required Typesense connection variables are missing, the user service falls back to database-backed job and product search.
 
 Indexing behavior:
 - `career.JobService/ImportATSJobs` saves jobs to Postgres first.
 - After a successful save/update, `ceerat-user-service` normalizes and upserts the saved job into Typesense.
 - Typesense errors are logged and do not fail the import.
+- Seeded and batch-upserted products are indexed into the `products` collection; product search falls back to Postgres if Typesense is unavailable.
 
 Rebuild the index from Postgres:
 
