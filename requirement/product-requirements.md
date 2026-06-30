@@ -90,7 +90,20 @@ Search/list filters:
 
 - Keyword query over product name, SKU, and description.
 - Active-only products by default for customers.
-- Optional category/filter fields only if the product model or service supports them.
+- Products may belong to multiple categories.
+- Product contracts use normalized category assignments only; do not add a legacy scalar category field or fallback query.
+- Categories support parent/child relationships and must reject cycles.
+- Selecting a parent category includes products assigned to its descendants.
+- Typesense and database fallback search must expose equivalent facets for:
+  - category
+  - model
+  - size
+  - color
+  - price
+  - availability
+- Price filters use fixed non-overlapping buckets: `0-50`, `50-100`, `100-200`, `200-500`, `500-1,000`, `1,000-2,000`, and `Over 2,000`.
+- Render filter options and result-count chips using the customer career search pattern.
+- During development, Typesense product-index rebuilds delete and recreate the collection from the current schema.
 - Sort options:
   - relevance/default
   - name
@@ -207,6 +220,20 @@ Admin/agent product creation can be:
 
 
 Do not block customer catalog implementation on a polished admin product-management UI unless live code inspection shows no other product data creation path.
+
+### Catalog Media, Discounts, and Closeout
+
+- Products and services support up to 10 JPEG, PNG, WebP, or GIF images of at most 5 MB each.
+- Image binaries are stored separately from catalog metadata; normal list/search calls must not load image bytes.
+- The first uploaded image is the primary thumbnail. Agents can choose another primary image or delete images.
+- Customer product cards show the primary image and product detail shows all images.
+- Discount scopes are `store`, `service`, `product`, `variant`, and `cart_item`.
+- Discount rules may be ad hoc or scheduled with optional RFC3339 start/end timestamps.
+- Discounts do not stack. Precedence is cart item, variant, product/service, then store; the strongest active rule wins within a scope.
+- Cart and checkout pricing must re-evaluate active rules server-side.
+- Discounts above 70 percent display a red Clearance tag.
+- Products can be marked Closeout permanently or by an active closeout discount rule.
+- Agent catalog operations must support image upload/primary/delete and discount create/delete without exposing image bytes or trusted pricing calculations to the browser.
 
 ## Architecture Requirements
 
