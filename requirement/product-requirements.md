@@ -235,6 +235,26 @@ Do not block customer catalog implementation on a polished admin product-managem
 - Products can be marked Closeout permanently or by an active closeout discount rule.
 - Agent catalog operations must support image upload/primary/delete and discount create/delete without exposing image bytes or trusted pricing calculations to the browser.
 
+### Order Tax, Shipping, and Discounts
+
+- Order pricing rules use the existing `order.OrderManager` boundary.
+- Rule kinds are `tax`, `shipping`, and `discount`; calculations may be fixed or percentage based.
+- Rules support active state, priority, optional RFC3339 start/end dates, minimum subtotal, and country/state targeting.
+- Discount rules may be automatic or require a case-insensitive code.
+- Checkout always offers `Free` ($0), `Standard` ($5), `Three day` ($10), and `Next day` ($20) shipping. A matching configured rule with the same name overrides that built-in option.
+- Shipping rules support a free-shipping threshold and customer selection among eligible methods.
+- Tax defaults to 9 percent when no matching configured tax rule exists. Configured state rules take precedence over broader country rules.
+- Customers store separate profile, shipping, and billing addresses. Complete shipping and billing addresses are required before quoting or checkout; there is no profile-address fallback.
+- Cart quotes and checkout tax use the resolved shipping address, never the billing address or a browser-supplied tax region.
+- Checkout snapshots resolved shipping and billing addresses on the order so later profile edits do not alter historical fulfillment or tax records.
+- This is a new-system contract: missing address snapshots and stale shipping method identifiers are rejected rather than remapped for backward compatibility.
+- Tax rules may include shipping in the taxable amount.
+- The server calculates `subtotal - order discount + shipping + tax`, rounds money to cents, and snapshots all labels, rates, selections, and amounts on the order.
+- Customer checkout must quote and finalize through the same backend calculator. Browser-supplied totals, customer ids, and addresses are never trusted.
+- Customers can quote only their own cart. Agents/admins can manage pricing rules and reprice user-scoped orders.
+- The customer checkout UI shows shipping selection, discount-code feedback, and a complete price breakdown.
+- The agent Orders UI provides pricing-rule management and an order repricing control.
+
 ## Architecture Requirements
 
 ### Contracts
