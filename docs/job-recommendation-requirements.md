@@ -20,7 +20,7 @@ The platform already supports job search and resume import. However, it does not
 - rank jobs using a business-aware scoring model,
 - store the best matches for later review and feedback.
 
-The new feature should close that gap by combining retrieval and ranking into a single recommendation workflow.
+The new feature should close that gap by combining retrieval and ranking into a single recommendation workflow. In practice, this should reduce the amount of manual searching a user must do and help them reach a relevant job faster.
 
 ## 3. Goals
 
@@ -35,6 +35,24 @@ The new feature should close that gap by combining retrieval and ranking into a 
 1. Support future personalization based on clicks, saves, applications, and rejections.
 2. Keep the implementation compatible with the existing service-owned architecture.
 3. Avoid introducing a second vector database in the first release.
+
+## 3.1 User Experience Requirements
+
+The recommendation experience must be designed as a visible workflow enhancement, not just a backend improvement.
+
+### UX Requirements
+1. Recommendations should appear as a primary experience on the Career jobs surface, either as a dedicated recommendations panel or as a prominent section above traditional search results.
+2. Each recommendation should show enough context for the user to understand why it was surfaced, including a short explanation and relevant match signals.
+3. Users should be able to act on recommendations through simple interactions such as save, reject, hide, or view details.
+4. The system should support a lightweight feedback loop where a user’s actions influence the next recommendation set.
+5. Recommendations should complement search rather than replace it; users should still be able to refine with filters and manual search.
+
+### UX Success Expectations
+The experience should feel more helpful than manual search by helping users:
+- reach a relevant job faster,
+- understand why a job was recommended,
+- quickly decide whether to inspect or dismiss it,
+- refine their preferences over time.
 
 ## 4. Non-Goals
 
@@ -105,6 +123,19 @@ The initial scoring model should include components such as:
 - salary fit,
 - freshness.
 
+### FR5.1 Ranking Quality and Normalization Requirements
+The system shall normalize and interpret job and candidate attributes before ranking.
+
+Normalization must cover, at minimum:
+- skill names and synonyms,
+- title variants and related roles,
+- seniority levels,
+- salary ranges and preference bands,
+- remote, hybrid, and onsite work-mode expectations,
+- required versus preferred skills and experience.
+
+If normalization is weak, the recommendation engine may produce plausible but low-quality results. The initial implementation should therefore prioritize a consistent normalization layer before deeper personalization is added.
+
 ### FR6. Required Skill Validation
 The system shall validate whether the candidate’s profile satisfies the job’s required skill and experience expectations.
 
@@ -140,6 +171,15 @@ The system shall support later feedback events such as:
 - marked more-like-this.
 
 These signals will be used for future personalization improvements.
+
+### FR10. Recommendation Interaction and Refinement
+The system shall support a lightweight recommendation action flow that allows users to:
+- view the detail page for a recommended job,
+- save a recommendation for later,
+- reject or hide a recommendation,
+- understand the reason behind the recommendation.
+
+The system should expose a simple explanation panel or drawer for each recommendation so users can understand why it appeared and make a quick decision.
 
 ## 6. Non-Functional Requirements
 
@@ -210,13 +250,15 @@ Tasks:
 - create a candidate profile builder from the existing resume import flow,
 - add a basic hybrid search request,
 - implement a simple scoring service,
-- persist the top recommendations to PostgreSQL.
+- persist the top recommendations to PostgreSQL,
+- expose a first-version recommendation surface in the Career experience.
 
 Deliverables:
 - job documents indexed with embeddings,
 - candidate profile built from existing resume data,
 - basic recommendation generation endpoint or service,
-- top-100 persistence.
+- top-100 persistence,
+- initial recommendation UI section with explanation text.
 
 ### Phase 2: Ranking and Validation
 Goal: improve match quality.
@@ -226,12 +268,14 @@ Tasks:
 - add title and seniority matching,
 - add location, salary, and experience scoring,
 - improve explanation generation,
-- add confidence and score breakdown fields.
+- add confidence and score breakdown fields,
+- add save/reject/hide handling and feedback persistence.
 
 Deliverables:
 - richer scoring output,
 - improved relevance quality,
-- explainable recommendation results.
+- explainable recommendation results,
+- a working feedback loop for subsequent recommendation refinement.
 
 ### Phase 3: Personalization
 Goal: make recommendations adapt to candidate behavior over time.
@@ -382,12 +426,18 @@ Success should be measured by:
 - retrieval latency,
 - ranking stability,
 - persistence correctness,
-- explanation quality.
+- explanation quality,
+- actual user behavior change.
 
 Suggested initial metrics:
 - top-3 recommendation hit rate,
 - percentage of recommendations with a meaningful explanation,
 - average generation time,
+- recommendation click-through rate,
+- save rate versus normal search,
+- apply rate versus normal search,
+- rejection rate and common rejection reasons,
+- time-to-first-relevant-job,
 - percentage of saved recommendations that receive positive user feedback.
 
 ## 12. Open Questions
