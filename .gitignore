@@ -1,6 +1,36 @@
+# Binaries and compiled files
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+*.test
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+bin/
+dist/
+build/
+
+# Go-specific
+vendor/
 .env
+.env.local
+.env.*
+
+# Project-specific
 .run/
 .k8-build-context/
 logs/
-bin/ceerat-admin-ui
 go.work.sum
