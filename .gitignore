@@ -32,5 +32,6 @@ vendor/
 # Project-specific
 .run/
 .k8-build-context/
+.tools/
 logs/
 go.work.sum
