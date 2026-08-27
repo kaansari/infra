@@ -33,5 +33,6 @@ vendor/
 .run/
 .k8-build-context/
 .tools/
+.verification/
 logs/
 go.work.sum
