@@ -22,7 +22,7 @@ DOCKER ?= docker
 PUSH ?= false
 K8S_CONTEXT_DIR ?= $(ROOT_DIR)/.k8-build-context
 
-.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
+.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs verify-builder verify-tools verify-coverage verify-staticcheck verify-code verify-platform verify-api-tools verify-api-read verify-api-write verify-api-security verify-api k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
 
 all: build-customer-ui
 
@@ -110,6 +110,43 @@ stop-stack:
 
 status-stack:
 	@./status.sh
+
+# Code-only verification. These targets never start the stack, Docker, or Kubernetes.
+# Tool versions and the covdata compatibility shim are managed by verify-code.sh.
+verify-builder:
+	@cd "$(STACK_ROOT)/ceerat-platform-builder-agent" && PYTHONDONTWRITEBYTECODE=1 ceerat-builder check drift --output json
+	@cd "$(STACK_ROOT)/ceerat-platform-builder-agent" && PYTHONDONTWRITEBYTECODE=1 ceerat-builder check apps --output json
+
+verify-tools:
+	@./verify-code.sh tools
+
+verify-coverage:
+	@./verify-code.sh coverage
+
+verify-staticcheck:
+	@./verify-code.sh staticcheck
+
+verify-code:
+	@./verify-code.sh all
+
+verify-platform: verify-builder verify-code
+
+# Phase 2 live API verification. Stack startup is opt-in with
+# VERIFY_API_START_STACK=true and always goes through make start-stack.
+verify-api-tools:
+	@./verify-api.sh tools
+
+verify-api-read:
+	@./verify-api.sh read
+
+verify-api-write:
+	@./verify-api.sh write
+
+verify-api-security:
+	@./verify-api.sh security
+
+verify-api: verify-platform
+	@./verify-api.sh all
 
 start-k8:
 	@./k8s-start.sh

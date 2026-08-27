@@ -1,0 +1,32 @@
+{
+  "read": [
+    {"id":"agent-health","transport":"http","method":"GET","path":"/healthz","expected_status":200},
+    {"id":"agent-list-threads","transport":"http","method":"GET","path":"/agent/threads?page_size=1","profile":"agent","expected_status":200},
+    {"id":"customer-list-threads","transport":"http","method":"GET","path":"/customer/threads?page_size=1","profile":"customer","expected_status":200},
+    {"id":"agent-list-customers","transport":"grpc","rpc":"customer.CustomerService/ListCustomers","profile":"agent","data":{},"expected":"ok"},
+    {"id":"agent-list-services","transport":"grpc","rpc":"service.ServiceManager/ListServices","profile":"agent","data":{},"expected":"ok"},
+    {"id":"customer-list-my-orders","transport":"grpc","rpc":"order.OrderManager/ListMyOrders","profile":"customer","data":{"page_size":1},"expected":"ok"},
+    {"id":"agent-list-companies","transport":"grpc","rpc":"career.JobService/ListCompanies","profile":"agent","data":{},"expected":"ok"},
+    {"id":"agent-search-jobs","transport":"grpc","rpc":"career.JobService/SearchJobs","profile":"agent","data":{"page_size":1},"expected":"ok"},
+    {"id":"customer-profile","transport":"grpc","rpc":"customer.CustomerService/GetMyCustomerProfile","profile":"customer","data":{},"expected":"ok"},
+    {"id":"customer-skill-profiles","transport":"grpc","rpc":"career.CareerProfileService/ListMySkillProfiles","profile":"customer","data":{},"expected":"ok"},
+    {"id":"customer-resumes","transport":"grpc","rpc":"career.CareerProfileService/ListMyResumes","profile":"customer","data":{},"expected":"ok"},
+    {"id":"customer-career-metrics","transport":"grpc","rpc":"career.JobService/GetCareerMarketMetrics","profile":"customer","data":{},"expected":"ok"},
+    {"id":"customer-search-jobs","transport":"grpc","rpc":"career.JobService/SearchJobs","profile":"customer","data":{"page_size":1},"expected":"ok"},
+    {"id":"customer-job-cart","transport":"grpc","rpc":"career.JobCartService/GetJobCart","profile":"customer","data":{},"expected":"ok"},
+    {"id":"customer-applications","transport":"grpc","rpc":"career.JobApplicationService/ListMyApplications","profile":"customer","data":{},"expected":"ok"},
+    {"id":"admin-list-users","transport":"grpc","rpc":"admin.AdminService/ListUsers","profile":"admin","data":{},"expected":"ok"}
+  ],
+  "security": [
+    {"id":"agent-threads-no-token","transport":"http","method":"GET","path":"/agent/threads","expected_status":401},
+    {"id":"customer-threads-invalid-token","transport":"http","method":"GET","path":"/customer/threads","literal_token":"invalid-phase2-token","expected_status":401},
+    {"id":"agent-chat-empty-message","transport":"http","method":"POST","path":"/agent/chat","profile":"agent","data":{},"expected_status":400},
+    {"id":"customer-chat-empty-message","transport":"http","method":"POST","path":"/customer/chat","profile":"customer","data":{},"expected_status":400},
+    {"id":"auth-get-all-no-token","transport":"grpc","rpc":"auth.Auth/GetAll","data":{},"expected":"error","expected_code":"Unauthenticated"},
+    {"id":"customer-profile-no-token","transport":"grpc","rpc":"customer.CustomerService/GetMyCustomerProfile","data":{},"expected":"error","expected_code":"Unauthenticated"},
+    {"id":"admin-list-users-no-token","transport":"grpc","rpc":"admin.AdminService/ListUsers","data":{},"expected":"error","expected_code":"Unauthenticated"},
+    {"id":"customer-cannot-list-all-customers","transport":"grpc","rpc":"customer.CustomerService/ListCustomers","profile":"customer","data":{},"expected":"error","expected_code":"PermissionDenied"},
+    {"id":"agent-cannot-list-admin-users","transport":"grpc","rpc":"admin.AdminService/ListUsers","profile":"agent","data":{},"expected":"error","expected_code":"PermissionDenied"}
+  ],
+  "write": []
+}
