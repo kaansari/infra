@@ -67,7 +67,7 @@ services:
       - key: APP_ENV
         value: production
       - key: PORT
-        value: 50051
+        value: 10000
       - key: JWT_AUTH_ENABLED
         value: "true"
       - key: JWT_SECRET
