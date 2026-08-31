@@ -44,6 +44,13 @@ Choose the Render instance and database plans in the dashboard. For a public
 ChatGPT test, use plans that remain awake; sleeping services make MCP discovery
 and tool calls appear unreliable.
 
+The checked-in Phase 1 defaults minimize development cost: free web instances
+for Keycloak and the gateway, the smallest paid private instance for the gRPC
+user service, and free PostgreSQL. Free web instances sleep after 15 minutes and
+can take about a minute to wake; warm both public URLs before a ChatGPT test.
+Free PostgreSQL is limited to 1 GB and expires after 30 days, so upgrade it or
+replace it before retaining real users or treating the deployment as durable.
+
 ## Fast refresh on push
 
 The Blueprint uses `autoDeployTrigger: commit` for both services:

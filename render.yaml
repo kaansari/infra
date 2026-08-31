@@ -1,6 +1,7 @@
 services:
   - type: web
     name: ceerat-keycloak
+    plan: free
     runtime: docker
     repo: https://github.com/kaansari/infra
     branch: main
@@ -52,6 +53,7 @@ services:
 
   - type: pserv
     name: ceerat-user-service
+    plan: 0.5c-512mb
     runtime: go
     repo: https://github.com/kaansari/services-repo
     branch: main
@@ -95,6 +97,7 @@ services:
 
   - type: web
     name: ceerat-agent-gateway
+    plan: free
     runtime: go
     repo: https://github.com/kaansari/apps-repo
     branch: main
@@ -124,5 +127,6 @@ services:
 
 databases:
   - name: ceerat-postgres
+    plan: free
     databaseName: ceerat
     user: ceerat
