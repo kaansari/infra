@@ -9,9 +9,14 @@ image or Kubernetes cluster is involved.
 | --- | --- | --- | --- |
 | `ceerat-agent-gateway` | `apps-repo` | Public HTTPS | MCP endpoint used by ChatGPT and other MCP clients |
 | `ceerat-user-service` | `services-repo` | Render private network | Private gRPC authentication and user-management service |
-| `ceerat-postgres` | Render Postgres | Render private network | User data |
+| `ceerat-postgres` | Render Postgres | Render private network | Phase 1 CEERAT and Keycloak data |
 | `ceerat-keycloak` | `infra` | Public HTTPS | OAuth/OIDC authorization server |
-| `ceerat-keycloak-postgres` | Render Postgres | Render private network | Keycloak identities, clients, and sessions |
+
+For the cost-conscious Phase 1 deployment, Keycloak and the user service share
+one Render PostgreSQL database. Their table names do not overlap, and Keycloak
+manages its own Liquibase tables. This also means they share credentials,
+capacity, backups, and failure scope. Use separate databases and users before a
+production launch that requires stronger isolation.
 
 Both Go services carry a checked-in `vendor/` directory. Render therefore does
 not need access to the separate private contracts repository during a build.

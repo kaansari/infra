@@ -13,24 +13,26 @@ services:
         value: postgres
       - key: KC_DB_URL_HOST
         fromDatabase:
-          name: ceerat-keycloak-postgres
+          name: ceerat-postgres
           property: host
       - key: KC_DB_URL_PORT
         fromDatabase:
-          name: ceerat-keycloak-postgres
+          name: ceerat-postgres
           property: port
       - key: KC_DB_URL_DATABASE
         fromDatabase:
-          name: ceerat-keycloak-postgres
+          name: ceerat-postgres
           property: database
       - key: KC_DB_USERNAME
         fromDatabase:
-          name: ceerat-keycloak-postgres
+          name: ceerat-postgres
           property: user
       - key: KC_DB_PASSWORD
         fromDatabase:
-          name: ceerat-keycloak-postgres
+          name: ceerat-postgres
           property: password
+      - key: KC_DB_SCHEMA
+        value: public
       - key: KC_BOOTSTRAP_ADMIN_USERNAME
         value: admin
       - key: KC_BOOTSTRAP_ADMIN_PASSWORD
@@ -121,9 +123,6 @@ services:
         value: azp
 
 databases:
-  - name: ceerat-keycloak-postgres
-    databaseName: keycloak
-    user: keycloak
   - name: ceerat-postgres
     databaseName: ceerat
     user: ceerat
