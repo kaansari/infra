@@ -12,6 +12,13 @@ and service-account grants, enables explicit consent, and adds the MCP audience.
 Replace the placeholder redirect URI with the exact test-client or temporary
 ChatGPT callback before interoperability testing.
 
+The public client has no client secret (`token_endpoint_auth_method=none`) and
+uses PKCE `S256`. `offline_access` is optional but assigned because ChatGPT
+requests it during connection. The realm declarative user profile explicitly
+allows the administrator-managed `ceerat_user_id` custom attribute; without
+that declaration Keycloak 26 silently strips the value and the token mapper
+cannot emit the claim.
+
 For each synthetic Keycloak user, set the `ceerat_user_id` user attribute to the
 matching synthetic user ID in `ceerat-user-service`. Never use production users,
 passwords, clients, or databases with this realm.

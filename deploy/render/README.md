@@ -13,10 +13,11 @@ image or Kubernetes cluster is involved.
 | `ceerat-keycloak` | `infra` | Public HTTPS | OAuth/OIDC authorization server |
 
 For the cost-conscious Phase 1 deployment, Keycloak and the user service share
-one Render PostgreSQL database. Their table names do not overlap, and Keycloak
-manages its own Liquibase tables. This also means they share credentials,
-capacity, backups, and failure scope. Use separate databases and users before a
-production launch that requires stronger isolation.
+one Render PostgreSQL database and the `public` schema. This means they share
+credentials, capacity, backups and failure scope, and generic table names can
+collide: Keycloak's `user_role_mapping` was observed during the Phase 1 test.
+Use separate schemas and database users, or separate databases, before a
+production launch.
 
 Both Go services carry a checked-in `vendor/` directory. Render therefore does
 not need access to the separate private contracts repository during a build.
@@ -119,6 +120,10 @@ Then add the public MCP URL to the ChatGPT developer/test integration. Check:
 7. Expected failures (missing scope, validation failure, expired/invalid token,
    stale resource version) return structured, actionable errors rather than an
    HTML page or an opaque HTTP 500.
+
+The 2026-08-31 milestone passed these checks from both Codex and ChatGPT. See
+`docs/public-agent-phase-1-milestone.md` for evidence, OAuth corrections and
+remaining production gates.
 
 Never paste a production password or token into deployment logs or a shared
 ChatGPT conversation. Use a disposable test account for the first public test.

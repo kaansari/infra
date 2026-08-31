@@ -1,6 +1,6 @@
 # CEERAT Public Agent Integration
 
-Status: Proposed technical design  
+Status: Phase 1 interoperability milestone completed; production hardening remains
 Date: 2026-08-29  
 Scope: Publish a vendor-neutral remote MCP integration that advertises CEERAT operations, schemas, authentication, confirmations, and errors to ChatGPT and other compatible LLM clients. Phase one is limited to OAuth-page registration, authentication, identity/profile, connection, and logout operations.
 
@@ -95,6 +95,10 @@ There is no public backend ingress, TLS/certificate configuration, authorization
 
 ### 2.3 Phase 1 development implementation status
 
+The deployed Phase 1 milestone was validated on 2026-08-31 from both Codex and
+ChatGPT. The complete evidence, implementation corrections and remaining gates
+are recorded in `docs/public-agent-phase-1-milestone.md`.
+
 The initial development implementation now exists at `apps-repo/ai/ceerat-agent-gateway` with:
 
 - remote HTTP MCP initialization, tool listing, and tool calls;
@@ -106,12 +110,22 @@ The initial development implementation now exists at `apps-repo/ai/ceerat-agent-
 - unit, cryptographic JWT, scope, secret-field rejection, prepare/update, and logout/revocation tests;
 - local Keycloak Compose/realm configuration under `infra/dev/keycloak`, with no Kubernetes changes.
 
-This is a development milestone, not production publication readiness. Two boundaries must be replaced before production or a public ChatGPT pilot:
+This is a completed development/interoperability milestone, not production
+publication readiness. ChatGPT developer-mode and Codex tests now pass. The
+following boundaries must still be replaced before a self-service public
+release:
 
 1. The gateway currently converts the validated Keycloak principal into the user service's existing internal JWT through the private ID-based `auth.Auth` capability. Production requires a dedicated authenticated service-to-service token-exchange/internal-assertion RPC; no public or generally trusted caller may be able to mint a customer session from an ID.
 2. Connection and preparation state is process-local. Production requires durable shared storage, authorization-server revocation integration, idempotency retention, and multi-instance consistency.
+3. Keycloak registration does not yet provision and link the CEERAT user and
+   customer records or set `ceerat_user_id`; the validated human account was
+   linked administratively.
+4. The cost-conscious Render deployment shares one database and `public`
+   schema between Keycloak and the user service. Production requires schema
+   and credential isolation because generic table names can collide.
 
-Until those two gates are implemented and reviewed, the gateway must bind only to loopback or an isolated test network and use synthetic accounts.
+Until these gates are implemented and reviewed, the public Render deployment
+is a controlled development pilot rather than a generally available service.
 
 ## 3. Goals and non-goals
 
@@ -1172,6 +1186,13 @@ Exit: architecture decision, threat model, compatibility matrix, and working loc
 
 ### Phase 1: login and user management
 
+Milestone status: completed for existing, provisioned customers on Codex and
+ChatGPT developer mode. Nine tools, OAuth discovery/login, structured errors,
+private gRPC profile access and connection management were validated. Automatic
+registration-to-CEERAT provisioning, durable shared gateway state and the
+gateway-specific internal assertion remain production gates; see
+`docs/public-agent-phase-1-milestone.md`.
+
 - Create `ceerat-agent-gateway` with remote MCP transport, protocol negotiation, health/readiness, static tool registry, strict JSON Schema validation, and structured errors.
 - Publish CEERAT product metadata, tool descriptions, input/output schemas, authentication requirements, scopes, risk annotations, confirmation modes, rate costs, and documented error unions.
 - Publish OAuth Protected Resource Metadata plus authorization-server/OIDC discovery and JWKS metadata.
@@ -1186,7 +1207,13 @@ Exit: architecture decision, threat model, compatibility matrix, and working loc
 - Add scope, cross-customer, anti-enumeration, anti-abuse, confirmation, idempotency, secret-redaction, audit, and client-conformance tests.
 - Validate locally with two MCP clients, then validate through a temporary isolated HTTPS endpoint with ChatGPT.
 
-Exit: all Phase 1 acceptance criteria in section 16.4 pass. An external agent discovers CEERAT and its schemas, guides a new customer through Keycloak registration or an existing customer through login/consent, obtains only granted scopes, directly invokes identity/profile/connection tools through the MCP gateway and private gRPC, handles structured failures correctly, and never receives customer secrets. No password, recovery, verified-contact, deletion, job, resume, application, cart, employer, or admin operation is published.
+Exit for the completed interoperability milestone: external agents discover
+CEERAT and its schemas; an existing provisioned customer completes login and
+consent; Codex and ChatGPT obtain only granted scopes and directly invoke
+identity/profile/connection tools through MCP and private gRPC; structured
+failures remain agent-actionable; and no customer secret enters model context.
+The broader new-customer exit remains open until Keycloak registration
+automatically provisions and links CEERAT records.
 
 ### Phase 1B: account-security workflows
 

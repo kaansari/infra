@@ -1,4 +1,19 @@
-I want the public version of this application whic is essentially: **you publish your software as a remote agent service, and customers authorize their own ChatGPT/Claude/Copilot-style agent to use it on their behalf.**
+I want the public version of this application which is essentially: **you publish your software as a remote agent service, and customers authorize their own ChatGPT/Claude/Copilot-style agent to use it on their behalf.**
+
+## Phase 1 milestone status
+
+The identity-focused Phase 1 interoperability milestone is implemented and
+validated from Codex and ChatGPT developer mode. CEERAT publishes nine MCP
+tools for discovery, authentication status, current identity, customer profile
+read and confirmed low-risk update, connection listing/revocation, and logout.
+OAuth authorization code + PKCE obtains the short-lived access token; protected
+MCP requests still use `Authorization: Bearer <token>`.
+
+The implementation evidence and validated OAuth/security corrections are in
+`docs/public-agent-phase-1-milestone.md`. Automatic provisioning of CEERAT user
+and customer records after Keycloak registration remains the primary gap before
+general self-service availability. Jobs, skills and application automation
+remain later phases.
 
 The clean architecture is:
 
