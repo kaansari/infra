@@ -110,10 +110,7 @@ services:
       - key: CEERAT_ENV
         value: production
       - key: CEERAT_USER_SERVICE_ADDR
-        fromService:
-          type: pserv
-          name: ceerat-user-service
-          property: hostport
+        value: ceerat-user-service:10000
       - key: CEERAT_MCP_RESOURCE
         value: https://ceerat-agent-gateway.onrender.com/mcp
       - key: CEERAT_OAUTH_ISSUER
