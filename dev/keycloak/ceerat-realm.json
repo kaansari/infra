@@ -14,7 +14,7 @@
   "clients": [
     {
       "clientId": "ceerat-mcp-dev",
-      "name": "CEERAT MCP Development Client",
+      "name": "CEERAT MCP Client",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
@@ -47,7 +47,7 @@
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.custom.audience": "https://agents.ceerat.com/mcp",
+            "included.custom.audience": "https://ceerat-agent-gateway.onrender.com/mcp",
             "access.token.claim": "true"
           }
         }

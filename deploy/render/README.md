@@ -10,6 +10,8 @@ image or Kubernetes cluster is involved.
 | `ceerat-agent-gateway` | `apps-repo` | Public HTTPS | MCP endpoint used by ChatGPT and other MCP clients |
 | `ceerat-user-service` | `services-repo` | Render private network | Private gRPC authentication and user-management service |
 | `ceerat-postgres` | Render Postgres | Render private network | User data |
+| `ceerat-keycloak` | `infra` | Public HTTPS | OAuth/OIDC authorization server |
+| `ceerat-keycloak-postgres` | Render Postgres | Render private network | Keycloak identities, clients, and sessions |
 
 Both Go services carry a checked-in `vendor/` directory. Render therefore does
 not need access to the separate private contracts repository during a build.
@@ -21,19 +23,17 @@ not need access to the separate private contracts repository during a build.
 2. In Render, choose **New > Blueprint** and connect the `infra` repository.
 3. Select `render.yaml` as the Blueprint path if Render does not detect it
    automatically.
-4. Supply the three prompted gateway values:
+4. Confirm that Render can allocate the exact public service names
+   `ceerat-agent-gateway` and `ceerat-keycloak`, then create the Blueprint.
+   Their generated URLs, OAuth issuer, JWKS endpoint, and token audience are
+   already aligned in `render.yaml` and the imported realm.
+5. If Render changes either hostname because the requested name is unavailable,
+   update `KC_HOSTNAME`, the three `CEERAT_*` gateway URLs, and the realm's MCP
+   audience before interoperability testing.
 
-   - `CEERAT_MCP_RESOURCE`: the final public URL ending in `/mcp`, for example
-     `https://ceerat-agent-gateway.onrender.com/mcp`.
-   - `CEERAT_OAUTH_ISSUER`: the public HTTPS issuer URL.
-   - `CEERAT_OAUTH_JWKS_URL`: that issuer's public JWKS URL.
-
-   The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
-   `CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing the
-   common audience/issuer mismatch.
-5. Create the Blueprint resources. If the generated Render hostname differs
-   from the value entered in step 4, update `CEERAT_MCP_RESOURCE` once and
-   redeploy the gateway.
+The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
+`CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing common
+audience/issuer mismatches.
 
 Choose the Render instance and database plans in the dashboard. For a public
 ChatGPT test, use plans that remain awake; sleeping services make MCP discovery
@@ -46,6 +46,9 @@ The Blueprint uses `autoDeployTrigger: commit` for both services:
 - pushing `apps-repo/main` rebuilds and redeploys only the gateway;
 - pushing `services-repo/main` rebuilds and redeploys only the user service;
 - pushing `infra/main` updates Blueprint-managed configuration.
+
+An `infra/main` push also rebuilds Keycloak because its optimized image and
+realm import are defined in this repository.
 
 The native build command is deliberately small:
 
@@ -79,6 +82,8 @@ export CEERAT_GATEWAY_URL=https://ceerat-agent-gateway.onrender.com
 curl -fsS "$CEERAT_GATEWAY_URL/healthz"
 
 curl -fsS "$CEERAT_GATEWAY_URL/.well-known/oauth-protected-resource/mcp"
+
+curl -fsS https://ceerat-keycloak.onrender.com/realms/ceerat/.well-known/openid-configuration
 
 curl -fsS -X POST "$CEERAT_GATEWAY_URL/mcp" \
   -H 'Content-Type: application/json' \
