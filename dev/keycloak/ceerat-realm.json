@@ -59,7 +59,8 @@
         "ceerat.profile.write",
         "ceerat.connections.read",
         "ceerat.connections.revoke"
-      ]
+      ],
+      "optionalClientScopes": ["offline_access"]
     }
   ],
   "clientScopes": [
