@@ -93,6 +93,26 @@ The deployed platform currently has:
 
 There is no public backend ingress, TLS/certificate configuration, authorization server, gateway datastore schema, queue/worker, distributed rate limiter, external secret integration, or gateway-specific network policy.
 
+### 2.3 Phase 1 development implementation status
+
+The initial development implementation now exists at `apps-repo/ai/ceerat-agent-gateway` with:
+
+- remote HTTP MCP initialization, tool listing, and tool calls;
+- OAuth protected-resource metadata and `WWW-Authenticate` challenges;
+- Keycloak RS256/JWKS validation with issuer, audience, expiry, subject, client, token ID, and scope checks;
+- direct private gRPC adaptation for current customer profile reads and allowlisted prepared updates;
+- versioned structured success/error envelopes, strict input/output schemas, operation-state reporting, and structured audit logs;
+- process-local development connection revocation and preparation state;
+- unit, cryptographic JWT, scope, secret-field rejection, prepare/update, and logout/revocation tests;
+- local Keycloak Compose/realm configuration under `infra/dev/keycloak`, with no Kubernetes changes.
+
+This is a development milestone, not production publication readiness. Two boundaries must be replaced before production or a public ChatGPT pilot:
+
+1. The gateway currently converts the validated Keycloak principal into the user service's existing internal JWT through the private ID-based `auth.Auth` capability. Production requires a dedicated authenticated service-to-service token-exchange/internal-assertion RPC; no public or generally trusted caller may be able to mint a customer session from an ID.
+2. Connection and preparation state is process-local. Production requires durable shared storage, authorization-server revocation integration, idempotency retention, and multi-instance consistency.
+
+Until those two gates are implemented and reviewed, the gateway must bind only to loopback or an isolated test network and use synthetic accounts.
+
 ## 3. Goals and non-goals
 
 ### 3.1 Goals

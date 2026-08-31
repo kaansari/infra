@@ -1,0 +1,78 @@
+services:
+  - type: pserv
+    name: ceerat-user-service
+    runtime: go
+    repo: https://github.com/kaansari/services-repo
+    branch: main
+    rootDir: services/ceerat-user-service
+    buildCommand: go build -mod=vendor -trimpath -o bin/ceerat-user-service .
+    startCommand: ./bin/ceerat-user-service
+    autoDeployTrigger: commit
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: 50051
+      - key: JWT_AUTH_ENABLED
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: ceerat-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ceerat-postgres
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: ceerat-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ceerat-postgres
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: ceerat-postgres
+          property: database
+      - key: DB_SSLMODE
+        value: require
+
+  - type: web
+    name: ceerat-agent-gateway
+    runtime: go
+    repo: https://github.com/kaansari/apps-repo
+    branch: main
+    rootDir: ai/ceerat-agent-gateway
+    buildCommand: go build -mod=vendor -trimpath -o bin/ceerat-agent-gateway .
+    startCommand: ./bin/ceerat-agent-gateway
+    autoDeployTrigger: commit
+    healthCheckPath: /healthz
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: CEERAT_USER_SERVICE_ADDR
+        fromService:
+          type: pserv
+          name: ceerat-user-service
+          property: hostport
+      - key: CEERAT_MCP_RESOURCE
+        sync: false
+      - key: CEERAT_OAUTH_ISSUER
+        sync: false
+      - key: CEERAT_OAUTH_JWKS_URL
+        sync: false
+      - key: CEERAT_USER_ID_CLAIM
+        value: ceerat_user_id
+      - key: CEERAT_CLIENT_ID_CLAIM
+        value: azp
+
+databases:
+  - name: ceerat-postgres
+    databaseName: ceerat
+    user: ceerat
+

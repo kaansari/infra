@@ -1,0 +1,47 @@
+services:
+  gateway:
+    build:
+      context: .build-context
+      dockerfile: apps-repo/ai/ceerat-agent-gateway/Dockerfile
+    restart: unless-stopped
+    environment:
+      CEERAT_ENV: production
+      CEERAT_AGENT_GATEWAY_ADDR: :8090
+      CEERAT_USER_SERVICE_ADDR: ${CEERAT_USER_SERVICE_ADDR:?set the private gRPC user-service address}
+      CEERAT_MCP_RESOURCE: https://${CEERAT_MCP_DOMAIN:?set the public MCP hostname}/mcp
+      CEERAT_OAUTH_ISSUER: ${CEERAT_OAUTH_ISSUER:?set the public HTTPS OAuth issuer}
+      CEERAT_AUTHORIZATION_SERVER: ${CEERAT_OAUTH_ISSUER}
+      CEERAT_OAUTH_AUDIENCE: https://${CEERAT_MCP_DOMAIN}/mcp
+      CEERAT_OAUTH_JWKS_URL: ${CEERAT_OAUTH_JWKS_URL:?set the OAuth JWKS URL}
+      CEERAT_USER_ID_CLAIM: ${CEERAT_USER_ID_CLAIM:-ceerat_user_id}
+      CEERAT_CLIENT_ID_CLAIM: ${CEERAT_CLIENT_ID_CLAIM:-azp}
+    expose:
+      - "8090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "/ceerat-agent-gateway", "--healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      gateway:
+        condition: service_started
+    environment:
+      CEERAT_MCP_DOMAIN: ${CEERAT_MCP_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

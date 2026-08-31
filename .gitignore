@@ -28,6 +28,8 @@ vendor/
 .env
 .env.local
 .env.*
+deploy/chatgpt/public.env
+deploy/chatgpt/.build-context/
 
 # Project-specific
 .run/

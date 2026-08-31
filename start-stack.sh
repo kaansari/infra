@@ -131,6 +131,64 @@ start_agent_service() {
   sleep 1
 }
 
+start_keycloak() {
+  if [[ "${CEERAT_KEYCLOAK_DISABLED:-}" == "true" ]]; then
+    echo "Keycloak is disabled"
+    return
+  fi
+  if is_port_listening "$CEERAT_KEYCLOAK_PORT"; then
+    echo "Keycloak already listening on http://localhost:$CEERAT_KEYCLOAK_PORT"
+    return
+  fi
+  if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
+    echo "Docker is not running or reachable; Keycloak startup skipped"
+    return
+  fi
+	if docker container inspect ceerat-keycloak >/dev/null 2>&1; then
+		echo "Starting existing Keycloak container on http://localhost:$CEERAT_KEYCLOAK_PORT"
+		docker start ceerat-keycloak >/dev/null
+		sleep 2
+		return
+	fi
+
+  local admin_password="${CEERAT_KEYCLOAK_ADMIN_PASSWORD:-}"
+  if [[ -z "$admin_password" ]]; then
+    admin_password="$(openssl rand -hex 16)"
+    printf '%s\n' "$admin_password" >"$RUN_DIR/keycloak-admin-password"
+    chmod 600 "$RUN_DIR/keycloak-admin-password"
+    echo "Generated a local Keycloak admin password in $RUN_DIR/keycloak-admin-password"
+  fi
+
+  echo "Starting Keycloak on http://localhost:$CEERAT_KEYCLOAK_PORT"
+  docker run -d \
+    --name ceerat-keycloak \
+    -p "127.0.0.1:$CEERAT_KEYCLOAK_PORT:8080" \
+    -e KC_BOOTSTRAP_ADMIN_USERNAME="${CEERAT_KEYCLOAK_ADMIN:-admin}" \
+    -e KC_BOOTSTRAP_ADMIN_PASSWORD="$admin_password" \
+    -v "$SCRIPT_DIR/dev/keycloak/ceerat-realm.json:/opt/keycloak/data/import/ceerat-realm.json:ro" \
+    "${CEERAT_KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.3}" \
+    start-dev --import-realm --health-enabled=true >/dev/null
+  sleep 2
+}
+
+start_agent_gateway() {
+  if is_port_listening "$CEERAT_AGENT_GATEWAY_PORT"; then
+    echo "Agent gateway already listening on http://localhost:$CEERAT_AGENT_GATEWAY_PORT"
+    return
+  fi
+  echo "Starting agent gateway on http://localhost:$CEERAT_AGENT_GATEWAY_PORT/mcp"
+  cd "$ROOT_DIR"
+  start_detached "$GATEWAY_LOG" "$GATEWAY_PID" env \
+    CEERAT_AGENT_GATEWAY_ADDR="$CEERAT_AGENT_GATEWAY_ADDR" \
+    CEERAT_ENV="$CEERAT_ENV" \
+    CEERAT_USER_SERVICE_ADDR="$USER_SERVICE_ADDR" \
+    CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+    CEERAT_OAUTH_AUDIENCE="$CEERAT_OAUTH_AUDIENCE" \
+    CEERAT_MCP_RESOURCE="$CEERAT_MCP_RESOURCE" \
+    "$BIN_DIR/ceerat-agent-gateway"
+  sleep 1
+}
+
 start_web_ui() {
   if is_port_listening "$CEERAT_WEB_UI_PORT"; then
     echo "Web UI already listening on http://localhost:$CEERAT_WEB_UI_PORT"
@@ -184,6 +242,7 @@ start_customer_ui() {
 }
 
 ensure_dirs
+configure_docker_cli
 
 # Build sequence: contracts -> services -> apps
 echo "Building contracts..."
@@ -207,6 +266,16 @@ else
 fi
 
 echo "Building apps..."
+# public MCP gateway
+if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" ]]; then
+  (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" && GOWORK=off GOCACHE="${TMPDIR:-/tmp}/ceerat-agent-gateway-go-cache" go test ./... && GOWORK=off GOCACHE="${TMPDIR:-/tmp}/ceerat-agent-gateway-go-cache" go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-gateway" .) || {
+    echo "Agent gateway build failed" >&2
+    exit 1
+  }
+else
+  echo "Agent gateway directory not found: $ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" >&2
+fi
+
 # agent service
 if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" ]]; then
   (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-service" .) || {
@@ -249,7 +318,9 @@ fi
 
 ensure_postgres
 start_typesense
+start_keycloak
 start_user_service
+start_agent_gateway
 start_agent_service
 start_web_ui
 start_admin_ui

@@ -42,6 +42,12 @@ CEERAT_ADMIN_UI_PORT="${CEERAT_ADMIN_UI_PORT:-3010}"
 CEERAT_USER_ADMIN_PORT="${CEERAT_USER_ADMIN_PORT:-8081}"
 CEERAT_AGENT_PORT="${CEERAT_AGENT_PORT:-8088}"
 CEERAT_AGENT_BASE_URL="${CEERAT_AGENT_BASE_URL:-http://localhost:$CEERAT_AGENT_PORT}"
+CEERAT_AGENT_GATEWAY_PORT="${CEERAT_AGENT_GATEWAY_PORT:-8090}"
+CEERAT_AGENT_GATEWAY_ADDR="${CEERAT_AGENT_GATEWAY_ADDR:-127.0.0.1:$CEERAT_AGENT_GATEWAY_PORT}"
+CEERAT_KEYCLOAK_PORT="${CEERAT_KEYCLOAK_PORT:-8080}"
+CEERAT_OAUTH_ISSUER="${CEERAT_OAUTH_ISSUER:-http://localhost:$CEERAT_KEYCLOAK_PORT/realms/ceerat}"
+CEERAT_MCP_RESOURCE="${CEERAT_MCP_RESOURCE:-http://localhost:$CEERAT_AGENT_GATEWAY_PORT/mcp}"
+CEERAT_OAUTH_AUDIENCE="${CEERAT_OAUTH_AUDIENCE:-$CEERAT_MCP_RESOURCE}"
 CEERAT_JWT_SECRET="${CEERAT_JWT_SECRET:-dev-secret}"
 JWT_AUTH_ENABLED="${JWT_AUTH_ENABLED:-true}"
 USER_SERVICE_ADDR="${USER_SERVICE_ADDR:-localhost:$CEERAT_SERVICE_PORT}"
@@ -53,15 +59,51 @@ SERVICE_LOG="$LOG_DIR/user-service.log"
 WEB_LOG="$LOG_DIR/web-ui.log"
 ADMIN_LOG="$LOG_DIR/admin-ui.log"
 AGENT_LOG="$LOG_DIR/agent-service.log"
+GATEWAY_LOG="$LOG_DIR/agent-gateway.log"
 CUSTOMER_LOG="$LOG_DIR/customer-ui.log"
 SERVICE_PID="$RUN_DIR/user-service.pid"
 WEB_PID="$RUN_DIR/web-ui.pid"
 ADMIN_PID="$RUN_DIR/admin-ui.pid"
 AGENT_PID="$RUN_DIR/agent-service.pid"
+GATEWAY_PID="$RUN_DIR/agent-gateway.pid"
 CUSTOMER_PID="$RUN_DIR/customer-ui.pid"
 
 ensure_dirs() {
   mkdir -p "$RUN_DIR" "$LOG_DIR" "$BIN_DIR" "$(dirname "$CEERAT_PGDATA")"
+}
+
+configure_docker_cli() {
+  local docker_config_file="${DOCKER_CONFIG:-$HOME/.docker}/config.json"
+  local docker_context=""
+  local docker_host=""
+  local fallback_config="$RUN_DIR/docker-public"
+
+  if ! command -v docker >/dev/null 2>&1; then
+    return
+  fi
+
+  # Docker Desktop can leave a stale credential-store entry after users switch
+  # to Colima. Public development images do not require that helper, but Docker
+  # otherwise refuses to pull them. Preserve the selected daemon endpoint and
+  # use an isolated, credential-free config only when the configured helper is
+  # genuinely unavailable.
+  if [[ -f "$docker_config_file" ]] && \
+     grep -Eq '"credsStore"[[:space:]]*:[[:space:]]*"desktop"' "$docker_config_file" && \
+     ! command -v docker-credential-desktop >/dev/null 2>&1; then
+    docker_context="$(docker context show 2>/dev/null || true)"
+    if [[ -n "$docker_context" ]]; then
+      docker_host="$(docker context inspect "$docker_context" --format '{{.Endpoints.docker.Host}}' 2>/dev/null || true)"
+    fi
+    if [[ -n "$docker_host" ]]; then
+      mkdir -p "$fallback_config"
+      printf '{"auths":{}}\n' >"$fallback_config/config.json"
+      chmod 700 "$fallback_config"
+      chmod 600 "$fallback_config/config.json"
+      export DOCKER_CONFIG="$fallback_config"
+      export DOCKER_HOST="$docker_host"
+      echo "Docker credential helper is unavailable; using the selected $docker_context daemon for public development images"
+    fi
+  fi
 }
 
 is_pid_running() {
@@ -85,5 +127,6 @@ print_log_paths() {
   printf '  Web UI:       %s\n' "$WEB_LOG"
   printf '  Admin UI:     %s\n' "$ADMIN_LOG"
   printf '  Agent:        %s\n' "$AGENT_LOG"
+  printf '  MCP gateway:  %s\n' "$GATEWAY_LOG"
   printf '  Customer UI:  %s\n' "$CUSTOMER_LOG"
 }

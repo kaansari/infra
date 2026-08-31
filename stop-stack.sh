@@ -28,12 +28,21 @@ stop_pidfile() {
 }
 
 ensure_dirs
+configure_docker_cli
 
 stop_pidfile "web UI" "$WEB_PID" "$CEERAT_WEB_UI_PORT"
 stop_pidfile "admin UI" "$ADMIN_PID" "$CEERAT_ADMIN_UI_PORT"
 stop_pidfile "customer UI" "$CUSTOMER_PID" "$CEERAT_CUSTOMER_UI_PORT"
 stop_pidfile "agent service" "$AGENT_PID" "$CEERAT_AGENT_PORT"
+stop_pidfile "agent gateway" "$GATEWAY_PID" "$CEERAT_AGENT_GATEWAY_PORT"
 stop_pidfile "user service" "$SERVICE_PID" "$CEERAT_SERVICE_PORT"
+
+if is_port_listening "$CEERAT_KEYCLOAK_PORT" && command -v docker >/dev/null 2>&1 && docker container inspect ceerat-keycloak >/dev/null 2>&1; then
+  echo "Stopping Keycloak"
+  docker stop ceerat-keycloak >/dev/null || true
+else
+  echo "Managed Keycloak container is not running"
+fi
 
 # Stop Typesense
 if is_port_listening "8108"; then
