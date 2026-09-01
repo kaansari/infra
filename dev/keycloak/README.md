@@ -19,9 +19,24 @@ allows the administrator-managed `ceerat_user_id` custom attribute; without
 that declaration Keycloak 26 silently strips the value and the token mapper
 cannot emit the claim.
 
-For each synthetic Keycloak user, set the `ceerat_user_id` user attribute to the
-matching synthetic user ID in `ceerat-user-service`. Never use production users,
-passwords, clients, or databases with this realm.
+Phase 1-B also defines Google federation and verified native email. Supply
+`CEERAT_GOOGLE_CLIENT_ID`, `CEERAT_GOOGLE_CLIENT_SECRET`, and the
+`CEERAT_SMTP_*` values before importing a new realm. Register this callback:
+
+```text
+https://<keycloak-host>/realms/ceerat/broker/google/endpoint
+```
+
+Existing realms are not changed by startup import. Apply the identity provider,
+SMTP settings, and `verifyEmail=true` through the Keycloak Admin Console/API.
+For InMotion SMTP, use the secure outgoing hostname shown in cPanel, port `465`,
+SSL enabled, STARTTLS disabled, and the complete mailbox address as username.
+The Render pilot uses `ceerat@mevsfalse.com` and `mail.mevsfalse.com:465`; only
+the password remains an operator-supplied secret.
+
+Phase 1-B no longer requires manually setting `ceerat_user_id`; the gateway's
+authenticated identity exchange creates or resolves the CEERAT account. Never
+use production users, passwords, clients, or databases with this local realm.
 
 The realm file intentionally does not contain users or reusable credentials.
 

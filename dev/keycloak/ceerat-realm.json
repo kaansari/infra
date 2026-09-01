@@ -3,10 +3,20 @@
   "enabled": true,
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "loginWithEmailAllowed": true,
   "resetPasswordAllowed": true,
   "rememberMe": false,
+  "smtpServer": {
+    "host": "${CEERAT_SMTP_HOST}",
+    "port": "${CEERAT_SMTP_PORT}",
+    "from": "${CEERAT_SMTP_FROM}",
+    "auth": "true",
+    "user": "${CEERAT_SMTP_USER}",
+    "password": "${CEERAT_SMTP_PASSWORD}",
+    "ssl": "false",
+    "starttls": "true"
+  },
   "sslRequired": "external",
   "accessTokenLifespan": 600,
   "ssoSessionIdleTimeout": 1800,
@@ -61,6 +71,27 @@
         "ceerat.connections.revoke"
       ],
       "optionalClientScopes": ["offline_access"]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${CEERAT_GOOGLE_CLIENT_ID}",
+        "clientSecret": "${CEERAT_GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid profile email",
+        "syncMode": "IMPORT",
+        "useJwksUrl": "true"
+      }
     }
   ],
   "clientScopes": [

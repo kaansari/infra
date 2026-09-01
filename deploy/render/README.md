@@ -16,6 +16,12 @@ For the cost-conscious Phase 1 deployment, Keycloak and the user service share
 one Render PostgreSQL database and the `public` schema. This means they share
 credentials, capacity, backups and failure scope, and generic table names can
 collide: Keycloak's `user_role_mapping` was observed during the Phase 1 test.
+
+Phase 1-B generates `CEERAT_GATEWAY_WORKLOAD_SECRET` on the private user service
+and references that exact value from the gateway. Do not generate independent
+values. Google and SMTP secrets use `sync: false`; set them manually on existing
+services because Render only prompts for these values during initial Blueprint
+creation.
 Use separate schemas and database users, or separate databases, before a
 production launch.
 

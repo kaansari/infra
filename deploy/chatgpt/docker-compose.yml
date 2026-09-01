@@ -15,6 +15,8 @@ services:
       CEERAT_OAUTH_JWKS_URL: ${CEERAT_OAUTH_JWKS_URL:?set the OAuth JWKS URL}
       CEERAT_USER_ID_CLAIM: ${CEERAT_USER_ID_CLAIM:-ceerat_user_id}
       CEERAT_CLIENT_ID_CLAIM: ${CEERAT_CLIENT_ID_CLAIM:-azp}
+      CEERAT_GATEWAY_WORKLOAD_SECRET: ${CEERAT_GATEWAY_WORKLOAD_SECRET:?set the shared gateway workload secret}
+      CEERAT_GATEWAY_DATABASE_URL: ${CEERAT_GATEWAY_DATABASE_URL:?set the PostgreSQL connection URL for durable state}
     expose:
       - "8090"
     extra_hosts:
