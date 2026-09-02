@@ -9,8 +9,8 @@ and Kubernetes are explicitly excluded.
 
 | Order | Document | Repository | Purpose |
 | --- | --- | --- | --- |
-| 1 | [PR-01](01-gateway-contract-correctness.md) | `apps-repo` | Fix strict input handling and authenticated-status scope behavior |
-| 2 | [PR-02](02-connection-lifecycle-semantics.md) | `apps-repo` | Make connection and access-token state truthful and add `is_current` |
+| 1 | [PR-01](01-gateway-contract-correctness.md) | `apps-repo` | Complete — strict input handling and authenticated-status scope behavior |
+| 2 | [PR-02](02-connection-lifecycle-semantics.md) | `apps-repo` | Complete — truthful connection/token state and server-derived `is_current` |
 | 3 | [PR-03](03-keycloak-oauth-hardening.md) | `infra` | Separate OAuth clients and harden PKCE, redirects, email, and refresh policy |
 | 4 | [PR-04](04-token-and-scope-security-tests.md) | `apps-repo` | Lock JWT validation and per-tool scope enforcement with negative tests |
 | 5 | [PR-05](05-keycloak-session-revocation.md) | `apps-repo` | Make logout/revoke terminate the matching Keycloak session where supported |

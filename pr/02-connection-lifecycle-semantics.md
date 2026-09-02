@@ -4,6 +4,9 @@ Repository: `apps-repo`
 
 Depends on: PR 01
 
+Status: **completed and live-validated on 2026-09-02** (`apps-repo` commit
+`7049b95`).
+
 ## Objective
 
 Stop presenting an expired access token as an expired authorization or as an
@@ -73,3 +76,18 @@ revocation.
 
 Expired access credentials are never returned as simply `active`, and the live
 Codex connection is clearly marked `is_current:true`.
+
+## Validation evidence
+
+- Gateway unit tests, race detector, `go vet`, and build passed.
+- The additive PostgreSQL migration deployed without preventing gateway
+  readiness.
+- Public MCP discovery and invalid-token OAuth challenges passed.
+- A live Codex call returned exactly one `is_current:true` connection.
+- Active/expired and revoked/expired records returned independent
+  `authorization_status` and `access_token_status` values.
+- The first post-deploy OAuth attempt timed out while the free Keycloak service
+  was cold. After the realm and OIDC endpoints became responsive, the existing
+  saved credential completed the authenticated call; no credential was deleted.
+- Authorization-server session revocation remains intentionally deferred to PR
+  05.
