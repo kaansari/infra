@@ -147,16 +147,16 @@ Keycloak's `kcadm.sh` available:
 export CEERAT_KEYCLOAK_ADMIN_USERNAME=admin
 export CEERAT_KEYCLOAK_ADMIN_PASSWORD='<read from the Render secret>'
 export CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET='<random Render-only secret>'
-export KCADM=/opt/keycloak/bin/kcadm.sh
-
-./deploy/render/keycloak/reconcile-live-realm.sh
+make reconcile-keycloak-live
 ```
 
-For a local container, copy or mount the reconciliation directory and set
-`CEERAT_KEYCLOAK_SERVER=http://127.0.0.1:8080`. The script is idempotent: it
-creates or updates the three PR 03 clients and reapplies bounded lifetimes and
-verified-email policy. It deliberately leaves `ceerat-mcp-dev` enabled for
-rollback.
+The Make target runs the pinned Keycloak image as a disposable administrative
+client, so the workstation needs Docker but does not need a local `kcadm`
+installation. The script is idempotent: it creates or updates the three PR 03
+clients and reapplies bounded lifetimes and verified-email policy. It
+deliberately leaves `ceerat-mcp-dev` enabled for rollback. To run the script
+directly instead, set `KCADM` to a Keycloak 26 `kcadm.sh`; for a local realm,
+also set `CEERAT_KEYCLOAK_SERVER=http://127.0.0.1:8080`.
 
 The revoker client is disabled and receives no realm-management role in PR 03.
 PR 05 must first prove whether Keycloak can revoke exactly one mapped client
@@ -171,9 +171,7 @@ tests pass, disable—but do not delete—`ceerat-mcp-dev` for the rollback wind
 Run the static policy tests before deployment:
 
 ```bash
-ruby deploy/render/keycloak/realm_config_test.rb
-bash -n deploy/render/keycloak/reconcile-live-realm.sh
-bash -n deploy/render/keycloak/oauth-policy-smoke-test.sh
+make test-keycloak-config
 ```
 
 After live reconciliation, run
