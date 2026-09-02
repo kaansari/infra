@@ -1,556 +1,416 @@
-# TXSE Developer Platform — Technical Implementation Document
+# CEERAT TXSE Developer Platform — Product and Technical Direction
 
-## 1. Overview
+## 1. Purpose
 
-This document describes a practical implementation plan for a "TXSE Developer Platform": a market-data product that ingests TXSE real-time feeds, stores historical tick data, exposes normalized REST and WebSocket APIs, provides order-book reconstruction, and layers anomaly-detection + AI analysis for developer customers.
+This document defines the proposed TXSE market-data product and how it fits the CEERAT platform established during the identity-focused Phase 1.
 
-It targets the MVP and roadmap outlined in the business proposal, focusing on building technology for exchange members and financial firms rather than becoming an exchange member.
+CEERAT is not initially a retail trading application, broker, exchange member, order router, or custodian. The proposed product is a developer- and agent-facing data service that hides exchange feed, normalization, history, replay, and entitlement complexity behind stable APIs.
 
-## 2. Goals & Non-Goals
+> Reliable, licensed TXSE data through one CEERAT integration—for software developers and user-authorized AI assistants.
 
-- Goals:
-  - Provide normalized market-data endpoints: `/api/v1/quote`, `/api/v1/trades`, `/api/v1/orderbook`, `/api/v1/history`.
-  - Provide WebSocket streaming (e.g. `wss://api.yourcompany.com/TXN`) for low-latency delivery.
-  - Store a high-volume historical database (Timescale/Postgres) for queries and order-book reconstruction.
-  - Deliver AI-driven market intelligence and anomaly alerts.
+This is a directional requirement, not proof that CEERAT has permission to consume or redistribute TXSE data. Data licensing is the first commercial gate.
 
-- Non-Goals (MVP):
-  - Do not act as a broker, accept customer orders, or become a TXSE Member initially.
-  - No execution or custody in Stage 1.
+## 2. Business thesis
 
-## 3. High-Level Architecture
+The initial customer is a fintech, research team, financial-software company, or smaller financial institution that needs market data without operating exchange connectivity and feed infrastructure.
 
-- TXSE Market Feed(s) (raw binary or multicast) -> Ingest Gateway -> Decoder (FEED / BALE) -> Stream Processor ->
-  - Real-time API / WebSocket layer
-  - Historical writer (Timescale/Postgres)
-  - Metrics & anomaly service -> AI analysis
+```text
+Without CEERAT:
+exchange connectivity -> decoder -> sequence recovery -> normalization
+-> order-book state -> historical storage -> replay -> customer API
 
-- Recommended components:
-  - Ingest Gateway: lightweight TCP/UDP listener (Go, Rust, or C++)
-  - Message broker / stream fabric: NATS Streaming / Kafka / Redpanda (depends on latency and budget)
-  - Real-time processing: Consumer services in Go (low GC) or Rust
-  - Historical DB: PostgreSQL + TimescaleDB extension
-  - API/WebSocket: HTTP/2 + WebSocket using Go (Gin / Echo) or Node (Fastify) behind an API gateway
-  - Storage for raw feed backups: S3-compatible object storage
+With CEERAT:
+customer software -> gRPC/WebSocket -> CEERAT market-data services
+customer + AI chat -> OAuth + MCP    -> CEERAT market-data services
+```
 
-## 4. Data Ingestion and Decoding
+Both paths use the same authoritative domain services, authorization rules, entitlements, metering, and audit controls. MCP is an additional customer interface, not a separate business implementation.
 
-- Responsibilities:
-  - Connect to TXSE transport (multicast, TCP, or vendor gateway).
-  - Persist raw feed (optional rolling files) for compliance and replay.
-  - Decode messages into canonical internal events: `Trade`, `Quote`, `OrderAdd`, `OrderModify`, `OrderCancel`, `BookSnapshot`.
+### Product priorities
 
-- Implementation details:
-  - Build a decoder service implementing TXSE FEED/BALE format.
-  - Write decoded events into a low-latency message stream (e.g., Kafka topic `txse.events`).
-  - Emit both deltas (per-message) and periodic snapshots.
-  - Tag each event with monotonic sequence numbers and timestamps (exchange timestamp and ingestion timestamp).
+1. **Licensed** — access, storage, redistribution, display/non-display, and derived-data rights are documented before commercial launch.
+2. **Reliable** — sequence integrity and correct normalized data take priority over analytics or AI explanations.
+3. **Simple** — a developer should reach a first successful sandbox call in minutes.
+4. **Developer-first** — stable gRPC/WebSocket contracts, documentation, credentials, usage reporting, and SDKs.
+5. **Agent-native** — user-authorized assistants receive a bounded MCP tool surface over the same backend.
+6. **Intelligent** — anomaly detection and explanations sit on authoritative data and remain distinguishable from observed facts.
 
-## 5. Real-time Processing
+## 3. CEERAT platform direction
 
-- Responsibilities:
-  - Consume `txse.events` and produce normalized event payloads.
-  - Maintain in-memory order-book per symbol for WebSocket delivery.
-  - Emit metrics and anomaly signals to a dedicated pipeline.
+CEERAT has two public integration styles:
 
-- Implementation choices:
-  - Use consumer group model; run multiple consumers sharded by symbol range or hash.
-  - Keep order-book state in memory (per-worker) with periodic snapshots persisted to Timescale.
-  - Persist trades and quotes to Timescale with high-frequency batching.
+| Interface | Consumer | Authentication | Best suited for |
+| --- | --- | --- | --- |
+| gRPC/WebSocket | Customer software | OAuth workload/user credentials or scoped API credentials, as appropriate | Typed queries and streaming |
+| Remote MCP | ChatGPT, Codex, and compatible assistants | User-delegated OAuth authorization code with PKCE | Tool discovery and user-authorized actions |
 
-## 6. Historical Database Schema (Postgres + Timescale)
+```text
+Chat user
+   |
+AI host (ChatGPT/Codex/other MCP client)
+   | HTTPS MCP + user OAuth bearer token
+ceerat-agent-gateway
+   | authenticated private gRPC
+CEERAT domain service
+   | ownership + policy + validation + persistence
+CEERAT stores / licensed upstream data
+```
 
-- Schema suggestions (timescaledb hypertables):
+The public gateway owns protocol adaptation, discovery, external token validation, coarse scope checks, safe response shaping, and gateway abuse controls. Domain services remain authoritative for ownership, entitlements, validation, business policy, concurrency, and persistence.
 
-  - trades(symbol TEXT, trade_id BIGINT, price NUMERIC, size BIGINT, exchange_ts TIMESTAMP, ingest_ts TIMESTAMP, raw JSONB)
-  - quotes(symbol TEXT, bid_price NUMERIC, bid_size BIGINT, ask_price NUMERIC, ask_size BIGINT, exchange_ts TIMESTAMP, ingest_ts TIMESTAMP, raw JSONB)
-  - order_events(symbol TEXT, event_type TEXT, order_id BIGINT, price NUMERIC NULL, size BIGINT NULL, side TEXT NULL, seq BIGINT, exchange_ts TIMESTAMP, ingest_ts TIMESTAMP, raw JSONB)
-  - orderbook_snapshots(symbol TEXT, snapshot_ts TIMESTAMP, snapshot JSONB)
+### Legacy AI-tool retirement
 
-- Indexing & partitioning:
-  - Use hypertables partitioned by `time` and a secondary index on `symbol`.
-  - Use Timescale compression for older chunks and retention policies.
+The direct AI tools previously exposed by `ceerat-agent-service` are legacy and are not the target public integration. Their capabilities will move to remote MCP.
 
-## 7. Order-Book Reconstruction
+- Do not add new public tools to the legacy surface.
+- Do not require new MCP tools to mirror legacy agent/customer inventories.
+- Exclude deprecated legacy inventories from active consistency gates once the builder inventory distinguishes `active` from `deprecated`.
+- Retain legacy definitions temporarily only for migration, rollback, or reference, with an owner and removal condition.
+- Confirm production traffic and consumers before removing any path.
 
-- Approach:
-  - Persist periodic full snapshots and all order-events (adds/mods/cancels) with sequence numbers.
-  - To reconstruct at time T: locate nearest prior snapshot S, then apply ordered deltas up to T.
+The desired end state has two supported public integration paths:
 
-- Implementation notes:
-  - Store snapshots at configurable intervals (e.g., every 1–5 minutes) and on symbol restarts.
-  - Deltas must be idempotent and include sequence numbers to allow replay and gap detection.
+```text
+AI host -> remote MCP -> ceerat-agent-gateway -------+
+                                                      |
+Developer application -> CEERAT API gateway ---------+
+                                                      v
+                                          authenticated private gRPC
+                                                      |
+                                             gRPC security/RBAC
+                                                      |
+                                             CEERAT domain services
+                                                      |
+                                              databases/backends
+```
 
-## 8. REST API & WebSocket Design
+The developer platform includes the developer portal, application/client
+registration, credentials, API documentation, sandbox access, usage and quota
+visibility, and gRPC/WebSocket APIs exposed through the CEERAT API gateway. The
+API gateway and agent gateway are separate protocol edges over the same domain
+services; neither gateway owns domain data or bypasses service authorization.
 
-- REST endpoints (stateless):
-  - `GET /api/v1/quote?symbol=TXN` — latest quote
-  - `GET /api/v1/trades?symbol=TXN&start=...&end=...&limit=...` — paginated trades
-  - `GET /api/v1/orderbook?symbol=TXN&levels=10` — current top N levels
-  - `GET /api/v1/history/trades?symbol=TXN&date=YYYY-MM-DD` — optimized historical query
+Builder drift checks should validate the active MCP inventory. Stale legacy entries are migration debt, not the canonical product contract.
 
-- WebSocket:
-  - `wss://api.yourcompany.com/stream` with JWT/API-key auth.
-  - Subscribe model: {"action":"subscribe","symbol":"TXN"} and server sends normalized events:
+## 4. Phase 1 foundation and status
+
+Phase 1 establishes identity and safe account operations before CEERAT publishes jobs, skills, applications, or market-data tools.
+
+The deployed development integration has demonstrated:
+
+- public remote MCP discovery from Codex and ChatGPT;
+- OAuth authorization-code login with PKCE;
+- bearer tokens on protected MCP requests;
+- current-user and authentication-status queries;
+- customer-profile read and confirmed low-risk update;
+- connection listing, revocation, and logout;
+- typed schemas, request IDs, and agent-actionable errors;
+- public MCP backed by private gRPC services.
+
+This proves the integration direction but does not close the full security milestone. The dependency-ordered work lives in [`../pr/README.md`](../pr/README.md):
+
+| PR | Outcome |
+| --- | --- |
+| 01 | Strict gateway contracts and correct authentication-status behavior |
+| 02 | Truthful connection/access-token lifecycle and `is_current` |
+| 03 | Keycloak OAuth/OIDC client and policy hardening |
+| 04 | Negative tests for token validation and per-tool scopes |
+| 05 | Session-aware logout and connection revocation |
+| 06 | Prepare/confirm profile-write safety and replay/conflict tests |
+| 07 | Rate limiting and safe audit controls |
+| 08 | Live two-user and credential-revocation acceptance |
+| 09 | Evidence, documentation synchronization, and Phase 1 freeze |
+
+PR 01 behavior is implemented and documented. Phase 1 is complete only after the remaining gates pass and PR 09 records the evidence. A successful development login is not production security sign-off.
+
+Phase 1 includes identity, self-profile, agent connections, OAuth, scopes, safe errors, auditability, and abuse protection. It excludes jobs, skills, applications, TXSE data, account deletion, brokerage, and Kubernetes. TXSE work builds on the frozen identity boundary; it does not widen Phase 1.
+
+## 5. Identity and authorization
+
+An AI host must not receive a shared CEERAT platform key. Each user connects their own CEERAT account through OAuth and grants explicit scopes. Protected calls carry the resulting bearer access token. OAuth supplies delegated, revocable consent; the bearer token is the credential used afterward.
+
+The gateway validates at least signature and algorithm, issuer, audience/resource, expiration, not-before time, subject, required scope, and applicable session/revocation policy.
+
+The model must never supply a `user_id`, `customer_id`, tenant, role, scope, or connection owner to gain authority. Identity and ownership derive from validated credentials and server-side records.
+
+The external token terminates at the gateway. Internal calls use authenticated workload identity and trusted identity context. Services must not trust arbitrary gRPC metadata.
+
+Authorization and approval are separate. Consequential operations must use prepare/confirm where appropriate. Prepared actions bind subject, normalized inputs, policy decision, expiry, and a single-use or replay-safe identifier. An uncertain write result must not invite blind retries.
+
+## 6. Agent-compatible contracts and errors
+
+Every MCP tool publishes a closed, typed schema with descriptions, required fields, bounds, enums, and defaults where appropriate. Unknown fields and malformed nested values fail before execution. No-argument tools reject unexpected arguments.
+
+Errors must safely tell an assistant whether to correct the request, ask the user, authenticate, obtain consent/entitlement, wait, retry, or stop.
 
 ```json
 {
-  "symbol": "TXN",
-  "type": "trade",
-  "price": 181.43,
-  "size": 500,
-  "exchange_ts": "2026-08-24T10:32:17.123Z",
-  "seq": 123456789
+  "ok": false,
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "This operation requires an additional permission.",
+    "category": "authorization",
+    "retryable": false,
+    "user_action_required": true,
+    "required_scopes": ["ceerat.market.history.read"],
+    "correct_arguments": null,
+    "operation_state": "not_started",
+    "request_id": "req_..."
+  }
 }
 ```
 
-## 9. Query Patterns & Performance
+Public errors may include a stable code/category, safe message, retryability and bounded retry delay, required user action, scopes/entitlements, safe validation paths, operation state, and request ID.
 
-- Hot paths (real-time): serve from in-memory order-books; fall back to latest snapshot when needed.
-- Historical queries: rely on Timescale hypertables; precompute daily aggregates for common queries.
-- Backfills: replay raw feed files into Kafka and reprocess to rebuild DB.
+They must not expose tokens, secrets, passwords, raw upstream responses, stack traces, SQL, private addresses, topology, or cross-customer data. Sanitized internal diagnostics correlate through the request ID.
 
-## 10. Anomaly Detection & AI Integration
+## 7. Proposed TXSE product surface
 
-- Pipeline:
-  - Stream metrics from real-time processor → feature extractor → anomaly detection service → alert bus.
-  - Store features and anomalies into a time-series/feature DB for AI models.
+Subject to licensing, capabilities include symbol/reference discovery, latest quotes, recent trades, streams, current/historical books, historical data, replay, derived aggregates, anomalies, and explanations that separate observations, calculations, and model interpretation.
 
-- Types of detection:
-  - Volume spikes vs 30-day rolling average
-  - Bid/ask liquidity shifts
-  - Concentration of large trades
-  - Cross-symbol correlated events
+Illustrative gRPC/WebSocket surface:
 
-- AI layer:
-  - Use models to generate human-readable insights and explanations for anomalies.
-  - Use `ceerat-platform-builder-agent` to orchestrate prompt-based analysis, enrich alerts with contextual data, and produce natural-language summaries.
-    - See [ceerat-platform-builder-agent/ceerat_builder/openai_client.py](ceerat-platform-builder-agent/ceerat_builder/openai_client.py) and [ceerat-platform-builder-agent/ceerat_builder/planner.py](ceerat-platform-builder-agent/ceerat_builder/planner.py) for examples of integrating LLMs from this workspace.
-
-## 11. Using `ceerat-platform-builder-agent`
-
-- Roles for the agent in this platform:
-  - Prototype AI prompts and summarization pipelines.
-  - Build interactive diagnostic tools (e.g., "explain this anomaly") integrated into the developer dashboard.
-  - Assist in generating alert summaries, indicator descriptions, and code snippets for SDKs.
-
-- Integration pattern:
-  1. Anomaly service writes candidate anomaly to `alerts` topic.
-  2. A worker calls `ceerat_platform_builder_agent` to supply the event context and prompt for analysis.
-  3. The agent returns a structured analysis and suggested labels stored with the alert.
-
-## 12. Developer Experience (API, SDKs, Dashboard)
-
-- Developer-facing features:
-  - API keys, rate limits, usage dashboards, and developer documentation.
-  - SDKs: Python, Node, Go (Stage 2).
-  - Quickstart: sample code to subscribe and fetch historical trades in <5 minutes.
-
-## 13. Deployment, Scalability & Operations
-
-- Deploy on Kubernetes for stage 2+; start with Docker Compose or simple k8s manifests for MVP.
-- Autoscaling considerations:
-  - Shard consumers by symbol range.
-  - Scale API/WS layer horizontally behind a load balancer.
-
-- Monitoring & SLOs:
-  - Latency SLOs for WebSocket delivery (e.g., 99th percentile < 200ms after ingestion).
-  - End-to-end ingestion completeness checks (sequence gap detection).
-  - Instrument with Prometheus + Grafana and alerting for processing lags.
-
-## 14. Security & Compliance
-
-- Authentication: API keys + JWT for websockets.
-- Authorization: per-API key scopes and symbol ACLs for contracted customers.
-- Data protection: encrypt backups at rest, TLS in transit, and RBAC for operational systems.
-
-## 15. Cost Estimates & Roadmap
-
-- Stage 1 — $10K–$30K MVP (6–12 weeks):
-  - Build ingest + decoder, cheap message broker (NATS), Timescale prototype, REST + WebSocket, minimal dashboard.
-
-- Stage 2 — $50K–$150K:
-  - Historical DB at scale, order-book reconstruction service, analytics, alerts, AI analysis, SDKs.
-
-- Stage 3 — larger:
-  - Add execution infrastructure, partner integrations, enterprise features.
-
-## 16. Testing & Validation
-
-- Unit tests for decoders; fuzz testing with malformed messages.
-- Integration tests: feed replays into a staging Kafka and validate DB writes and API responses.
-- Performance tests: symbol fan-out, snapshot/replay timings, and query throughput tests against Timescale.
-
-## 17. Example Minimal Tech Stack (MVP)
-
-- Language: Go for ingest and processing; Python for AI workers.
-- Broker: NATS or Redpanda (managed) to reduce ops complexity.
-- DB: PostgreSQL + TimescaleDB
-- API: Go (Gin) + gRPC optional for internal services
-- Infra: Docker Compose for prototype; Kubernetes for production
-
-## 18. Next Steps (Immediate)
-
-1. Implement a decoder prototype for TXSE feed and a simple writer to Kafka/NATS.
-2. Build a minimal real-time consumer that publishes normalized WebSocket messages.
-3. Add Timescale persistence for `trades` and `order_events` and provide `/api/v1/trades`.
-4. Integrate `ceerat-platform-builder-agent` for a basic "explain anomaly" workflow.
-
---
-
-File created as the platform technical spec. For agent-integration examples, see [ceerat-platform-builder-agent/ceerat_builder](ceerat-platform-builder-agent/ceerat_builder).
-
-## 19. Product Definition & Value Proposition
-
-The platform should be positioned as a developer-first financial infrastructure product, not simply as a stock-data website.
-
-**Core positioning:**
-
-> One simple API for developers and financial institutions to access normalized TXSE market data, historical data, reconstructed order books, and AI-powered market intelligence without building and operating their own TXSE feed infrastructure.
-
-The primary customer value is abstraction. Customers should not need to implement exchange feed decoders, multicast/TCP connectivity, sequence-gap recovery, order-book state, historical storage, replay systems, or anomaly pipelines themselves.
-
-**Product promise: “TXSE in 5 minutes.”**
-
-A developer should be able to create an account, obtain credentials, install an SDK, and consume useful TXSE data within minutes.
-
-Example target developer experience:
-
-```javascript
-const txse = new TXSE("API_KEY");
-const quote = await txse.quote("TXN");
-
-txse.stream("TXN", trade => {
-  console.log(trade);
-});
+```text
+MarketDataService.SearchSymbols(...)
+MarketDataService.GetQuote(...)
+MarketDataService.ListTrades(...)
+MarketDataService.GetOrderBook(...)
+MarketDataService.GetTradeHistory(...)
+WSS /api/v1/market/stream
 ```
 
-The platform handles the underlying exchange-specific complexity and presents a stable, documented interface.
+Illustrative MCP surface:
+
+```text
+search_market_symbols
+get_market_quote
+list_market_trades
+get_market_orderbook
+get_market_history
+list_market_anomalies
+explain_market_anomaly
+```
+
+Names remain provisional until rights, use cases, and canonical domain contracts are validated. Native WebSocket remains the streaming interface unless MCP client support makes an MCP stream operationally sound.
+
+| Class | Examples | Default control |
+| --- | --- | --- |
+| Low-impact read | Quote, symbol lookup | Scope + entitlement + rate limit |
+| Costly/bulk read | Long history, replay, export | Scope + entitlement + quotas/cost bounds |
+| Derived/model output | Anomaly explanation | Provenance + uncertainty + factual grounding |
+| Consequential mutation | Purchase, subscription, future order action | Prepare/confirm + policy + audit; defer unless required |
+
+Bound symbols, time ranges, pages, book depth, subscriptions, concurrent streams, and export volume. Server-side entitlements override model requests.
+
+## 8. Target architecture
 
-## 20. Target Customers & Jobs to Be Done
+```text
+Licensed TXSE/vendor feed or approved replay data
+                  |
+       ingest + decoder + sequence checks
+                  |
+          normalized event stream
+             /           \
+  real-time/book state   historical writer
+             \           /
+              market-data service
+                       |
+             authenticated private gRPC
+                       |
+                gRPC security/RBAC
+                  /             \
+                 /               \
+       CEERAT API gateway    MCP agent gateway
+          /           \              |
+       gRPC         WebSocket     remote MCP
+         |              |             |
+ developer apps      data apps      AI hosts
+```
 
-### Primary customers
+### Responsibilities
+
+**Ingest/decoder:** use approved transport, decode canonical events, preserve timestamps, detect duplicates/order/gaps/reconnects, and retain raw data only when permitted.
+
+**Real-time processor:** preserve per-symbol ordering, maintain bounded state and reproducible snapshots, produce data-quality metrics, and contain corrupt partitions.
+
+**Historical storage:** evaluate PostgreSQL/TimescaleDB using measured volumes; define numeric precision, partitions, indexes, retention, compression, replay, and deletion around contractual rights.
 
-- Fintech startups that need market data without operating exchange infrastructure.
-- Financial-software developers building dashboards, screeners, analytics, alerts, or research products.
-- Smaller financial firms that want normalized TXSE data through familiar APIs and SDKs.
+**Market-data service:** own query semantics, data ownership, entitlements,
+plans, pagination, validation, and usage accounting; expose private gRPC and
+stable domain errors.
 
-### Secondary customers
+**gRPC security/RBAC boundary:** authenticate calling workloads, propagate only
+trusted subject/customer context, authorize service methods, and preserve
+defense in depth inside domain services. Network reachability alone never grants
+authority.
 
-- Quantitative researchers and systematic-trading research teams.
-- Universities and financial-market researchers.
-- RIAs, family offices, and institutional research teams that need analytics rather than direct execution.
-- Data and analytics vendors that need a normalized TXSE integration.
+**CEERAT API gateway:** expose the developer gRPC/WebSocket surface,
+authenticate customers and applications, translate public contracts into
+private gRPC, and enforce edge limits, heartbeat, reconnect, backpressure, and
+gap semantics.
 
-### Later-stage customers
+**MCP gateway:** translate bounded tools to domain calls, derive identity from OAuth, avoid duplicating market logic, and return timestamps, freshness, provenance, and partial-data warnings.
 
-- Broker-dealers and larger institutional firms requiring enterprise data delivery, SLAs, dedicated infrastructure, or execution-related integrations.
+## 9. Canonical data model
 
-### Customer jobs to be done
+Define versioned objects for `Instrument`, `Trade`, `Quote`, `OrderEvent` where licensed, `OrderBookSnapshot`, `FeedHealth`, `SequenceGap`, `AggregateMetric`, and `Anomaly` with evidence/detector version.
 
-The product should allow a customer to say:
+Every event carries source, schema version, exchange timestamp, ingestion timestamp, sequence identity where available, and data-quality state. Responses state whether data is real-time, delayed, simulated, replayed, incomplete, or stale.
 
-- “Give me the latest TXSE quote for this symbol.”
-- “Stream TXSE trades into my application.”
-- “Give me the current or historical order book.”
-- “Show me unusual market activity.”
-- “Explain why this activity is unusual.”
-- “Let me integrate TXSE without building a feed handler and market-data infrastructure team.”
+Book reconstruction begins with a verified snapshot and ordered deltas. A missing sequence invalidates the affected book until recovery; guessed state is never presented as authoritative.
 
-## 21. Commercial Validation Before Engineering
+## 10. Licensing and entitlements
 
-Before implementing the production decoder or committing significant engineering resources, validate that the proposed data product is technically and contractually possible.
+Obtain written answers for:
 
-### TXSE access and licensing checklist
+1. permitted feeds and test/certification environments;
+2. connectivity and approved-provider requirements;
+3. internal-use and external-redistribution rights;
+4. gRPC, WebSocket, MCP, bulk, display, and non-display treatment;
+5. historical storage and redistribution;
+6. derived-data and AI-analysis rights;
+7. downstream agreements and identity requirements;
+8. entitlement, usage reporting, attribution, and audit obligations;
+9. delayed-data requirements;
+10. data, connectivity, certification, and redistribution fees;
+11. retention/deletion obligations;
+12. incident and compliance-review obligations.
 
-Confirm directly with TXSE and/or an authorized connectivity/data provider:
+An authoritative entitlement module maps customer and credential to datasets, symbols, depth, latency class, history, usage, and redistribution mode. OAuth scopes express operation categories; they do not replace commercial entitlements.
 
-1. Which feeds are appropriate for the intended product (for example, FEED and/or BALE).
-2. Available production, certification, test, replay, or simulation environments.
-3. Physical/network connectivity options and whether a third-party connectivity provider is required.
-4. Market-data subscriber agreements required for the company.
-5. Internal-use versus external-distribution rights.
-6. Whether normalized API redistribution is permitted and under what agreement.
-7. Display versus non-display usage requirements.
-8. End-user reporting, entitlement, audit, or recordkeeping obligations.
-9. Current and future data, connectivity, port, certification, and redistribution fees.
-10. Rules governing historical storage and redistribution of historical TXSE data.
-11. Branding, attribution, delayed-data, and derived-data requirements.
-12. Any customer agreements or reporting the platform must enforce downstream.
+## 11. Security and operations
 
-**Gate:** Do not design the commercial product around an assumed right to redistribute proprietary exchange data. Data rights and customer entitlements must be confirmed before launch.
+- Require TLS for public interfaces and authenticated internal traffic.
+- Keep secrets in deployment secret stores, never Git, examples, logs, or responses.
+- Apply least privilege, rotation, expiry, and revocation to user/workload credentials.
+- Rate-limit by subject, customer, credential, operation, and costly query dimensions.
+- Audit actor, client, operation, target class, decision, result, request ID, and safe reason—never credentials.
+- Isolate customer data, queries, entitlements, usage, and saved artifacts.
+- Fail closed when identity, entitlement, feed integrity, or ownership is uncertain.
+- Treat model output as untrusted presentation, not market fact or policy input.
+- Do not imply a trading recommendation or execution workflow from anomaly output.
 
-## 22. Competitive Positioning
+Development may use direct Go deployment, managed services, and approved simulation/replay. Kubernetes is not required during development.
 
-The company should not initially compete on raw exchange connectivity or attempt to win an ultra-low-latency arms race against established institutional infrastructure providers.
+## 12. Reliability and observability
 
-### Initial differentiation
+Monitor feed/heartbeat state; gaps, duplicates, and recovery; event and delivery latency; stream lag; storage failures; quote/book freshness; API availability; WebSocket backpressure/reconnects; entitlement/rate-limit/OAuth failures; MCP outcomes; and reconciliation correctness.
 
-Position the platform around three characteristics:
+Health must distinguish process health from data readiness. A running service with stale or gapped data is not ready to serve authoritative results.
 
-**Developer-first** — clean REST/WebSocket APIs, excellent documentation, sandbox/test tools, SDKs, predictable authentication, and fast onboarding.
+## 13. Testing and acceptance
 
-**TXSE-first** — deep support for TXSE-specific market data and market structure while the exchange ecosystem is developing.
+### Data correctness
 
-**AI-first** — convert market events and quantitative anomalies into structured, explainable intelligence instead of merely forwarding raw ticks.
+- Golden vectors for decoded messages and fuzz tests for malformed inputs.
+- Duplicate, out-of-order, gap, reconnect, and rollover scenarios.
+- Deterministic snapshot-plus-delta reconstruction and replay.
+- Reconciliation against an approved reference source where permitted.
 
-### Competitive moat to build over time
+### APIs and streams
 
-- Reliable normalized historical TXSE dataset.
-- High-quality reconstructed order books.
-- Developer ecosystem and SDK adoption.
-- Proprietary anomaly features and derived metrics.
-- Customer integrations that depend on a stable normalized API.
-- Multi-exchange normalization once the TXSE wedge is proven.
+- Contract tests across public gRPC, WebSocket, private gRPC, and MCP projections.
+- Pagination, time boundaries, freshness, and partial-data behavior.
+- Subscription, reconnect, backpressure, slow-consumer, and measured load tests.
 
-### What not to compete on initially
+### Identity and isolation
 
-- Microsecond execution latency.
-- Colocation as the primary product.
-- Brokerage or custody.
-- Direct retail order execution.
-- Becoming a TXSE member solely to validate the MVP.
+- Missing, malformed, expired, wrong-issuer/audience, and revoked tokens.
+- Insufficient scope versus insufficient commercial entitlement.
+- Two-user and two-customer isolation.
+- Attempts to select another identity through model-controlled fields.
+- Rotation/revocation and secret/PII/topology leakage checks.
 
-## 23. MVP Definition
+### LLM/MCP acceptance
 
-The MVP should prove that customers value simplified TXSE access. Avoid building the complete analytics platform before this is validated.
+1. Discover only intended active tools.
+2. Complete OAuth and identify the correct user.
+3. Request an entitled quote/history operation.
+4. Verify missing scope and entitlement produce distinct safe guidance.
+5. Reject unknown/out-of-range arguments before execution.
+6. Clearly label stale, gapped, simulated, or replayed data.
+7. Revoke the connection and reject subsequent calls.
+8. Confirm legacy `ceerat-agent-service` tools are absent.
 
-### MVP must-have capabilities
+Chat testing is acceptance evidence, not a replacement for deterministic security and data tests.
 
-1. Reliable ingestion from an approved test/production data source.
-2. Canonical normalized event schema.
-3. Latest quote endpoint.
-4. Recent trades endpoint.
-5. WebSocket trade/quote streaming.
-6. Basic historical persistence.
-7. API-key authentication and rate limiting.
-8. Developer documentation and a working quickstart.
-9. Minimal customer dashboard showing credentials, usage, and service status.
-10. Operational monitoring for sequence gaps and processing lag.
+## 14. Roadmap and gates
 
-### MVP optional capabilities
+### Gate A — Finish identity
 
-- Limited order-book endpoint.
-- Simple historical replay.
-- One anomaly type, such as unusual volume.
-- AI explanation of detected anomalies.
+Complete Phase 1 PRs 02–09 and freeze the OAuth/MCP boundary. TXSE discovery may proceed in parallel, but TXSE tools must not bypass unfinished controls.
 
-### Explicitly defer
+### Gate B — Validate business and rights
 
-- Customer order routing.
-- Custody.
-- Brokerage functionality.
-- Multi-exchange smart order routing.
-- Complex institutional entitlement systems beyond what licensing requires.
-- Full SDK coverage for every language.
+Interview 15–25 prospects, recruit 3–5 design partners, document licensing/entitlements/fees, and stop or reshape the product if rights or economics fail.
 
-## 24. Pricing & Revenue Model
+### Gate C — Prove feed feasibility
 
-Pricing should be validated with prospective customers and must account for exchange licensing and redistribution costs. The following is a starting hypothesis, not a commitment.
+Using approved data, define schemas, decode required events, demonstrate sequencing/replay/reconciliation, and measure throughput, latency, storage, and cost.
 
-### Developer tier
+### Gate D — Developer API pilot
 
-Indicative target: **$199/month** plus applicable exchange/data entitlements.
+Implement the domain service, minimal public gRPC and WebSocket surfaces,
+credentials, entitlements, limits, metering, documentation, and design-partner
+onboarding.
 
-- REST API.
-- Limited WebSocket usage.
-- Basic historical access.
-- Usage dashboard.
-- Community/email support.
+### Gate E — MCP pilot
 
-### Professional tier
+Project a small read-only subset through the gateway. Begin with symbol search, quote, and bounded recent trades/history. Reuse Phase 1 OAuth, errors, connections, scopes, and audit controls. Validate with distinct Codex/ChatGPT users and entitlements.
 
-Indicative target: **$1,000/month** plus applicable exchange/data entitlements.
+Do not begin with bulk export, unconstrained history, execution, or an open-ended model-controlled query language.
 
-- Higher rate limits.
-- Real-time streaming.
-- Order-book access where licensed.
-- Longer historical retention.
-- Analytics and alerts.
-- Priority support.
+### Gate F — Expansion
 
-### Institutional / Enterprise
+Add books, longer history, anomaly detection, and model explanations only when rights, correctness, and customer demand justify them.
 
-Indicative target: **$5,000–$20,000+ per month**, depending on throughput, data rights, infrastructure, SLA, support, and deployment requirements.
+## 15. MVP scope
 
-- Dedicated or high-throughput delivery.
-- Enterprise authentication and entitlements.
-- Large historical queries/data exports.
-- SLA and support commitments.
-- Custom analytics or deployment options.
+Include approved data ingestion; normalized symbol/quote/trade schemas; sequence/readiness monitoring; quote/recent-trade APIs; bounded streaming; basic licensed history; identity, credentials, entitlements, rate limits and metering; quickstart documentation; and a small read-only MCP projection after Phase 1 closure.
 
-### Additional future revenue
+Defer brokerage, custody, routing, execution, AI-first intelligence, unbounded exports, unnecessary full-depth books, multi-exchange support, Kubernetes, broad SDK coverage, and new legacy `ceerat-agent-service` tools.
 
-- Historical datasets.
-- Derived analytics/API products.
-- AI intelligence subscriptions.
-- Enterprise implementation fees.
-- Multi-exchange data packages.
+## 16. Commercial model
 
-Do not bury exchange data charges inside pricing until the contractual treatment of those fees is understood.
+Derive pricing from interviews, measured infrastructure cost, and exchange/provider charges. Potential developer, professional, and enterprise tiers may vary by latency, datasets, history, depth, throughput, streams, retention, SLA, and support. Earlier illustrative prices are not commitments.
 
-## 25. Go-to-Market & First Customers
+Track time to first call, active customers/credentials, delivered usage, paid conversion, margin after data/infrastructure fees, reliability, support burden, retention, and expansion.
 
-The initial objective is not thousands of retail users. It is a small number of design partners who have a real integration problem.
+## 17. Builder-agent governance
 
-### Ideal first design partners
+`ceerat-platform-builder-agent` is a development-time source of CEERAT context, security standards, ownership boundaries, inventories, and validation. It is not a runtime anomaly-analysis service and does not sit in the market-data request path.
 
-- A fintech startup building a market dashboard.
-- A quantitative research team.
-- A university finance/market-microstructure lab.
-- A small analytics vendor.
-- A financial application that wants to add TXSE-specific views.
+Before every implementation PR:
 
-### Customer discovery process
+```bash
+ceerat-builder check-context
+ceerat-builder codex-context --output json
+ceerat-builder app-context ceerat-agent-gateway --output json
+ceerat-builder patterns grpc-security --output json
+ceerat-builder docs all --output json
+```
 
-Interview at least 15–25 potential users before committing to Stage 2. Questions should focus on existing workflow and cost rather than asking whether the idea “sounds good.”
+Add service-specific context when the market service exists. Validate OAuth termination, workload authentication, service ownership, tenant/entitlement boundaries, model-controlled inputs, error/log redaction, consequential operations, active/deprecated inventories, and preservation of public MCP -> gateway -> private gRPC.
 
-Learn:
+After every PR:
 
-- What market-data vendors they currently use.
-- Whether they expect to consume TXSE-specific data.
-- What integration work is painful today.
-- Whether REST, WebSocket, bulk historical files, or direct streaming is most useful.
-- Required latency and uptime.
-- Required history depth.
-- Whether order-book reconstruction matters.
-- How much they currently spend on data engineering/vendor access.
-- What would cause them to switch or add another vendor.
+```bash
+ceerat-builder check apps --output json
+ceerat-builder check drift --output json
+```
 
-### Initial sales motion
+Run `make verify-platform` for shared contracts, inventories, security boundaries, or deployment changes. Failures must distinguish active product drift from explicitly deprecated legacy inventory.
 
-1. Recruit 3–5 design partners.
-2. Give them controlled sandbox/test access.
-3. Observe actual API usage.
-4. Convert at least 2 to paid pilots.
-5. Use pilot requirements to determine Stage 2 priorities.
+After merge, deployment, and human validation, update owning documentation and make a focused builder documentation checkpoint for reusable, tested rules. Deployment evidence belongs in `infra`; reusable standards belong in `ceerat-platform-builder-agent`; speculation does not become a standard.
 
-A successful MVP is not defined only by technical completion; it should demonstrate willingness to integrate and pay.
+## 18. Immediate actions
 
-## 26. Key Business & Product Metrics
+1. Continue Phase 1 with PR 02.
+2. Mark legacy `ceerat-agent-service` inventories deprecated in the builder model and focus validation on active MCP surfaces through a separate reviewed PR.
+3. Create a written TXSE/vendor licensing and entitlement questionnaire.
+4. Interview customers and recruit design partners.
+5. Obtain approved specifications and sample/certification/replay data.
+6. Draft the canonical event schema and minimal read-only API contract.
+7. Prototype decoding, sequence recovery, and reconciliation before AI explanations or a broad portal.
 
-Track metrics that distinguish a useful infrastructure business from a technically impressive prototype.
-
-### Validation metrics
-
-- Number of qualified customer interviews.
-- Number of design partners.
-- Time from signup to first successful API call.
-- Percentage of developers completing the quickstart.
-- Weekly active API keys.
-- Data requests/events delivered per customer.
-- Paid-pilot conversion rate.
-
-### Reliability metrics
-
-- Feed completeness / sequence-gap rate.
-- Ingestion-to-delivery latency.
-- API availability.
-- WebSocket disconnect/reconnect rate.
-- Historical-query latency.
-
-### Commercial metrics
-
-- MRR/ARR.
-- Average revenue per customer.
-- Gross margin after exchange/data/infrastructure costs.
-- Customer acquisition cost.
-- Retention and expansion revenue.
-
-## 27. Revised 6-Week Validation & MVP Plan
-
-This schedule assumes TXSE/vendor access and contractual review progress quickly. If access or licensing takes longer, use simulated/replay data for engineering while keeping production launch gated on actual rights.
-
-### Week 1 — Commercial and data-access validation
-
-- Contact TXSE and relevant connectivity/data providers.
-- Confirm FEED/BALE use cases, test access, connectivity, and specifications.
-- Understand redistribution, display/non-display, derived-data, historical-data, and downstream entitlement requirements.
-- Begin customer discovery interviews.
-- Define the canonical internal market-event model.
-
-**Deliverable:** written data-rights/access matrix + initial customer requirements.
-
-### Week 2 — Feed prototype
-
-- Implement decoder against approved test, sample, or replay data.
-- Normalize trades, quotes, and relevant order events.
-- Implement sequence tracking and gap detection.
-- Publish normalized events to NATS/Redpanda.
-
-**Deliverable:** repeatable feed-to-normalized-event pipeline.
-
-### Week 3 — Real-time developer API
-
-- Build quote/trade endpoints.
-- Build WebSocket subscriptions.
-- Add API-key authentication and basic limits.
-- Create simple developer quickstart.
-
-**Deliverable:** external developer can receive normalized test/live events without understanding TXSE feed formats.
-
-### Week 4 — Historical data
-
-- Add Timescale persistence.
-- Implement recent/historical trade queries.
-- Add raw-feed/replay strategy.
-- Begin basic order-book state if required by design partners.
-
-**Deliverable:** historical API + replayable data pipeline.
-
-### Week 5 — Developer portal
-
-- API key creation/rotation.
-- Usage dashboard.
-- Documentation.
-- Service status/health indicators.
-- Onboard first design partners.
-
-**Deliverable:** self-service developer onboarding.
-
-### Week 6 — Customer demo and pilot
-
-- Run end-to-end demos with design partners.
-- Measure onboarding time and integration friction.
-- Collect pricing feedback.
-- Fix the highest-impact reliability/DX problems.
-- Seek first paid pilot commitments.
-
-**Deliverable:** validated MVP and prioritized Stage 2 backlog.
-
-## 28. Decision Gates
-
-The startup should use explicit gates before increasing investment.
-
-### Gate A — Data rights
-
-Proceed to public/commercial launch only when required data access and redistribution rights are documented.
-
-### Gate B — Technical feasibility
-
-Proceed when the platform can reliably ingest, normalize, detect gaps, and deliver data at the latency level required by initial customers.
-
-### Gate C — Customer validation
-
-Proceed to larger Stage 2 spending when multiple design partners actively integrate and at least some demonstrate willingness to pay.
-
-### Gate D — Expansion
-
-Add other exchanges, advanced AI, or execution infrastructure only after the TXSE data/API wedge has repeatable demand and sound unit economics.
-
-## 29. Updated Immediate Next Steps
-
-The immediate sequence should replace the engineering-only ordering in Section 18:
-
-1. Validate TXSE data access, licensing, redistribution, test-environment, connectivity, and historical-data rights.
-2. Interview 15–25 target customers and recruit 3–5 design partners.
-3. Obtain the appropriate technical specifications/sample or test data.
-4. Define the canonical event schema and API contract.
-5. Implement the feed decoder and sequence/gap handling.
-6. Build normalized REST + WebSocket delivery.
-7. Add Timescale persistence and basic historical queries.
-8. Build the developer portal, API keys, documentation, and quickstart.
-9. Run design-partner pilots and test pricing.
-10. Add order-book reconstruction, anomaly detection, and AI based on demonstrated customer demand.
-
-The central product principle is: **do not make customers learn TXSE infrastructure in order to use TXSE data.** The platform should turn exchange-specific complexity into a simple, reliable developer product.
+The governing principle is: make licensed market data easy to consume without moving correctness, identity, entitlement, or customer policy decisions into an LLM.
