@@ -7,6 +7,7 @@ server="${CEERAT_KEYCLOAK_SERVER:-https://ceerat-keycloak.onrender.com}"
 realm="${CEERAT_KEYCLOAK_REALM:-ceerat}"
 admin_user="${CEERAT_KEYCLOAK_ADMIN_USERNAME:?set CEERAT_KEYCLOAK_ADMIN_USERNAME}"
 admin_password="${CEERAT_KEYCLOAK_ADMIN_PASSWORD:?set CEERAT_KEYCLOAK_ADMIN_PASSWORD}"
+revoker_secret="${CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET:?set CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET}"
 config_file="$(mktemp)"
 trap 'rm -f "$config_file"' EXIT
 
@@ -46,9 +47,9 @@ reconcile_client() {
     echo "Updated $client_id"
   fi
 
-  if [[ "$client_id" == "ceerat-gateway-revoker" && -n "${CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET:-}" ]]; then
+  if [[ "$client_id" == "ceerat-gateway-revoker" ]]; then
     "$kcadm" update "clients/$internal_id" --config "$config_file" -r "$realm" \
-      -s "secret=$CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET"
+      -s "secret=$revoker_secret"
     echo "Updated disabled revoker secret from the environment"
   fi
 }

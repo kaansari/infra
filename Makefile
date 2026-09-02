@@ -143,6 +143,7 @@ test-keycloak-config:
 reconcile-keycloak-live:
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_USERNAME:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_USERNAME" >&2; exit 1)
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_PASSWORD:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_PASSWORD" >&2; exit 1)
+	@test -n "$${CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET:-}" || (echo "set CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET" >&2; exit 1)
 	@$(DOCKER) run --rm --entrypoint /bin/bash \
 		-e CEERAT_KEYCLOAK_ADMIN_USERNAME \
 		-e CEERAT_KEYCLOAK_ADMIN_PASSWORD \
