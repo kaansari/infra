@@ -48,6 +48,19 @@ from local Codex development callbacks.
 
 No Google social login and no gateway revocation implementation in this PR.
 
+## Builder-agent and documentation gate
+
+- Run the shared builder workflow plus `ceerat-builder evidence request
+  "public MCP OAuth PKCE redirects refresh rotation verified email Keycloak"
+  --output json`.
+- Validate external OAuth termination, public-client boundaries, exact hosted
+  redirects, the restricted native-loopback exception, secret storage, and
+  least-privilege revoker-client design against the public-AI security profile.
+- Update the Keycloak README, Render runbook, realm reconciliation procedure,
+  Phase 1-B deployment documentation, and configuration examples in this PR.
+- After both clients pass live validation, update the reusable OAuth rules in
+  the builder architecture and security standards before PR 04.
+
 ## Rollback
 
 Keep the existing client enabled until both new clients pass smoke tests. Move

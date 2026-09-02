@@ -36,6 +36,17 @@ traceable without logging credentials.
 
 No enterprise quota product, billing, CAPTCHA, or Kubernetes ingress policy.
 
+## Builder-agent and documentation gate
+
+- Run the shared workflow plus `ceerat-builder evidence request "public MCP
+  rate limiting audit logging redaction" --output json`.
+- Validate limiter identity keys, multi-instance behavior, safe retry metadata,
+  audit ownership, request correlation, and complete credential redaction.
+- Update gateway operations, configuration, error, audit, and scaling
+  documentation in this PR.
+- After live validation, update reusable rate-limit, audit, and redaction rules
+  in the builder architecture and security standards before PR 08.
+
 ## Acceptance
 
 The live gateway demonstrates a bounded 429-style MCP error and correlated,

@@ -34,6 +34,17 @@ database errors do not appear in public output.
 
 No rate limiter, Keycloak administration, or live multi-user fixture.
 
+## Builder-agent and documentation gate
+
+- Run the shared workflow plus `ceerat-builder patterns grpc-security --output
+  json` and `ceerat-builder rbac check --output json`.
+- Validate that JWT verification and tool-scope enforcement occur inside
+  CEERAT and that neither annotations nor model arguments grant authority.
+- Update the gateway security/testing documentation and scope matrix in this
+  PR.
+- After validation, synchronize the tested token/scope matrix into the builder
+  public-AI and RBAC standards before PR 05.
+
 ## Acceptance
 
 Mutation handlers cannot be reached with a token lacking their required scope,

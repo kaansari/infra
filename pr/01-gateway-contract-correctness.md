@@ -38,6 +38,19 @@ Remove two known correctness gaps before expanding the security suite:
 No connection schema changes, Keycloak changes, profile behavior changes, or
 new tools.
 
+## Builder-agent and documentation gate
+
+- Before coding, run the shared builder workflow in `pr/README.md` plus
+  `ceerat-builder app-surface ceerat-agent-gateway --output json`.
+- Validate strict tool inputs, OAuth termination at the gateway, derived
+  identity, and LLM-safe errors against
+  `.ceerat-agent/public-ai-integration-security-profile.md`.
+- Update the gateway README/tool contract notes in this PR.
+- After merge and live ChatGPT/Codex validation, update reusable strict-schema
+  and authentication-only-tool guidance in
+  `.ceerat-agent/ai-tool-standard.md` and the public-AI security profile, then
+  run the builder drift checks before PR 02.
+
 ## Acceptance
 
 The authenticated Codex smoke test reports PASS for authentication status,

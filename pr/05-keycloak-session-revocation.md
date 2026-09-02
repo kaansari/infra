@@ -46,6 +46,18 @@ revocation.
 
 No global user logout, admin-facing session management, or account deletion.
 
+## Builder-agent and documentation gate
+
+- Run the shared workflow plus `ceerat-builder evidence request "Keycloak
+  session connection refresh family revoke logout" --output json`.
+- Validate the session identifier boundary, least-privilege service identity,
+  private credential handling, ownership checks, failure ordering, and truthful
+  public guarantees against the public-AI security profile.
+- Update gateway architecture, connection-tool documentation, Render deployment
+  variables, and the revocation operator runbook in this PR.
+- After the A/B/C live revocation test passes, update reusable session and
+  revocation rules in the builder architecture/security profile before PR 06.
+
 ## Acceptance
 
 Tool descriptions, stored state, and observed Keycloak behavior agree. No test

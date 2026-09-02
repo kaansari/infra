@@ -43,6 +43,19 @@ produce machine-readable PASS/FAIL evidence without committing credentials.
 No production destructive testing, load test, browser automation framework,
 jobs, skills, applications, TXSE, or Kubernetes.
 
+## Builder-agent and documentation gate
+
+- Run the complete shared builder workflow before and after the acceptance
+  harness, including `make verify-platform` from `infra`.
+- Treat the public-AI security profile's production verification gate as the
+  acceptance checklist; every item must link to automated or explicitly manual
+  evidence.
+- Update the infra acceptance runbook, redacted evidence, deployment notes,
+  and milestone status in this PR.
+- After human validation, reconcile every reusable finding into builder-agent
+  architecture/security/tool standards and inventories before PR 09. Do not
+  mark an untested item complete.
+
 ## Acceptance
 
 All scenarios pass twice: once with Codex and once with the ChatGPT app where an

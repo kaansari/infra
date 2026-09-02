@@ -11,7 +11,7 @@ ordinary active connection. Make the current connection identifiable.
 
 ## Response design
 
-Retain legacy `status` and `expires_at` for one compatibility window, but add
+Retain legacy `status` only if needed and `expires_at` for one compatibility window, but add
 truthful fields:
 
 ```json
@@ -55,6 +55,19 @@ unless CEERAT has verified that state with the authorization server.
 
 This PR does not revoke Keycloak sessions or claim refresh-token-family
 revocation.
+
+## Builder-agent and documentation gate
+
+- Run the shared builder workflow plus `ceerat-builder evidence request
+  "agent connection lifecycle current access token expiry revocation" --output
+  json`.
+- Validate that access-token state, authorization state, ownership, and current
+  connection identity are derived server-side and never supplied by the model.
+- Update the gateway README, tool response examples, database migration notes,
+  and app-surface inventory in this PR.
+- After live validation, update reusable connection-state terminology in the
+  builder architecture, AI-tool standard, and public-AI security profile before
+  PR 03.
 
 ## Acceptance
 

@@ -54,6 +54,78 @@ planned initially; the live isolation suite verifies those boundaries.
   Keycloak or multi-user check.
 - Avoid drive-by refactors, dependency upgrades, or generated-file churn.
 
+## Mandatory ceerat-platform-builder-agent workflow
+
+Every PR must use `ceerat-platform-builder-agent` as a required architecture
+and security reviewer, not as optional background reading.
+
+Before implementation, run from the builder-agent repository:
+
+```bash
+ceerat-builder check-context
+ceerat-builder codex-context --output json
+ceerat-builder app-context ceerat-agent-gateway --output json
+ceerat-builder patterns grpc-security --output json
+ceerat-builder docs all --output json
+```
+
+Also run the PR-specific builder commands listed in its design document. Save a
+sanitized planning/validation summary in the PR description; do not commit raw
+tokens, secrets, environment dumps, or production identity data.
+
+The review must explicitly answer:
+
+- Where do external OAuth credentials terminate?
+- Which component authenticates the gateway-to-service call?
+- Which service owns authorization, record ownership, validation, and storage?
+- Can any model-controlled field select a user, customer, scope, role,
+  connection owner, or grant authority?
+- Are consequential operations confirmed, bound, expiring, idempotent where
+  retryable, and safe under uncertain outcomes?
+- Can errors, logs, traces, or audit events reveal credentials or internals?
+- Does the change preserve the public MCP -> gateway -> private gRPC boundary?
+
+After implementation, run:
+
+```bash
+ceerat-builder check apps --output json
+ceerat-builder check drift --output json
+```
+
+From `infra`, run `make verify-platform` when the PR affects a platform
+boundary or shared inventory. A builder warning must be resolved or recorded as
+an explicit risk acceptance; it must not be silently ignored.
+
+## Documentation synchronization after every PR
+
+Each implementation PR updates its owning README, API/tool documentation,
+architecture/security notes, inventories, deployment configuration examples,
+and test/runbook material affected by the change. Documentation describes the
+implemented behavior, not the intended future behavior.
+
+After the PR is merged, deployed, and human-validated, complete a small
+documentation-only checkpoint in `ceerat-platform-builder-agent` before
+starting the next PR:
+
+1. Run `ceerat-builder docs all --output json` to identify affected canonical
+   documentation.
+2. Update `.ceerat-agent/architecture.md`,
+   `.ceerat-agent/public-ai-integration-security-profile.md`,
+   `.ceerat-agent/security-rbac-standard.md`,
+   `.ceerat-agent/service-standards.md`, or
+   `.ceerat-agent/ai-tool-standard.md` only where the PR established a reusable,
+   tested rule.
+3. Update builder inventories/context when the implemented surface, ownership,
+   configuration, or verification commands changed.
+4. Run `ceerat-builder check-context`, `ceerat-builder check apps --output
+   json`, and `ceerat-builder check drift --output json`.
+5. Commit and push the builder-agent documentation checkpoint with the
+   implementation PR number and validation evidence referenced in its message.
+
+Deployment-specific evidence remains in `infra`; reusable platform rules live
+in `ceerat-platform-builder-agent`. Speculative design must not be promoted to
+a platform standard.
+
 ## Definition of Phase 1 complete
 
 Phase 1 is complete only after PR 8 records passing evidence for OAuth, token

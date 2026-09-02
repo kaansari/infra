@@ -35,6 +35,17 @@ foundation that Phase 2 must reuse.
 No implementation change, social login, jobs, skills, applications, TXSE, or
 Kubernetes.
 
+## Builder-agent and documentation gate
+
+- Run `ceerat-builder docs all --output json`, all shared builder checks, and
+  `make verify-platform` before declaring the milestone complete.
+- Reconcile infra deployment evidence with builder-agent architecture,
+  public-AI security, RBAC, service, and AI-tool standards.
+- Verify there is no documentation drift across `infra`, `apps-repo`,
+  `services-repo`, `contracts-repo`, and `ceerat-platform-builder-agent`.
+- The freeze commit must reference the final builder checks and live acceptance
+  evidence. Documentation is part of the completion gate, not follow-up work.
+
 ## Acceptance
 
 The milestone can be reproduced from the committed runbook, and Phase 2 work
