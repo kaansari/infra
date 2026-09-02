@@ -1,6 +1,7 @@
 # Public agent Phase 1-B: self-service identity
 
-Status: implemented in source; deployment configuration and authenticated E2E validation pending
+Status: native identity exchange is deployed and validated; split OAuth clients
+and hardening require PR 03 live reconciliation and client smoke tests
 
 ## Outcome
 
@@ -56,13 +57,17 @@ Keycloak startup import skips an existing realm. Apply Google, SMTP, and
 `verifyEmail=true` through the Admin Console/API on the live realm as well as
 retaining them in `dev/keycloak/ceerat-realm.json`.
 
-For InMotion email, use the exact secure outgoing server shown by cPanel's
-**Set Up Mail Client** page, normally SMTP port `465` with SSL/TLS and the full
-mailbox address as the authenticated username. Do not use port 25.
-
-The current pilot configuration uses `ceerat@mevsfalse.com` through
-`mail.mevsfalse.com:465`. Its password exists only in the Render secret value
+The current pilot uses Brevo authenticated SMTP through
+`smtp-relay.brevo.com:2525`, with STARTTLS enabled and implicit SSL disabled.
+The Brevo SMTP key exists only in the Render secret
 `CEERAT_SMTP_PASSWORD` and must never be committed.
+
+Hosted ChatGPT and native Codex use separate public OAuth clients. ChatGPT has
+only its exact hosted callback; Codex has only the loopback callback exception.
+Both require authorization code + PKCE `S256`, disable implicit/password flows,
+and receive the explicit CEERAT scopes/audience. The original
+`ceerat-mcp-dev` client remains enabled only for a time-bounded rollback until
+both replacements pass live smoke tests.
 
 ## Acceptance criteria
 

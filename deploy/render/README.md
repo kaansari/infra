@@ -19,9 +19,11 @@ collide: Keycloak's `user_role_mapping` was observed during the Phase 1 test.
 
 Phase 1-B generates `CEERAT_GATEWAY_WORKLOAD_SECRET` on the private user service
 and references that exact value from the gateway. Do not generate independent
-values. Google and SMTP secrets use `sync: false`; set them manually on existing
-services because Render only prompts for these values during initial Blueprint
-creation.
+values. Google, SMTP, and `CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET` use
+`sync: false`; set them manually on existing services because Render only
+prompts for these values during initial Blueprint creation. The revoker secret
+belongs to the disabled PR 05 placeholder and must not appear in realm JSON or
+documentation.
 Use separate schemas and database users, or separate databases, before a
 production launch.
 
@@ -133,3 +135,48 @@ remaining production gates.
 
 Never paste a production password or token into deployment logs or a shared
 ChatGPT conversation. Use a disposable test account for the first public test.
+
+## Reconcile the existing Keycloak realm
+
+Keycloak `--import-realm` creates a missing realm but does not overwrite the
+existing realm stored in PostgreSQL. After deploying PR 03, run the checked-in
+reconciler from an administrative workstation or Render shell that has
+Keycloak's `kcadm.sh` available:
+
+```bash
+export CEERAT_KEYCLOAK_ADMIN_USERNAME=admin
+export CEERAT_KEYCLOAK_ADMIN_PASSWORD='<read from the Render secret>'
+export CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET='<random Render-only secret>'
+export KCADM=/opt/keycloak/bin/kcadm.sh
+
+./deploy/render/keycloak/reconcile-live-realm.sh
+```
+
+For a local container, copy or mount the reconciliation directory and set
+`CEERAT_KEYCLOAK_SERVER=http://127.0.0.1:8080`. The script is idempotent: it
+creates or updates the three PR 03 clients and reapplies bounded lifetimes and
+verified-email policy. It deliberately leaves `ceerat-mcp-dev` enabled for
+rollback.
+
+The revoker client is disabled and receives no realm-management role in PR 03.
+PR 05 must first prove whether Keycloak can revoke exactly one mapped client
+session and which minimum role/API permits it. Do not grant broad
+`realm-admin`, `manage-realm`, or user-listing access as a shortcut.
+
+After reconciliation, configure ChatGPT with client ID
+`ceerat-mcp-chatgpt` and token endpoint authentication method `none`. Configure
+Codex with `ceerat-mcp-codex-dev`. Move one client at a time. After both smoke
+tests pass, disable—but do not delete—`ceerat-mcp-dev` for the rollback window.
+
+Run the static policy tests before deployment:
+
+```bash
+ruby deploy/render/keycloak/realm_config_test.rb
+bash -n deploy/render/keycloak/reconcile-live-realm.sh
+bash -n deploy/render/keycloak/oauth-policy-smoke-test.sh
+```
+
+After live reconciliation, run
+`deploy/render/keycloak/oauth-policy-smoke-test.sh`. It uses no credentials and
+verifies exact ChatGPT redirects plus rejection of bad redirects, missing/plain
+PKCE, implicit flow, password grant, and the disabled revoker client.

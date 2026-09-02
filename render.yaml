@@ -64,6 +64,8 @@ services:
         value: b77316001@smtp-brevo.com
       - key: CEERAT_SMTP_PASSWORD
         sync: false
+      - key: CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET
+        sync: false
 
   - type: pserv
     name: ceerat-user-service

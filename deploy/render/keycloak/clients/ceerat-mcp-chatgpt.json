@@ -1,0 +1,53 @@
+{
+  "clientId": "ceerat-mcp-chatgpt",
+  "name": "CEERAT MCP ChatGPT",
+  "description": "Hosted ChatGPT MCP OAuth client; exact hosted callback only",
+  "enabled": true,
+  "publicClient": true,
+  "standardFlowEnabled": true,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "serviceAccountsEnabled": false,
+  "consentRequired": true,
+  "redirectUris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+  "webOrigins": [],
+  "attributes": {
+    "pkce.code.challenge.method": "S256",
+    "access.token.lifespan": "600"
+  },
+  "protocolMappers": [
+    {
+      "name": "CEERAT user id",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-attribute-mapper",
+      "consentRequired": false,
+      "config": {
+        "user.attribute": "ceerat_user_id",
+        "claim.name": "ceerat_user_id",
+        "jsonType.label": "String",
+        "access.token.claim": "true",
+        "id.token.claim": "true",
+        "userinfo.token.claim": "true"
+      }
+    },
+    {
+      "name": "CEERAT MCP audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "consentRequired": false,
+      "config": {
+        "included.custom.audience": "https://ceerat-agent-gateway.onrender.com/mcp",
+        "access.token.claim": "true"
+      }
+    }
+  ],
+  "defaultClientScopes": [
+    "profile",
+    "email",
+    "ceerat.profile.read",
+    "ceerat.profile.write",
+    "ceerat.connections.read",
+    "ceerat.connections.revoke"
+  ],
+  "optionalClientScopes": ["offline_access"]
+}

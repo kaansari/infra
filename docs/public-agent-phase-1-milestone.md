@@ -64,20 +64,21 @@ removed after automated tests.
 ## OAuth and identity decisions validated by testing
 
 OAuth is the credential acquisition and delegation mechanism. The MCP wire
-authentication is still a bearer token on every protected request. For the
-development clients, CEERAT uses a pre-registered public client with no client
-secret, authorization code, PKCE `S256`, exact redirect URI validation and
-explicit scopes.
+authentication is still a bearer token on every protected request. CEERAT uses
+separate pre-registered public clients with no client secret, authorization
+code, PKCE `S256`, bounded redirect URIs, and explicit scopes.
 
 The following integration details were required in addition to the initial
 design:
 
 - ChatGPT requests `offline_access`; Keycloak's existing `offline_access`
-  client scope must be assigned as an optional scope to `ceerat-mcp-dev`.
-- ChatGPT uses the stable
-  `https://chatgpt.com/connector_platform_oauth_redirect` only when the issuer
-  identification contract is satisfied; otherwise the exact callback-specific
-  URI displayed by ChatGPT must be allowlisted.
+  client scope is optional on `ceerat-mcp-chatgpt` and
+  `ceerat-mcp-codex-dev`.
+- `ceerat-mcp-chatgpt` accepts only the stable hosted callback
+  `https://chatgpt.com/connector_platform_oauth_redirect`. It never accepts a
+  loopback or wildcard HTTPS redirect.
+- `ceerat-mcp-codex-dev` accepts only `127.0.0.1` and `localhost` dynamic-port
+  callbacks required by the native CLI. It never accepts the ChatGPT callback.
 - Keycloak 26 rejects unknown custom user attributes by default. The realm
   declarative user profile now defines `ceerat_user_id` as an
   administrator-viewable and administrator-editable attribute.
@@ -160,16 +161,16 @@ Codex uses a pre-registered client and discovery-derived resource:
 ```bash
 codex mcp add ceerat \
   --url https://ceerat-agent-gateway.onrender.com/mcp \
-  --oauth-client-id ceerat-mcp-dev
+  --oauth-client-id ceerat-mcp-codex-dev
 
 codex mcp login ceerat \
   --scopes openid,profile,email,ceerat.profile.read,ceerat.profile.write,ceerat.connections.read,ceerat.connections.revoke
 ```
 
 In ChatGPT developer mode, add the public MCP URL, select OAuth with the
-pre-registered `ceerat-mcp-dev` public client, use token endpoint auth method
-`none`, and sign in through the CEERAT-owned Keycloak page. A useful read-only
-acceptance prompt is:
+pre-registered `ceerat-mcp-chatgpt` public client, use token endpoint auth
+method `none`, and sign in through the CEERAT-owned Keycloak page. A useful
+read-only acceptance prompt is:
 
 ```text
 Use only CEERAT. Check my authentication status, current user, customer

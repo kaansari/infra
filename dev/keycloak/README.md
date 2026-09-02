@@ -7,17 +7,24 @@ export CEERAT_KEYCLOAK_ADMIN_PASSWORD='<local-only password>'
 docker compose -f docker-compose.keycloak.yml up
 ```
 
-The imported public client requires authorization code + PKCE, disables password
-and service-account grants, enables explicit consent, and adds the MCP audience.
-Replace the placeholder redirect URI with the exact test-client or temporary
-ChatGPT callback before interoperability testing.
+The realm separates hosted and native clients:
 
-The public client has no client secret (`token_endpoint_auth_method=none`) and
-uses PKCE `S256`. `offline_access` is optional but assigned because ChatGPT
-requests it during connection. The realm declarative user profile explicitly
-allows the administrator-managed `ceerat_user_id` custom attribute; without
-that declaration Keycloak 26 silently strips the value and the token mapper
-cannot emit the claim.
+- `ceerat-mcp-chatgpt` accepts only
+  `https://chatgpt.com/connector_platform_oauth_redirect`;
+- `ceerat-mcp-codex-dev` accepts only dynamic `127.0.0.1` and `localhost`
+  loopback callbacks required by the native CLI;
+- `ceerat-mcp-dev` remains temporarily enabled as a rollback client and must
+  not receive new integrations;
+- `ceerat-gateway-revoker` is a disabled, roleless confidential placeholder
+  for PR 05 and cannot use browser or password OAuth flows.
+
+Both public clients require authorization code + PKCE `S256`, have no client
+secret (`token_endpoint_auth_method=none`), and disable implicit, password, and
+service-account grants. `offline_access` is explicit and optional. Access
+tokens last 10 minutes; refresh-token rotation is enabled with zero permitted
+reuse. Offline sessions idle after 30 days and have a 60-day maximum. The realm
+also declares the administrator-managed `ceerat_user_id` attribute so Keycloak
+26 retains it for the token mapper.
 
 Phase 1-B also defines Google federation and verified native email. Supply
 `CEERAT_GOOGLE_CLIENT_ID`, `CEERAT_GOOGLE_CLIENT_SECRET`, and the
@@ -27,12 +34,14 @@ Phase 1-B also defines Google federation and verified native email. Supply
 https://<keycloak-host>/realms/ceerat/broker/google/endpoint
 ```
 
-Existing realms are not changed by startup import. Apply the identity provider,
-SMTP settings, and `verifyEmail=true` through the Keycloak Admin Console/API.
-For InMotion SMTP, use the secure outgoing hostname shown in cPanel, port `465`,
-SSL enabled, STARTTLS disabled, and the complete mailbox address as username.
-The Render pilot uses `ceerat@mevsfalse.com` and `mail.mevsfalse.com:465`; only
-the password remains an operator-supplied secret.
+Existing realms are not changed by startup import. Use the idempotent live-realm
+procedure in `deploy/render/README.md` rather than assuming a redeploy updated
+PostgreSQL-backed realm state.
+
+The Render pilot uses Brevo authenticated SMTP on
+`smtp-relay.brevo.com:2525`, with STARTTLS enabled and implicit SSL disabled.
+The SMTP key exists only in `CEERAT_SMTP_PASSWORD`; it is not an email-account
+password and must not be committed.
 
 Phase 1-B no longer requires manually setting `ceerat_user_id`; the gateway's
 authenticated identity exchange creates or resolves the CEERAT account. Never
@@ -105,7 +114,7 @@ For an authenticated test:
 3. Use an OAuth-capable MCP client or API client with authorization code + PKCE:
 
    ```text
-   client_id:     ceerat-mcp-dev
+   client_id:     ceerat-mcp-codex-dev
    authorize URL: http://localhost:8080/realms/ceerat/protocol/openid-connect/auth
    token URL:     http://localhost:8080/realms/ceerat/protocol/openid-connect/token
    MCP URL:       http://localhost:8090/mcp

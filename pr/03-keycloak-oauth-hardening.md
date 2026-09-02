@@ -4,6 +4,9 @@ Repository: `infra`
 
 Depends on: PR 01
 
+Status: **implemented in source; live realm reconciliation and two-client smoke
+tests pending**.
+
 ## Objective
 
 Make the live realm configuration auditable and separate hosted ChatGPT OAuth

@@ -1,0 +1,18 @@
+{
+  "clientId": "ceerat-gateway-revoker",
+  "name": "CEERAT Gateway Session Revoker",
+  "description": "Disabled, roleless placeholder for the separately reviewed PR 05 session-revocation integration",
+  "enabled": false,
+  "publicClient": false,
+  "bearerOnly": false,
+  "clientAuthenticatorType": "client-secret",
+  "standardFlowEnabled": false,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "serviceAccountsEnabled": true,
+  "consentRequired": false,
+  "redirectUris": [],
+  "webOrigins": [],
+  "defaultClientScopes": [],
+  "optionalClientScopes": []
+}
