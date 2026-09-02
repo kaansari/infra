@@ -1,0 +1,62 @@
+# CEERAT Phase 1 completion PR plan
+
+This folder turns `requirement/phase1-pr1.md` into small, dependency-ordered
+pull requests. Phase 1 remains limited to identity, profiles, connections, and
+their security controls. Jobs, skills, applications, TXSE, account deletion,
+and Kubernetes are explicitly excluded.
+
+## Merge order
+
+| Order | Document | Repository | Purpose |
+| --- | --- | --- | --- |
+| 1 | [PR-01](01-gateway-contract-correctness.md) | `apps-repo` | Fix strict input handling and authenticated-status scope behavior |
+| 2 | [PR-02](02-connection-lifecycle-semantics.md) | `apps-repo` | Make connection and access-token state truthful and add `is_current` |
+| 3 | [PR-03](03-keycloak-oauth-hardening.md) | `infra` | Separate OAuth clients and harden PKCE, redirects, email, and refresh policy |
+| 4 | [PR-04](04-token-and-scope-security-tests.md) | `apps-repo` | Lock JWT validation and per-tool scope enforcement with negative tests |
+| 5 | [PR-05](05-keycloak-session-revocation.md) | `apps-repo` | Make logout/revoke terminate the matching Keycloak session where supported |
+| 6 | [PR-06](06-profile-write-safety-tests.md) | `apps-repo` | Complete prepare/confirm expiry, replay, and conflict tests |
+| 7 | [PR-07](07-rate-limit-and-audit-controls.md) | `apps-repo` | Add bounded abuse controls and verify safe audit logging |
+| 8 | [PR-08](08-live-security-acceptance.md) | `infra` | Exercise two-user isolation and credential revocation against a deployed stack |
+| 9 | [PR-09](09-phase1-freeze.md) | `infra` | Record evidence, fix documentation drift, and freeze/tag Phase 1 |
+
+PRs 1 and 2 establish truthful public behavior. PR 3 establishes the live OAuth
+policy. PRs 4 through 7 harden and test individual security boundaries. PR 8 is
+the final system-level gate. PR 9 contains no feature work.
+
+## Delivery slices
+
+- Slice A: PR 01, then PR 02. These are small gateway correctness changes and
+  should merge before security behavior is used as an acceptance baseline.
+- Slice B: PR 03 and PR 04 may be developed in parallel after PR 01, but PR 04
+  must use the client/audience decisions finalized by PR 03 before merge.
+- Slice C: PRs 05, 06, and 07 are separate gateway concerns and should remain
+  separate even if one engineer implements them consecutively.
+- Slice D: PR 08 is integration evidence; PR 09 is documentation/release only.
+
+Target each implementation PR at one reviewable behavior, its migrations or
+configuration, and its tests. If a PR starts requiring unrelated protobuf or
+user-service changes, stop and create a separately reviewed defect PR rather
+than widening the current one. No `contracts-repo` or `services-repo` change is
+planned initially; the live isolation suite verifies those boundaries.
+
+## Rules for every PR
+
+- One repository and one security concern per PR.
+- No secrets, live tokens, user passwords, or production database contents in
+  fixtures, logs, screenshots, or commits.
+- Add negative tests before or with the implementation change.
+- Preserve the self-service rule: tool arguments never select a CEERAT user.
+- Public errors remain stable, generic, and agent-actionable; diagnostics stay
+  in sanitized internal logs with a request ID.
+- Generated/vendor changes must be explained and limited to dependencies used
+  by that PR.
+- Do not merge on unit tests alone when the acceptance section requires a live
+  Keycloak or multi-user check.
+- Avoid drive-by refactors, dependency upgrades, or generated-file churn.
+
+## Definition of Phase 1 complete
+
+Phase 1 is complete only after PR 8 records passing evidence for OAuth, token
+validation, scope enforcement, two-user isolation, profile-write safety,
+connection/session revocation, email verification, secret redaction, rate
+limiting, and TLS. PR 9 then freezes the API and publishes the milestone.
