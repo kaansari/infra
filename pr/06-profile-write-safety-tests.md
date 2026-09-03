@@ -4,6 +4,8 @@ Repository: `apps-repo`
 
 Depends on: PR 04
 
+Status: implemented and locally validated on 2026-09-03; deployment pending.
+
 ## Objective
 
 Complete the permanent regression suite for the prepare/confirm write protocol
@@ -40,3 +42,21 @@ uncertain mutation.
 
 Expiry, single use, identity/client binding, content binding, and optimistic
 concurrency each have a stable negative integration test.
+
+## Implementation evidence
+
+- Gateway preparation expiry uses one injectable clock in both in-memory and
+  PostgreSQL implementations; expiry tests do not sleep.
+- In-memory preparation input and output are defensively copied so callers
+  cannot mutate the stored normalized profile or change set after preparation.
+- Stable negative tests cover expiry, replay, user binding, OAuth-client
+  binding, content binding, and resource-version conflicts.
+- Response tests assert `completed`, `not_started`, and `outcome_unknown`
+  operation states without retrying an uncertain mutation.
+- `GOWORK=off go test -race ./internal/gateway`, `GOWORK=off go test ./...`,
+  and `GOWORK=off go build ./...` passed in `ai/ceerat-agent-gateway`.
+- `TestPostgresPreparationSafety` passed against an isolated local PostgreSQL
+  cluster and cleaned up only its own preparation rows.
+- Builder `check drift` passed. Builder `check apps` still reports the known,
+  pre-existing legacy AI-tool inventory drift; PR 06 adds no tool or app
+  surface and does not expand scope to repair that separate inventory.
