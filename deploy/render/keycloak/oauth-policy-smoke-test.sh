@@ -17,6 +17,10 @@ request_auth() {
     url="$url&code_challenge=$challenge&code_challenge_method=$pkce"
   fi
   curl -sS --max-time 20 -D "$tmp_dir/$name.headers" -o "$tmp_dir/$name.body" "$url"
+  if grep -Eqi 'client[[:space:]]+not[[:space:]]+found|unknown[[:space:]]+client' "$tmp_dir/$name.body" "$tmp_dir/$name.headers"; then
+    echo "$client is not provisioned in the live realm; run make reconcile-keycloak-live" >&2
+    exit 1
+  fi
 }
 
 request_auth chatgpt-valid ceerat-mcp-chatgpt "$chatgpt_callback" code S256
