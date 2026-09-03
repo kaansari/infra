@@ -11,9 +11,9 @@ and Kubernetes are explicitly excluded.
 | --- | --- | --- | --- |
 | 1 | [PR-01](01-gateway-contract-correctness.md) | `apps-repo` | Complete — strict input handling and authenticated-status scope behavior |
 | 2 | [PR-02](02-connection-lifecycle-semantics.md) | `apps-repo` | Complete — truthful connection/token state and server-derived `is_current` |
-| 3 | [PR-03](03-keycloak-oauth-hardening.md) | `infra` | Separate OAuth clients and harden PKCE, redirects, email, and refresh policy |
-| 4 | [PR-04](04-token-and-scope-security-tests.md) | `apps-repo` | Lock JWT validation and per-tool scope enforcement with negative tests |
-| 5 | [PR-05](05-keycloak-session-revocation.md) | `apps-repo` | Make logout/revoke terminate the matching Keycloak session where supported |
+| 3 | [PR-03](03-keycloak-oauth-hardening.md) | `infra` | Complete — split clients, hardened OAuth, and automatic refresh live-validated |
+| 4 | [PR-04](04-token-and-scope-security-tests.md) | `apps-repo` | Complete — JWT client allowlist and per-tool scope enforcement verified |
+| 5 | [PR-05](05-keycloak-session-revocation.md) | `apps-repo` | Complete — Keycloak-backed logout and post-logout denial live-validated |
 | 6 | [PR-06](06-profile-write-safety-tests.md) | `apps-repo` | Complete prepare/confirm expiry, replay, and conflict tests |
 | 7 | [PR-07](07-rate-limit-and-audit-controls.md) | `apps-repo` | Add bounded abuse controls and verify safe audit logging |
 | 8 | [PR-08](08-live-security-acceptance.md) | `infra` | Exercise two-user isolation and credential revocation against a deployed stack |

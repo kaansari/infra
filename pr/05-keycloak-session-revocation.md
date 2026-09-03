@@ -4,8 +4,8 @@ Repository: `apps-repo`
 
 Depends on: PR 02, PR 03, and PR 04
 
-Status: **implemented and verified locally; live reconciliation and acceptance
-pending**.
+Status: **implemented, deployed, and live-validated for current-connection
+logout**.
 
 ## Objective
 
@@ -86,3 +86,22 @@ may label token-family revocation PASS based only on the gateway denylist.
 - Upstream uncertainty returns `OUTCOME_UNKNOWN`, `operation_state` of
   `outcome_unknown`, and sanitized recovery information.
 - Full gateway unit suite and build pass; realm policy suite passes.
+
+## Live validation evidence
+
+- Keycloak reconciliation enabled `ceerat-gateway-revoker`, assigned only the
+  built-in `realm-management/manage-users` role, and set its Render-managed
+  secret without printing it.
+- The first live attempt safely returned `OUTCOME_UNKNOWN` after local denial
+  when Keycloak rejected mismatched service credentials. No false success was
+  reported and the error disclosed no secret.
+- Coordinated credential rotation restored service-client authentication.
+- Confirmed ChatGPT logout returned `authorization_server_session_revoked:
+  true`, `revoked: true`, and `operation_state: completed` for
+  `ceerat-mcp-chatgpt`.
+- The immediately following protected request could not run and ChatGPT
+  required reconnection, proving the authorization-server refresh path was no
+  longer usable.
+- Live A/B/C isolation across three distinct Keycloak session IDs remains a
+  broader multi-session acceptance scenario; the public contract already
+  discloses that clients sharing one SSO session can be signed out together.

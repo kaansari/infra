@@ -75,6 +75,14 @@ truthful `OUTCOME_UNKNOWN` while local access remains denied. Because Keycloak's
 supported API deletes a user session rather than one child client session,
 another CEERAT client sharing the same SSO session may also be signed out.
 
+On 2026-09-03, live ChatGPT logout returned both `revoked: true` and
+`authorization_server_session_revoked: true`. A subsequent protected request
+required connector reconnection, validating that the refresh path had been
+terminated. An earlier mismatched revoker credential correctly produced
+`OUTCOME_UNKNOWN` after local denial; coordinated secret rotation resolved it
+without exposing credentials. Reconciliation now preserves the independent
+ChatGPT client secret to prevent accidental token-exchange breakage.
+
 ## OAuth and identity decisions validated by testing
 
 OAuth is the credential acquisition and delegation mechanism. The MCP wire
