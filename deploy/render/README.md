@@ -177,4 +177,6 @@ make test-keycloak-config
 After live reconciliation, run
 `deploy/render/keycloak/oauth-policy-smoke-test.sh`. It uses no credentials and
 verifies exact ChatGPT redirects plus rejection of bad redirects, missing/plain
-PKCE, implicit flow, password grant, and the disabled revoker client.
+PKCE, implicit flow, password grant, and the disabled revoker client. It also
+verifies that the Codex client accepts a dynamic loopback callback but rejects
+the hosted ChatGPT callback.

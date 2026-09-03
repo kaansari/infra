@@ -5,6 +5,7 @@ issuer="${CEERAT_OAUTH_ISSUER:-https://ceerat-keycloak.onrender.com/realms/ceera
 auth="$issuer/protocol/openid-connect/auth"
 token="$issuer/protocol/openid-connect/token"
 chatgpt_callback="https%3A%2F%2Fchatgpt.com%2Fconnector_platform_oauth_redirect"
+codex_callback="http%3A%2F%2F127.0.0.1%3A54321%2Fcallback%2Fceerat-test"
 invalid_callback="https%3A%2F%2Fattacker.invalid%2Fcallback"
 challenge="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 tmp_dir="$(mktemp -d)"
@@ -26,6 +27,18 @@ request_auth() {
 request_auth chatgpt-valid ceerat-mcp-chatgpt "$chatgpt_callback" code S256
 if grep -Eqi 'invalid_redirect_uri|unsupported_response_type|code_challenge_method' "$tmp_dir/chatgpt-valid.body" "$tmp_dir/chatgpt-valid.headers"; then
   echo "valid ChatGPT authorization request failed" >&2
+  exit 1
+fi
+
+request_auth codex-valid ceerat-mcp-codex-dev "$codex_callback" code S256
+if grep -Eqi 'invalid_redirect_uri|unsupported_response_type|code_challenge_method' "$tmp_dir/codex-valid.body" "$tmp_dir/codex-valid.headers"; then
+  echo "valid Codex loopback authorization request failed" >&2
+  exit 1
+fi
+
+request_auth codex-hosted-redirect ceerat-mcp-codex-dev "$chatgpt_callback" code S256
+if ! grep -Eqi 'invalid.*redirect|redirect.*invalid' "$tmp_dir/codex-hosted-redirect.body" "$tmp_dir/codex-hosted-redirect.headers"; then
+  echo "Codex client accepted the hosted ChatGPT redirect" >&2
   exit 1
 fi
 

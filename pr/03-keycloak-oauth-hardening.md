@@ -4,8 +4,8 @@ Repository: `infra`
 
 Depends on: PR 01
 
-Status: **implemented in source; live realm reconciliation and two-client smoke
-tests pending**.
+Status: **implemented and reconciled live; interactive ChatGPT and Codex login
+smoke tests pending**.
 
 ## Objective
 
@@ -69,3 +69,18 @@ No Google social login and no gateway revocation implementation in this PR.
 Keep the existing client enabled until both new clients pass smoke tests. Move
 one consumer at a time, then disable—not delete—the legacy client for a defined
 rollback window.
+
+## Validation evidence
+
+- Realm policy suite: 7 tests and 57 assertions passed.
+- Idempotent live reconciliation created `ceerat-mcp-chatgpt`,
+  `ceerat-mcp-codex-dev`, and the disabled `ceerat-gateway-revoker`.
+- Credential-free live tests confirmed the exact ChatGPT callback, the Codex
+  dynamic loopback exception, and cross-client redirect isolation.
+- Live tests rejected an unregistered HTTPS callback, missing/plain PKCE,
+  implicit flow, password grant, and public use of the disabled revoker.
+- No administrator password, revoker secret, access token, refresh token, or
+  authorization code was captured as evidence.
+- Interactive authorization-code login and refresh rotation evidence for both
+  replacement clients remain required before disabling the legacy client and
+  completing the builder documentation checkpoint.
