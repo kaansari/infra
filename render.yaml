@@ -157,6 +157,8 @@ services:
         fromDatabase:
           name: ceerat-postgres
           property: connectionString
+      - key: CEERAT_TRUST_PROXY_HEADERS
+        value: "true"
 
 databases:
   - name: ceerat-postgres

@@ -15,7 +15,7 @@ and Kubernetes are explicitly excluded.
 | 4 | [PR-04](04-token-and-scope-security-tests.md) | `apps-repo` | Complete — JWT client allowlist and per-tool scope enforcement verified |
 | 5 | [PR-05](05-keycloak-session-revocation.md) | `apps-repo` | Complete — Keycloak-backed logout and post-logout denial live-validated |
 | 6 | [PR-06](06-profile-write-safety-tests.md) | `apps-repo` | Implemented and locally validated — deployment pending |
-| 7 | [PR-07](07-rate-limit-and-audit-controls.md) | `apps-repo` | Add bounded abuse controls and verify safe audit logging |
+| 7 | [PR-07](07-rate-limit-and-audit-controls.md) | `apps-repo` | Implemented and locally validated — live acceptance pending |
 | 8 | [PR-08](08-live-security-acceptance.md) | `infra` | Exercise two-user isolation and credential revocation against a deployed stack |
 | 9 | [PR-09](09-phase1-freeze.md) | `infra` | Record evidence, fix documentation drift, and freeze/tag Phase 1 |
 

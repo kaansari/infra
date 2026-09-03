@@ -49,6 +49,12 @@ The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
 `CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing common
 audience/issuer mismatches.
 
+`CEERAT_TRUST_PROXY_HEADERS=true` is set only for the Render gateway because
+Render is the trusted ingress and replaces the client forwarding chain. This
+lets gateway rate limits use the external source IP. Do not copy this setting
+to a deployment where clients can reach the Go process directly or supply an
+untrusted `X-Forwarded-For` header.
+
 `CEERAT_OAUTH_ALLOWED_CLIENT_IDS` is an independent allowlist for the token's
 authorized-party/client claim. During the PR 03 rollback window it contains the
 dedicated ChatGPT and Codex clients plus legacy `ceerat-mcp-dev`. Remove the
@@ -138,6 +144,16 @@ Then add the public MCP URL to the ChatGPT developer/test integration. Check:
 7. Expected failures (missing scope, validation failure, expired/invalid token,
    stale resource version) return structured, actionable errors rather than an
    HTML page or an opaque HTTP 500.
+8. Repeating one safe read beyond its one-minute policy returns
+   `RATE_LIMITED`, a positive `retry_after_seconds`, and the same request ID in
+   the correlated `agent_gateway.tool_call` audit record. A different test user
+   and a different tool remain available.
+
+Rate-limit counters are stored in the gateway's dedicated schema in the shared
+`ceerat-postgres` database, so multiple gateway instances observe the same
+window. Audit records contain derived identifiers and hashed resource
+references, never request bodies, authorization headers, cookies, tokens,
+passwords, SMTP/API secrets, database URLs, or workload credentials.
 
 The 2026-08-31 milestone passed these checks from both Codex and ChatGPT. See
 `docs/public-agent-phase-1-milestone.md` for evidence, OAuth corrections and
