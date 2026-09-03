@@ -86,6 +86,13 @@ class RealmConfigTest < Minitest::Test
     refute_includes script, "--rolename manage-realm"
   end
 
+  def test_reconciliation_preserves_chatgpt_client_secret
+    script = File.read(File.join(ROOT, "deploy/render/keycloak/reconcile-live-realm.sh"))
+    assert_includes script, 'get "clients/$internal_id/client-secret"'
+    assert_includes script, '-s "secret=$existing_secret"'
+    refute_includes script, "echo $existing_secret"
+  end
+
   private
 
   def assert_confidential_pkce_client(client)

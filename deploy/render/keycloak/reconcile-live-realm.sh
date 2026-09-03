@@ -29,7 +29,7 @@ trap 'rm -f "$config_file"' EXIT
 
 reconcile_client() {
   local definition="$1"
-  local client_id internal_id
+  local client_id internal_id existing_secret=""
   client_id="$(sed -n 's/^[[:space:]]*"clientId":[[:space:]]*"\([^"]*\)".*/\1/p' "$definition" | head -n 1)"
   if [[ -z "$client_id" ]]; then
     echo "Unable to read clientId from $definition" >&2
@@ -43,7 +43,20 @@ reconcile_client() {
       -q "clientId=$client_id" --fields id --format csv --noquotes | tail -n 1)"
     echo "Created $client_id"
   else
+    if [[ "$client_id" == "ceerat-mcp-chatgpt" ]]; then
+      existing_secret="$("$kcadm" get "clients/$internal_id/client-secret" \
+        --config "$config_file" -r "$realm" --fields value \
+        --format csv --noquotes | tail -n 1)"
+      if [[ -z "$existing_secret" || "$existing_secret" == "value" ]]; then
+        echo "Unable to preserve the existing ceerat-mcp-chatgpt secret" >&2
+        return 1
+      fi
+    fi
     "$kcadm" update "clients/$internal_id" --config "$config_file" -r "$realm" -f "$definition"
+    if [[ "$client_id" == "ceerat-mcp-chatgpt" ]]; then
+      "$kcadm" update "clients/$internal_id" --config "$config_file" -r "$realm" \
+        -s "secret=$existing_secret"
+    fi
     echo "Updated $client_id"
   fi
 

@@ -54,6 +54,11 @@ authorized-party/client claim. During the PR 03 rollback window it contains the
 dedicated ChatGPT and Codex clients plus legacy `ceerat-mcp-dev`. Remove the
 legacy ID when that Keycloak client is disabled.
 
+Live reconciliation preserves the existing confidential ChatGPT client secret
+without printing it. If that secret is intentionally rotated in Keycloak,
+update ChatGPT's protected OAuth configuration before reconnecting; otherwise
+the token endpoint records `invalid_client_credentials`.
+
 Choose the Render instance and database plans in the dashboard. For a public
 ChatGPT test, use plans that remain awake; sleeping services make MCP discovery
 and tool calls appear unreliable.
