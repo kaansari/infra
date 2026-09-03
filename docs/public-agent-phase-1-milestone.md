@@ -61,6 +61,11 @@ No access token, refresh token, authorization code, password or client secret
 was printed in the test results. Disposable OAuth and CEERAT records were
 removed after automated tests.
 
+PR 04 locks client validation to the configured
+`CEERAT_OAUTH_ALLOWED_CLIENT_IDS` allowlist in addition to signature, issuer,
+audience, time, identity, verified-email, and per-tool scope checks. The legacy
+client remains in that allowlist only for the explicit PR 03 rollback window.
+
 ## OAuth and identity decisions validated by testing
 
 OAuth is the credential acquisition and delegation mechanism. The MCP wire

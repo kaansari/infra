@@ -49,6 +49,11 @@ The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
 `CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing common
 audience/issuer mismatches.
 
+`CEERAT_OAUTH_ALLOWED_CLIENT_IDS` is an independent allowlist for the token's
+authorized-party/client claim. During the PR 03 rollback window it contains the
+dedicated ChatGPT and Codex clients plus legacy `ceerat-mcp-dev`. Remove the
+legacy ID when that Keycloak client is disabled.
+
 Choose the Render instance and database plans in the dashboard. For a public
 ChatGPT test, use plans that remain awake; sleeping services make MCP discovery
 and tool calls appear unreliable.

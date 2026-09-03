@@ -139,6 +139,8 @@ services:
         value: ceerat_user_id
       - key: CEERAT_CLIENT_ID_CLAIM
         value: azp
+      - key: CEERAT_OAUTH_ALLOWED_CLIENT_IDS
+        value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev,ceerat-mcp-dev
       - key: CEERAT_GATEWAY_WORKLOAD_SECRET
         fromService:
           type: pserv
