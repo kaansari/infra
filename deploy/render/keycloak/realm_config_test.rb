@@ -30,7 +30,7 @@ class RealmConfigTest < Minitest::Test
     client = CLIENTS.fetch("ceerat-mcp-chatgpt")
     assert_equal [HOSTED_CALLBACK], client["redirectUris"]
     refute client["redirectUris"].any? { |uri| uri.include?("*") }
-    assert_public_pkce_client(client)
+    assert_confidential_pkce_client(client)
   end
 
   def test_codex_client_has_only_loopback_callbacks
@@ -40,7 +40,7 @@ class RealmConfigTest < Minitest::Test
     assert_public_pkce_client(client)
   end
 
-  def test_public_clients_have_explicit_scopes_and_audience
+  def test_mcp_clients_have_explicit_scopes_and_audience
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
       assert_equal REQUIRED_SCOPES, client["defaultClientScopes"]
@@ -80,6 +80,19 @@ class RealmConfigTest < Minitest::Test
   end
 
   private
+
+  def assert_confidential_pkce_client(client)
+    assert_equal true, client["enabled"]
+    assert_equal false, client["publicClient"]
+    assert_equal "client-secret", client["clientAuthenticatorType"]
+    assert_equal true, client["standardFlowEnabled"]
+    assert_equal false, client["implicitFlowEnabled"]
+    assert_equal false, client["directAccessGrantsEnabled"]
+    assert_equal false, client["serviceAccountsEnabled"]
+    assert_equal "S256", client.dig("attributes", "pkce.code.challenge.method")
+    assert_empty client["webOrigins"]
+    refute client.key?("secret")
+  end
 
   def assert_public_pkce_client(client)
     assert_equal true, client["enabled"]

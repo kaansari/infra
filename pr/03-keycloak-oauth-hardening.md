@@ -5,7 +5,7 @@ Repository: `infra`
 Depends on: PR 01
 
 Status: **implemented and reconciled live; interactive ChatGPT and Codex login
-smoke tests pending**.
+smoke tests passed; refresh/revocation validation pending**.
 
 ## Objective
 
@@ -14,9 +14,11 @@ from local Codex development callbacks.
 
 ## Changes
 
-- Create separate public clients:
-  - `ceerat-mcp-chatgpt`: exact hosted ChatGPT callback only.
-  - `ceerat-mcp-codex-dev`: loopback callbacks only, development use only.
+- Create separate clients:
+  - confidential `ceerat-mcp-chatgpt`: exact hosted ChatGPT callback only; its
+    secret is held only by ChatGPT.
+  - public `ceerat-mcp-codex-dev`: loopback callbacks only, development use
+    only, with no client secret.
 - Require Authorization Code flow and PKCE `S256`; disable implicit and direct
   password grants.
 - Do not allow arbitrary web origins or public HTTPS redirect wildcards.
@@ -72,7 +74,7 @@ rollback window.
 
 ## Validation evidence
 
-- Realm policy suite: 7 tests and 57 assertions passed.
+- Realm policy suite: 7 tests and 58 assertions passed.
 - Idempotent live reconciliation created `ceerat-mcp-chatgpt`,
   `ceerat-mcp-codex-dev`, and the disabled `ceerat-gateway-revoker`.
 - Credential-free live tests confirmed the exact ChatGPT callback, the Codex
@@ -81,6 +83,7 @@ rollback window.
   implicit flow, password grant, and public use of the disabled revoker.
 - No administrator password, revoker secret, access token, refresh token, or
   authorization code was captured as evidence.
-- Interactive authorization-code login and refresh rotation evidence for both
-  replacement clients remain required before disabling the legacy client and
-  completing the builder documentation checkpoint.
+- Interactive authorization-code login passed for both replacement clients and
+  each reported its dedicated client ID. Refresh rotation and revocation
+  evidence remain required before disabling the legacy client and completing
+  the builder documentation checkpoint.

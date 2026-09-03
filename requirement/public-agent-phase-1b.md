@@ -62,10 +62,11 @@ The current pilot uses Brevo authenticated SMTP through
 The Brevo SMTP key exists only in the Render secret
 `CEERAT_SMTP_PASSWORD` and must never be committed.
 
-Hosted ChatGPT and native Codex use separate public OAuth clients. ChatGPT has
-only its exact hosted callback; Codex has only the loopback callback exception.
-Both require authorization code + PKCE `S256`, disable implicit/password flows,
-and receive the explicit CEERAT scopes/audience. The original
+Hosted ChatGPT and native Codex use separate OAuth clients. ChatGPT is a
+confidential client whose secret is held only by ChatGPT and has only its exact
+hosted callback. Codex is a public client with only the loopback callback
+exception. Both require authorization code + PKCE `S256`, disable
+implicit/password flows, and receive the explicit CEERAT scopes/audience. The original
 `ceerat-mcp-dev` client remains enabled only for a time-bounded rollback until
 both replacements pass live smoke tests.
 

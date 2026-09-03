@@ -65,8 +65,9 @@ removed after automated tests.
 
 OAuth is the credential acquisition and delegation mechanism. The MCP wire
 authentication is still a bearer token on every protected request. CEERAT uses
-separate pre-registered public clients with no client secret, authorization
-code, PKCE `S256`, bounded redirect URIs, and explicit scopes.
+separate pre-registered clients using authorization code, PKCE `S256`, bounded
+redirect URIs, and explicit scopes. Hosted ChatGPT is a confidential client;
+native Codex is a public client.
 
 The following integration details were required in addition to the initial
 design:
@@ -168,8 +169,9 @@ codex mcp login ceerat \
 ```
 
 In ChatGPT developer mode, add the public MCP URL, select OAuth with the
-pre-registered `ceerat-mcp-chatgpt` public client, use token endpoint auth
-method `none`, and sign in through the CEERAT-owned Keycloak page. A useful
+pre-registered confidential `ceerat-mcp-chatgpt` client, provide its Keycloak
+client secret only through ChatGPT's protected configuration, and sign in
+through the CEERAT-owned Keycloak page. Never commit or expose that secret. A useful
 read-only acceptance prompt is:
 
 ```text

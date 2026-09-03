@@ -18,9 +18,10 @@ The realm separates hosted and native clients:
 - `ceerat-gateway-revoker` is a disabled, roleless confidential placeholder
   for PR 05 and cannot use browser or password OAuth flows.
 
-Both public clients require authorization code + PKCE `S256`, have no client
-secret (`token_endpoint_auth_method=none`), and disable implicit, password, and
-service-account grants. `offline_access` is explicit and optional. Access
+Both clients require authorization code + PKCE `S256` and disable implicit,
+password, and service-account grants. ChatGPT is confidential and its generated
+secret must be stored only in ChatGPT's protected app configuration; Codex is
+public and uses no client secret. `offline_access` is explicit and optional. Access
 tokens last 10 minutes; refresh-token rotation is enabled with zero permitted
 reuse. Offline sessions idle after 30 days and have a 60-day maximum. The realm
 also declares the administrator-managed `ceerat_user_id` attribute so Keycloak

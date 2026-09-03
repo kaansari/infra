@@ -9,8 +9,8 @@ gRPC service and database remain private. Kubernetes is not used.
 - Ports 80 and 443 reachable so Caddy can obtain and renew TLS certificates.
 - A private network route from the gateway to `ceerat-user-service`.
 - A production OAuth/OIDC provider that supports authorization code + PKCE
-  (`S256`), discovery, and either ChatGPT CIMD, DCR, or a predefined public
-  client.
+  (`S256`), discovery, and either ChatGPT CIMD, DCR, or a predefined
+  confidential client.
 - The OAuth access-token audience must be the exact MCP resource URL.
 
 Do not expose the gRPC service, PostgreSQL, Keycloak admin interface, or a
@@ -30,8 +30,9 @@ Configure the provider with:
   `https://chatgpt.com/connector_platform_oauth_redirect`
 - access-token claim `ceerat_user_id`, mapped to an existing CEERAT customer
 - access-token client claim `azp` (or set `CEERAT_CLIENT_ID_CLAIM`)
-- for the predefined public development client, token endpoint authentication
-  is `none`; no client secret is sent and PKCE protects the code exchange
+- for the predefined ChatGPT client, enable client authentication and store its
+  generated secret only in ChatGPT's protected app configuration; never commit
+  the secret. PKCE remains required in addition to client authentication
 
 For ChatGPT CIMD or DCR, configure the provider according to its supported MCP
 client-registration mechanism. Do not enable password or client-credentials
