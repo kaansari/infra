@@ -78,7 +78,7 @@ revoker_response="$(curl -sS --max-time 20 -X POST "$token" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   --data 'grant_type=client_credentials&client_id=ceerat-gateway-revoker&client_secret=invalid')"
 if ! grep -Eqi 'invalid_client|unauthorized_client' <<<"$revoker_response"; then
-  echo "disabled revoker client unexpectedly accepted a public token request" >&2
+  echo "revoker client accepted invalid client credentials" >&2
   exit 1
 fi
 

@@ -141,6 +141,13 @@ services:
         value: azp
       - key: CEERAT_OAUTH_ALLOWED_CLIENT_IDS
         value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev,ceerat-mcp-dev
+      - key: CEERAT_KEYCLOAK_REVOKER_CLIENT_ID
+        value: ceerat-gateway-revoker
+      - key: CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET
+        fromService:
+          type: web
+          name: ceerat-keycloak
+          envVarKey: CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET
       - key: CEERAT_GATEWAY_WORKLOAD_SECRET
         fromService:
           type: pserv

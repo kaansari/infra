@@ -51,9 +51,9 @@ class RealmConfigTest < Minitest::Test
     end
   end
 
-  def test_revoker_is_confidential_disabled_roleless_and_has_no_redirect
+  def test_revoker_is_confidential_service_only_and_has_no_redirect
     client = CLIENTS.fetch("ceerat-gateway-revoker")
-    assert_equal false, client["enabled"]
+    assert_equal true, client["enabled"]
     assert_equal false, client["publicClient"]
     assert_equal false, client["standardFlowEnabled"]
     assert_equal false, client["implicitFlowEnabled"]
@@ -77,6 +77,13 @@ class RealmConfigTest < Minitest::Test
       path = File.join(ROOT, "deploy/render/keycloak/clients/#{client_id}.json")
       assert_equal CLIENTS.fetch(client_id), JSON.parse(File.read(path))
     end
+  end
+
+  def test_reconciliation_grants_only_required_revoker_role
+    script = File.read(File.join(ROOT, "deploy/render/keycloak/reconcile-live-realm.sh"))
+    assert_includes script, "--cclientid realm-management --rolename manage-users"
+    refute_includes script, "--rolename realm-admin"
+    refute_includes script, "--rolename manage-realm"
   end
 
   private

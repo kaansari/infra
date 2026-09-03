@@ -15,8 +15,10 @@ The realm separates hosted and native clients:
   loopback callbacks required by the native CLI;
 - `ceerat-mcp-dev` remains temporarily enabled as a rollback client and must
   not receive new integrations;
-- `ceerat-gateway-revoker` is a disabled, roleless confidential placeholder
-  for PR 05 and cannot use browser or password OAuth flows.
+- `ceerat-gateway-revoker` is a confidential service-only client used by the
+  gateway to delete one identified Keycloak user/offline session. It has only
+  the `realm-management/manage-users` client role and cannot use browser or
+  password OAuth flows.
 
 Both clients require authorization code + PKCE `S256` and disable implicit,
 password, and service-account grants. ChatGPT is confidential and its generated

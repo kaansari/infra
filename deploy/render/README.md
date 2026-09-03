@@ -21,9 +21,9 @@ Phase 1-B generates `CEERAT_GATEWAY_WORKLOAD_SECRET` on the private user service
 and references that exact value from the gateway. Do not generate independent
 values. Google, SMTP, and `CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET` use
 `sync: false`; set them manually on existing services because Render only
-prompts for these values during initial Blueprint creation. The revoker secret
-belongs to the disabled PR 05 placeholder and must not appear in realm JSON or
-documentation.
+prompts for these values during initial Blueprint creation. The same revoker
+secret is referenced by the gateway service through Render's service reference
+and must not appear in realm JSON, source, logs, or documentation.
 Use separate schemas and database users, or separate databases, before a
 production launch.
 
@@ -163,10 +163,24 @@ deliberately leaves `ceerat-mcp-dev` enabled for rollback. To run the script
 directly instead, set `KCADM` to a Keycloak 26 `kcadm.sh`; for a local realm,
 also set `CEERAT_KEYCLOAK_SERVER=http://127.0.0.1:8080`.
 
-The revoker client is disabled and receives no realm-management role in PR 03.
-PR 05 must first prove whether Keycloak can revoke exactly one mapped client
-session and which minimum role/API permits it. Do not grant broad
-`realm-admin`, `manage-realm`, or user-listing access as a shortcut.
+The PR 05 revoker is service-account-only and receives only Keycloak's built-in
+`realm-management/manage-users` client role required by the supported
+`DELETE /admin/realms/{realm}/sessions/{sid}` operation. Do not grant
+`realm-admin`, `manage-realm`, or additional roles. Rotate the shared Render
+secret by setting the same new value on `ceerat-keycloak`, reconciling the
+realm, and restarting `ceerat-agent-gateway`.
+
+The gateway stores Keycloak's opaque `sid` and never stores OAuth tokens or
+authorization codes. `sid` identifies a Keycloak user/offline session, not an
+independently revocable refresh-token family. Revoking it prevents refresh but
+may also sign out another CEERAT client attached to the same browser SSO
+session. Public tool descriptions disclose that possible widening.
+
+`manage-users` is Keycloak's minimum built-in role for this endpoint but is
+broader than session deletion. This residual authorization breadth is isolated
+to the revoker service account and must be replaced with fine-grained admin
+permissions or a narrow internal identity adapter before broader production
+scale.
 
 After reconciliation, configure ChatGPT with client ID
 `ceerat-mcp-chatgpt` and token endpoint authentication method `none`. Configure

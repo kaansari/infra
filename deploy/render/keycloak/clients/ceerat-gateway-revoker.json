@@ -1,8 +1,8 @@
 {
   "clientId": "ceerat-gateway-revoker",
   "name": "CEERAT Gateway Session Revoker",
-  "description": "Disabled, roleless placeholder for the separately reviewed PR 05 session-revocation integration",
-  "enabled": false,
+  "description": "Confidential gateway service identity for exact Keycloak user-session deletion",
+  "enabled": true,
   "publicClient": false,
   "bearerOnly": false,
   "clientAuthenticatorType": "client-secret",

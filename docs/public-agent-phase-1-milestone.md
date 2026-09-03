@@ -66,6 +66,15 @@ PR 04 locks client validation to the configured
 audience, time, identity, verified-email, and per-tool scope checks. The legacy
 client remains in that allowlist only for the explicit PR 03 rollback window.
 
+PR 05 binds a gateway connection to the validated Keycloak `sid` plus OAuth
+client ID, keeping it stable across access-token refreshes. Confirmed logout or
+connection revocation first records the local deny decision, then uses a
+service-only Keycloak client to delete the identified normal/offline session.
+No OAuth token is stored. If Keycloak cannot confirm deletion, the response is
+truthful `OUTCOME_UNKNOWN` while local access remains denied. Because Keycloak's
+supported API deletes a user session rather than one child client session,
+another CEERAT client sharing the same SSO session may also be signed out.
+
 ## OAuth and identity decisions validated by testing
 
 OAuth is the credential acquisition and delegation mechanism. The MCP wire

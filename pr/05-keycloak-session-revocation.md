@@ -4,6 +4,9 @@ Repository: `apps-repo`
 
 Depends on: PR 02, PR 03, and PR 04
 
+Status: **implemented and verified locally; live reconciliation and acceptance
+pending**.
+
 ## Objective
 
 Make connection revocation and logout claims truthful. A locally revoked
@@ -17,9 +20,10 @@ or client session) maps one CEERAT connection to one refresh-token family.
 Store only the minimum opaque identifier needed for revocation. Do not store
 access tokens, refresh tokens, authorization codes, or client passwords.
 
-If Keycloak cannot revoke exactly one family/session with the available
-identifier, narrow the public tool description instead of claiming stronger
-revocation.
+Keycloak's supported admin API deletes the user/offline session identified by
+`sid`; it does not expose a supported operation to delete only one child client
+session. Tool descriptions therefore disclose that another CEERAT client
+sharing the same browser SSO session may also be signed out.
 
 ## Changes
 
@@ -33,18 +37,25 @@ revocation.
   Render secret; document required roles and rotation.
 - Make repeated revoke/logout idempotent and represent uncertain upstream
   outcomes explicitly.
+- Use `sid + client_id` as the stable local connection key across access-token
+  refreshes while storing `sid` separately for the Keycloak operation.
+- Select normal or offline-session deletion from the validated
+  `offline_access` scope.
 
 ## Tests
 
 - Logout: old access fails and refresh cannot mint usable CEERAT access.
-- Revoke B among A/B/C: B fails while A and C continue.
+- Revoke B among A/B/C: B fails while A and C continue when they have distinct
+  Keycloak `sid` values. Clients sharing B's SSO session are truthfully within
+  the documented logout blast radius.
 - Repeated revocation succeeds without widening scope.
 - Keycloak timeout, denial, and malformed response do not leak internals.
 - A user cannot revoke a connection owned by another user.
 
 ## Non-goals
 
-No global user logout, admin-facing session management, or account deletion.
+No realm-wide/user-wide logout, admin-facing session management, account
+deletion, or unsupported Keycloak internal client-session API.
 
 ## Builder-agent and documentation gate
 
@@ -62,3 +73,16 @@ No global user logout, admin-facing session management, or account deletion.
 
 Tool descriptions, stored state, and observed Keycloak behavior agree. No test
 may label token-family revocation PASS based only on the gateway denylist.
+
+## Local validation evidence
+
+- Gateway captures and requires `sid`; token `jti` remains diagnostic only.
+- Local state is revoked before the Keycloak call, so an upstream timeout cannot
+  silently restore gateway access.
+- Keycloak service-token and exact session-delete requests are covered with
+  success, idempotent 404, denial, malformed/unsafe body, and timeout tests.
+- Ownership tests prevent one CEERAT user from selecting another user's
+  connection or invoking Keycloak for it.
+- Upstream uncertainty returns `OUTCOME_UNKNOWN`, `operation_state` of
+  `outcome_unknown`, and sanitized recovery information.
+- Full gateway unit suite and build pass; realm policy suite passes.

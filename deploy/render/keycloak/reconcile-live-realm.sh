@@ -50,7 +50,10 @@ reconcile_client() {
   if [[ "$client_id" == "ceerat-gateway-revoker" ]]; then
     "$kcadm" update "clients/$internal_id" --config "$config_file" -r "$realm" \
       -s "secret=$revoker_secret"
-    echo "Updated disabled revoker secret from the environment"
+    "$kcadm" add-roles --config "$config_file" -r "$realm" \
+      --uusername "service-account-ceerat-gateway-revoker" \
+      --cclientid realm-management --rolename manage-users
+    echo "Updated revoker secret and assigned realm-management/manage-users"
   fi
 }
 
