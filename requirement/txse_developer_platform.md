@@ -2,7 +2,10 @@
 
 ## 1. Purpose
 
-This document defines the proposed TXSE market-data product and how it fits the CEERAT platform established during the identity-focused Phase 1.
+This document defines the proposed TXSE market-data product and how it fits the
+CEERAT platform established during the identity-focused Phase 1. It also makes
+the existing CEERAT product catalog and customer cart the first Phase 2 MCP
+expansion, before introducing licensed market-data operations.
 
 CEERAT is not initially a retail trading application, broker, exchange member, order router, or custodian. The proposed product is a developer- and agent-facing data service that hides exchange feed, normalization, history, replay, and entitlement complexity behind stable APIs.
 
@@ -127,7 +130,11 @@ but Phase 1 is complete only when those remaining checks pass and the milestone
 tag is created. A successful development login is not production security
 sign-off.
 
-Phase 1 includes identity, self-profile, agent connections, OAuth, scopes, safe errors, auditability, and abuse protection. It excludes jobs, skills, applications, TXSE data, account deletion, brokerage, and Kubernetes. TXSE work builds on the frozen identity boundary; it does not widen Phase 1.
+Phase 1 includes identity, self-profile, agent connections, OAuth, scopes, safe
+errors, auditability, and abuse protection. It excludes products, carts, jobs,
+skills, applications, TXSE data, account deletion, brokerage, and Kubernetes.
+Phase 2 begins with the existing product/cart domain. TXSE work builds on the
+same frozen identity boundary; neither changes Phase 1.
 
 ## 5. Identity and authorization
 
@@ -168,7 +175,100 @@ Public errors may include a stable code/category, safe message, retryability and
 
 They must not expose tokens, secrets, passwords, raw upstream responses, stack traces, SQL, private addresses, topology, or cross-customer data. Sanitized internal diagnostics correlate through the request ID.
 
-## 7. Proposed TXSE product surface
+## 7. Phase 2: existing product and cart domain
+
+The first post-identity expansion reuses the existing CEERAT commerce domain.
+This is intentionally simpler than TXSE market data and provides a controlled
+way to prove that ChatGPT can discover and call additional MCP tools through the
+same OAuth, gateway, private-gRPC, RBAC, ownership, error, rate, and audit
+boundaries.
+
+The existing `service.ServiceManager` gRPC service remains the domain owner. It
+already exposes `ListProducts`, `GetProduct`, `GetCart`, `AddCartItem`,
+`UpdateCartItem`, `RemoveCartItem`, and `ClearCart`. Phase 2 projects a bounded
+customer-facing subset through `ceerat-agent-gateway`; it does not create a new
+product service, duplicate product storage, or expose gRPC reflection publicly.
+
+```text
+ChatGPT/Codex
+  -> remote MCP + user OAuth bearer token
+  -> ceerat-agent-gateway
+  -> authenticated private gRPC
+  -> service.ServiceManager
+  -> product/catalog and customer-cart repositories
+```
+
+This CEERAT product catalog represents goods or services CEERAT sells. It is
+separate from TXSE instruments, quotes, subscriptions, or financial products.
+A catalog item may later represent a purchasable TXSE data plan, but catalog
+identity, commercial entitlement, and exchange instrument identity remain
+separate concepts.
+
+### Phase 2 MCP tools
+
+Start with these names and validate them during design:
+
+```text
+list_products
+get_product
+get_my_cart
+add_product_to_my_cart
+update_my_cart_item
+remove_my_cart_item
+clear_my_cart
+```
+
+`list_products` supports bounded pagination and allowlisted filters already
+represented by `ListProductsRequest`: active state, query, sort, category,
+model, size, color, price bucket, and availability. The gateway sets a safe
+maximum page size and rejects unknown filters. `get_product` accepts one opaque
+product ID and returns `NOT_FOUND` without leaking unpublished inventory.
+
+Every cart tool is authenticated and self-scoped. The public MCP schemas must
+not contain `customer_id`, `user_id`, owner, role, scope, price, discount,
+inventory count override, or total. The gateway and service derive the customer
+from the validated identity; the service remains authoritative for ownership,
+active product/variant status, inventory, price, currency, totals, and
+concurrency. A product or variant ID selects merchandise, never authority.
+
+Use separate least-privilege OAuth scopes:
+
+```text
+ceerat.products.read
+ceerat.cart.read
+ceerat.cart.write
+```
+
+Catalog list/detail are read-only. Cart mutations require explicit tool
+invocation, idempotency where a retry could duplicate quantity, and a current
+cart version or equivalent optimistic-concurrency control. `clear_my_cart` is a
+destructive operation and requires `confirmed: true`; remove/update operations
+must return enough preview/current-state information for ChatGPT to identify the
+affected item without exposing another customer's cart. Checkout, payment,
+orders, subscriptions, discounts, admin catalog mutation, and inventory
+management are deferred beyond this Phase 2 slice.
+
+### Phase 2 delivery order
+
+1. **PR 2.1 — catalog reads:** add gateway gRPC adapter methods and
+   `list_products`/`get_product` schemas, scopes, safe errors, rate limits,
+   audit events, and deterministic tests.
+2. **PR 2.2 — self-cart read:** add `get_my_cart`, deriving the customer solely
+   from authentication and proving two-user isolation.
+3. **PR 2.3 — bounded cart writes:** add, update, remove, and confirmed clear
+   with idempotency/concurrency tests and truthful uncertain-outcome handling.
+4. **PR 2.4 — live ChatGPT acceptance:** verify discovery, pagination, product
+   detail, self-cart ownership, reversible mutations, approval UX, audit
+   correlation, and logout/revocation using disposable catalog data.
+
+Phase 2 acceptance requires ChatGPT and Codex to list products, retrieve one
+product, read the authenticated user's cart, add/update/remove a disposable
+item, reject cross-user access and model-supplied identity fields, and return
+agent-actionable errors for invalid product, insufficient scope, stale cart,
+rate limit, and unavailable dependency. The test restores the original cart
+and retains no credentials or customer data in evidence.
+
+## 8. Proposed TXSE product surface
 
 Subject to licensing, capabilities include symbol/reference discovery, latest quotes, recent trades, streams, current/historical books, historical data, replay, derived aggregates, anomalies, and explanations that separate observations, calculations, and model interpretation.
 
@@ -206,7 +306,7 @@ Names remain provisional until rights, use cases, and canonical domain contracts
 
 Bound symbols, time ranges, pages, book depth, subscriptions, concurrent streams, and export volume. Server-side entitlements override model requests.
 
-## 8. Target architecture
+## 9. Target architecture
 
 ```text
 Licensed TXSE/vendor feed or approved replay data
@@ -255,7 +355,7 @@ gap semantics.
 
 **MCP gateway:** translate bounded tools to domain calls, derive identity from OAuth, avoid duplicating market logic, and return timestamps, freshness, provenance, and partial-data warnings.
 
-## 9. Canonical data model
+## 10. Canonical data model
 
 Define versioned objects for `Instrument`, `Trade`, `Quote`, `OrderEvent` where licensed, `OrderBookSnapshot`, `FeedHealth`, `SequenceGap`, `AggregateMetric`, and `Anomaly` with evidence/detector version.
 
@@ -263,7 +363,7 @@ Every event carries source, schema version, exchange timestamp, ingestion timest
 
 Book reconstruction begins with a verified snapshot and ordered deltas. A missing sequence invalidates the affected book until recovery; guessed state is never presented as authoritative.
 
-## 10. Licensing and entitlements
+## 11. Licensing and entitlements
 
 Obtain written answers for:
 
@@ -282,7 +382,7 @@ Obtain written answers for:
 
 An authoritative entitlement module maps customer and credential to datasets, symbols, depth, latency class, history, usage, and redistribution mode. OAuth scopes express operation categories; they do not replace commercial entitlements.
 
-## 11. Security and operations
+## 12. Security and operations
 
 - Require TLS for public interfaces and authenticated internal traffic.
 - Keep secrets in deployment secret stores, never Git, examples, logs, or responses.
@@ -296,13 +396,13 @@ An authoritative entitlement module maps customer and credential to datasets, sy
 
 Development may use direct Go deployment, managed services, and approved simulation/replay. Kubernetes is not required during development.
 
-## 12. Reliability and observability
+## 13. Reliability and observability
 
 Monitor feed/heartbeat state; gaps, duplicates, and recovery; event and delivery latency; stream lag; storage failures; quote/book freshness; API availability; WebSocket backpressure/reconnects; entitlement/rate-limit/OAuth failures; MCP outcomes; and reconciliation correctness.
 
 Health must distinguish process health from data readiness. A running service with stale or gapped data is not ready to serve authoritative results.
 
-## 13. Testing and acceptance
+## 14. Testing and acceptance
 
 ### Data correctness
 
@@ -338,49 +438,64 @@ Health must distinguish process health from data readiness. A running service wi
 
 Chat testing is acceptance evidence, not a replacement for deterministic security and data tests.
 
-## 14. Roadmap and gates
+## 15. Roadmap and gates
 
 ### Gate A — Finish identity
 
 Complete Phase 1 PRs 02–09 and freeze the OAuth/MCP boundary. TXSE discovery may proceed in parallel, but TXSE tools must not bypass unfinished controls.
 
-### Gate B — Validate business and rights
+### Gate B — Product and cart MCP pilot
+
+Implement Phase 2 PRs 2.1–2.4 against the existing `ServiceManager` domain.
+Release catalog reads before cart writes. Prove ChatGPT discovery, user-derived
+cart ownership, safe mutation semantics, and reuse of Phase 1 controls before
+adding TXSE tools.
+
+### Gate C — Validate TXSE business and rights
 
 Interview 15–25 prospects, recruit 3–5 design partners, document licensing/entitlements/fees, and stop or reshape the product if rights or economics fail.
 
-### Gate C — Prove feed feasibility
+### Gate D — Prove feed feasibility
 
 Using approved data, define schemas, decode required events, demonstrate sequencing/replay/reconciliation, and measure throughput, latency, storage, and cost.
 
-### Gate D — Developer API pilot
+### Gate E — Developer API pilot
 
 Implement the domain service, minimal public gRPC and WebSocket surfaces,
 credentials, entitlements, limits, metering, documentation, and design-partner
 onboarding.
 
-### Gate E — MCP pilot
+### Gate F — TXSE MCP pilot
 
 Project a small read-only subset through the gateway. Begin with symbol search, quote, and bounded recent trades/history. Reuse Phase 1 OAuth, errors, connections, scopes, and audit controls. Validate with distinct Codex/ChatGPT users and entitlements.
 
 Do not begin with bulk export, unconstrained history, execution, or an open-ended model-controlled query language.
 
-### Gate F — Expansion
+### Gate G — Expansion
 
 Add books, longer history, anomaly detection, and model explanations only when rights, correctness, and customer demand justify them.
 
-## 15. MVP scope
+## 16. MVP scope
 
-Include approved data ingestion; normalized symbol/quote/trade schemas; sequence/readiness monitoring; quote/recent-trade APIs; bounded streaming; basic licensed history; identity, credentials, entitlements, rate limits and metering; quickstart documentation; and a small read-only MCP projection after Phase 1 closure.
+The Phase 2 commerce pilot includes bounded product list/detail and the
+authenticated customer's cart through MCP, backed by the existing gRPC domain.
+It is the integration proving ground before the TXSE MVP.
+
+The TXSE MVP includes approved data ingestion; normalized symbol/quote/trade
+schemas; sequence/readiness monitoring; quote/recent-trade APIs; bounded
+streaming; basic licensed history; identity, credentials, entitlements, rate
+limits and metering; quickstart documentation; and a small read-only MCP
+projection after Phase 1 closure and the product/cart pilot.
 
 Defer brokerage, custody, routing, execution, AI-first intelligence, unbounded exports, unnecessary full-depth books, multi-exchange support, Kubernetes, broad SDK coverage, and new legacy `ceerat-agent-service` tools.
 
-## 16. Commercial model
+## 17. Commercial model
 
 Derive pricing from interviews, measured infrastructure cost, and exchange/provider charges. Potential developer, professional, and enterprise tiers may vary by latency, datasets, history, depth, throughput, streams, retention, SLA, and support. Earlier illustrative prices are not commitments.
 
 Track time to first call, active customers/credentials, delivered usage, paid conversion, margin after data/infrastructure fees, reliability, support burden, retention, and expansion.
 
-## 17. Builder-agent governance
+## 18. Builder-agent governance
 
 `ceerat-platform-builder-agent` is a development-time source of CEERAT context, security standards, ownership boundaries, inventories, and validation. It is not a runtime anomaly-analysis service and does not sit in the market-data request path.
 
@@ -407,17 +522,20 @@ Run `make verify-platform` for shared contracts, inventories, security boundarie
 
 After merge, deployment, and human validation, update owning documentation and make a focused builder documentation checkpoint for reusable, tested rules. Deployment evidence belongs in `infra`; reusable standards belong in `ceerat-platform-builder-agent`; speculation does not become a standard.
 
-## 18. Immediate actions
+## 19. Immediate actions
 
 1. Complete the PR 08 human/operator acceptance checklist and attach redacted
    evidence to the Phase 1 release candidate.
-2. Mark legacy `ceerat-agent-service` inventories deprecated in the builder
-   model and focus validation on active MCP surfaces through a separate reviewed
-   PR.
-3. Create a written TXSE/vendor licensing and entitlement questionnaire.
-4. Interview customers and recruit design partners.
-5. Obtain approved specifications and sample/certification/replay data.
-6. Draft the canonical event schema and minimal read-only API contract.
-7. Prototype decoding, sequence recovery, and reconciliation before AI explanations or a broad portal.
+2. Design Phase 2 PR 2.1 for `list_products` and `get_product` using the existing
+   `service.ServiceManager` contracts and add the new OAuth scope definitions.
+3. Design self-cart projection so no public tool accepts `customer_id`; confirm
+   whether the internal gRPC contract needs a self-scoped request or a trusted
+   gateway-derived identity adapter before implementation.
+4. Seed disposable active products for repeatable Codex/ChatGPT acceptance.
+5. Create a written TXSE/vendor licensing and entitlement questionnaire.
+6. Interview customers and recruit design partners.
+7. Obtain approved specifications and sample/certification/replay data.
+8. Draft the canonical event schema and minimal read-only API contract.
+9. Prototype decoding, sequence recovery, and reconciliation before AI explanations or a broad portal.
 
 The governing principle is: make licensed market data easy to consume without moving correctness, identity, entitlement, or customer policy decisions into an LLM.
