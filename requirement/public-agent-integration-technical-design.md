@@ -1,6 +1,6 @@
 # CEERAT Public Agent Integration
 
-Status: Phase 1 interoperability milestone completed; production hardening remains
+Status: Phase 1 release candidate; final human acceptance remains
 Date: 2026-08-29  
 Scope: Publish a vendor-neutral remote MCP integration that advertises CEERAT operations, schemas, authentication, confirmations, and errors to ChatGPT and other compatible LLM clients. Phase one is limited to OAuth-page registration, authentication, identity/profile, connection, and logout operations.
 

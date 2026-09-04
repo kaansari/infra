@@ -17,7 +17,7 @@ and Kubernetes are explicitly excluded.
 | 6 | [PR-06](06-profile-write-safety-tests.md) | `apps-repo` | Implemented and locally validated — deployment pending |
 | 7 | [PR-07](07-rate-limit-and-audit-controls.md) | `apps-repo` | Implemented and locally validated — live acceptance pending |
 | 8 | [PR-08](08-live-security-acceptance.md) | `infra` | Partial — 11 Codex checks passed; 8 interactive/operator checks remain |
-| 9 | [PR-09](09-phase1-freeze.md) | `infra` | Record evidence, fix documentation drift, and freeze/tag Phase 1 |
+| 9 | [PR-09](09-phase1-freeze.md) | `infra` | Release candidate prepared — final tag blocked by PR 08 human checks |
 
 PRs 1 and 2 establish truthful public behavior. PR 3 establishes the live OAuth
 policy. PRs 4 through 7 harden and test individual security boundaries. PR 8 is

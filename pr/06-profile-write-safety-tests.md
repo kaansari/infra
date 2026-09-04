@@ -4,7 +4,8 @@ Repository: `apps-repo`
 
 Depends on: PR 04
 
-Status: implemented and locally validated on 2026-09-03; deployment pending.
+Status: implemented and locally validated on 2026-09-03; deployed static
+regression suite passed PR 08 automation, interactive write acceptance pending.
 
 ## Objective
 

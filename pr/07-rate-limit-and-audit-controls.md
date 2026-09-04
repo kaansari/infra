@@ -4,8 +4,8 @@ Repository: `apps-repo`
 
 Depends on: PR 02 and PR 04
 
-Status: implemented and locally validated on 2026-09-03; live acceptance
-pending deployment.
+Status: implemented and locally validated on 2026-09-03; live source-IP limit
+passed PR 08 automation, authenticated dimensions and operator log review remain.
 
 ## Objective
 

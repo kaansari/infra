@@ -1,12 +1,13 @@
 # Public agent Phase 1-B: self-service identity
 
-Status: native identity exchange is deployed and validated; split OAuth clients
-and hardening require PR 03 live reconciliation and client smoke tests
+Status: native identity exchange, split OAuth clients, verified-email policy,
+and Keycloak-backed session revocation are deployed; final multi-user and
+provisioning acceptance remains pending
 
 ## Outcome
 
-A ChatGPT or Codex user authenticates at CEERAT Keycloak using either a native
-CEERAT account or Google. On the first protected MCP call, the gateway validates
+A ChatGPT or Codex user authenticates at CEERAT Keycloak using a native CEERAT
+account. On the first protected MCP call, the gateway validates
 the external access token and exchanges the verified issuer/subject identity
 over private gRPC. The user service idempotently creates or resolves the CEERAT
 customer user and profile and returns a short-lived internal CEERAT session.
@@ -44,16 +45,11 @@ select a CEERAT user.
 
 ## Deployment prerequisites
 
-Set `CEERAT_GOOGLE_CLIENT_ID`, `CEERAT_GOOGLE_CLIENT_SECRET`, and the
-`CEERAT_SMTP_HOST`, `CEERAT_SMTP_PORT`, `CEERAT_SMTP_FROM`,
-`CEERAT_SMTP_USER`, and `CEERAT_SMTP_PASSWORD` secrets on Keycloak. The Google
-OAuth client must allow:
+Set the `CEERAT_SMTP_HOST`, `CEERAT_SMTP_PORT`, `CEERAT_SMTP_FROM`,
+`CEERAT_SMTP_USER`, and `CEERAT_SMTP_PASSWORD` secrets on Keycloak. Google
+client settings are optional and unused while federation remains deferred.
 
-```text
-https://ceerat-keycloak.onrender.com/realms/ceerat/broker/google/endpoint
-```
-
-Keycloak startup import skips an existing realm. Apply Google, SMTP, and
+Keycloak startup import skips an existing realm. Apply SMTP and
 `verifyEmail=true` through the Admin Console/API on the live realm as well as
 retaining them in `dev/keycloak/ceerat-realm.json`.
 
@@ -68,24 +64,28 @@ hosted callback. Codex is a public client with only the loopback callback
 exception. Both require authorization code + PKCE `S256`, disable
 implicit/password flows, and receive the explicit CEERAT scopes/audience. The original
 `ceerat-mcp-dev` client remains enabled only for a time-bounded rollback until
-both replacements pass live smoke tests.
+both replacements pass live smoke tests. Google federation is a later optional
+login method and is not part of the Phase 1 release gate.
 
 ## Acceptance criteria
 
 1. A new native user verifies email and the first MCP call creates exactly one
    CEERAT user, customer, and external identity mapping.
 2. Repeated and concurrent exchanges do not create duplicates.
-3. A new Google user completes the same flow without a CEERAT password.
+3. A new native user completes verified-email provisioning without duplicate
+   CEERAT records; Google federation is tested only if it is enabled later.
 4. Missing or incorrect workload credentials fail with `Unauthenticated`.
 5. ID-only `auth.Auth/Auth` requests cannot mint a token.
 6. Invalid OAuth identity or scope data fails safely.
 7. ChatGPT and Codex can access only the provisioned customer's records.
 8. Credentials and tokens never appear in responses or logs.
 
-## Remaining production gate
+## Remaining release gate
 
 Connection revocation and profile-update preparations use PostgreSQL in the
 dedicated `ceerat_agent_gateway` schema and survive restarts/multiple gateway
-instances. Keycloak session/token revocation remains a production gate: gateway
-revocation currently denies MCP use at CEERAT but does not terminate the
-authorization-server session itself.
+instances. Logout now records the local deny decision and deletes the backing
+Keycloak normal/offline session; a confirmed live logout forced ChatGPT to
+reconnect. The remaining release gate is the repeatable multi-user,
+provisioning, datastore, audit-log, and client acceptance evidence listed in
+`verification/phase1/README.md`.

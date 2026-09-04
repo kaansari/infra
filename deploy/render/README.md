@@ -204,8 +204,10 @@ permissions or a narrow internal identity adapter before broader production
 scale.
 
 After reconciliation, configure ChatGPT with client ID
-`ceerat-mcp-chatgpt` and token endpoint authentication method `none`. Configure
-Codex with `ceerat-mcp-codex-dev`. Move one client at a time. After both smoke
+`ceerat-mcp-chatgpt`, its Render-managed client secret, and
+`client_secret_basic` token endpoint authentication. Configure Codex with the
+public client `ceerat-mcp-codex-dev` and token endpoint authentication method
+`none`. Move one client at a time. After both smoke
 tests pass, disable—but do not delete—`ceerat-mcp-dev` for the rollback window.
 
 Run the static policy tests before deployment:

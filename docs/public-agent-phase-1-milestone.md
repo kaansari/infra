@@ -1,6 +1,6 @@
 # Public agent integration Phase 1 milestone
 
-Status: completed interoperability milestone with documented production gaps  
+Status: superseded by the Phase 1 release candidate; final human acceptance remains
 Validated: 2026-08-31  
 Public MCP endpoint: `https://ceerat-agent-gateway.onrender.com/mcp`
 
@@ -156,8 +156,8 @@ The gRPC service continues to enforce customer RBAC and ownership.
 
 ## Remaining gates
 
-Phase 1 interoperability is complete, but it is not yet a self-service public
-release. The highest-priority gap is automatic account provisioning:
+The original interoperability milestone is complete, and the following
+self-service path has since been implemented:
 
 ```text
 Keycloak registration
@@ -167,15 +167,16 @@ Keycloak registration
   -> issue a token containing the linked identity
 ```
 
-The milestone used manual provisioning for the human account. New users must
-not require direct SQL or an administrator to establish this link.
+The gateway now uses authenticated external-identity exchange, durable shared
+preparation/connection/rate-limit state, safe audit events, and Keycloak session
+revocation. These supersede the earlier gaps recorded by this dated milestone.
 
-Before production publication, also replace the private ID-based internal
-session exchange with an authenticated gateway-specific assertion/exchange,
-move process-local preparations and connection state to durable shared storage,
-integrate authorization-server revocation, isolate database schemas, complete
-rate limiting and idempotency retention, and finish plugin submission material,
-domain verification, privacy, terms and reviewer test credentials.
+Final release still requires the human/operator evidence in
+`verification/phase1/README.md`, classification or repair of aggregate platform
+check findings, database-schema/user isolation for production, and publication
+material such as domain verification, privacy, terms, and reviewer credentials.
+The current release-candidate truth is in
+`docs/public-agent-phase-1-release-candidate.md`.
 
 ## Repeatable client checks
 

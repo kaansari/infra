@@ -94,14 +94,15 @@ verify_staticcheck() {
 verify_all() {
   verify_tools
   local unformatted
-  unformatted="$(gofmt -l \
+  unformatted="$(find \
     "${STACK_ROOT}/contracts-repo/packages/ceerat-contracts" \
     "${STACK_ROOT}/services-repo/services/ceerat-user-service" \
     "${STACK_ROOT}/apps-repo/ai/ceerat-agent-gateway" \
     "${STACK_ROOT}/apps-repo/ai/ceerat-agent-service" \
     "${STACK_ROOT}/apps-repo/apps/ceerat-admin-ui" \
     "${STACK_ROOT}/apps-repo/apps/ceerat-customer-ui" \
-    "${STACK_ROOT}/apps-repo/apps/ceerat-web-ui")"
+    "${STACK_ROOT}/apps-repo/apps/ceerat-web-ui" \
+    -type f -name '*.go' -not -path '*/vendor/*' -exec gofmt -l {} +)"
   if [[ -n "${unformatted}" ]]; then
     echo "Unformatted Go files:" >&2
     echo "${unformatted}" >&2

@@ -121,7 +121,11 @@ This proves the integration direction but does not close the full security miles
 | 08 | Live two-user and credential-revocation acceptance |
 | 09 | Evidence, documentation synchronization, and Phase 1 freeze |
 
-PR 01 behavior is implemented and documented. Phase 1 is complete only after the remaining gates pass and PR 09 records the evidence. A successful development login is not production security sign-off.
+PRs 01–07 are implemented. PR 08 has eleven passing Codex checks and eight
+explicit human/operator checks remaining. PR 09 freezes the release candidate,
+but Phase 1 is complete only when those remaining checks pass and the milestone
+tag is created. A successful development login is not production security
+sign-off.
 
 Phase 1 includes identity, self-profile, agent connections, OAuth, scopes, safe errors, auditability, and abuse protection. It excludes jobs, skills, applications, TXSE data, account deletion, brokerage, and Kubernetes. TXSE work builds on the frozen identity boundary; it does not widen Phase 1.
 
@@ -405,8 +409,11 @@ After merge, deployment, and human validation, update owning documentation and m
 
 ## 18. Immediate actions
 
-1. Continue Phase 1 with PR 02.
-2. Mark legacy `ceerat-agent-service` inventories deprecated in the builder model and focus validation on active MCP surfaces through a separate reviewed PR.
+1. Complete the PR 08 human/operator acceptance checklist and attach redacted
+   evidence to the Phase 1 release candidate.
+2. Mark legacy `ceerat-agent-service` inventories deprecated in the builder
+   model and focus validation on active MCP surfaces through a separate reviewed
+   PR.
 3. Create a written TXSE/vendor licensing and entitlement questionnaire.
 4. Interview customers and recruit design partners.
 5. Obtain approved specifications and sample/certification/replay data.
