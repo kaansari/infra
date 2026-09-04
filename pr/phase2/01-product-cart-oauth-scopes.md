@@ -4,8 +4,7 @@ Repository: `infra`
 Depends on: Phase 1 release acceptance  
 Risk: OAuth configuration only; no tools become callable in this PR
 
-Status: deployed and credential-free live policy verified; interactive grant
-checks remain the final acceptance gate
+Status: accepted; deployed and verified through the live ChatGPT client
 
 ## Objective
 
@@ -103,8 +102,8 @@ ChatGPT confidential-client secret preservation: PASS
 credential-free OAuth policy smoke test: PASS
 ```
 
-Interactive consent and decoded scope-claim checks remain pending. No product
-or cart tools are exposed by this PR.
+Interactive consent and decoded scope-claim checks passed. No product or cart
+tools are exposed by this PR.
 
 The first ChatGPT check exposed a cross-repository integration gap: the live
 gateway still advertised only its Phase 1 scope set, so ChatGPT retained its
@@ -112,3 +111,19 @@ old grant. A bounded companion change in `apps-repo` now publishes the complete
 Phase 1 + Phase 2 set from RFC 9728 protected-resource metadata. Deploy the
 gateway and create a fresh authorization grant before repeating the interactive
 check.
+
+Final ChatGPT validation on 2026-09-04:
+
+```text
+authenticated client ceerat-mcp-chatgpt: PASS
+ceerat.products.read grant: PASS
+ceerat.products.cart.read grant: PASS
+ceerat.products.cart.write grant: PASS
+existing Phase 1 grants retained: PASS
+write/destructive calls performed: none
+correlated CEERAT request ID: req_98baad38f0b56f84fb0f408d0130bc3c
+```
+
+The user-supplied evidence omitted tokens and credentials. Token expiry was
+observed during the test but is intentionally not retained as durable security
+evidence.
