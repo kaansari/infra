@@ -110,7 +110,7 @@ The deployed development integration has demonstrated:
 - typed schemas, request IDs, and agent-actionable errors;
 - public MCP backed by private gRPC services.
 
-This proves the integration direction but does not close the full security milestone. The dependency-ordered work lives in [`../pr/README.md`](../pr/README.md):
+This proves the integration direction but does not close the full security milestone. The completed Phase 1 plan lives in [`done/pr01/README.md`](done/pr01/README.md):
 
 | PR | Outcome |
 | --- | --- |
@@ -184,10 +184,12 @@ same OAuth, gateway, private-gRPC, RBAC, ownership, error, rate, and audit
 boundaries.
 
 The existing `service.ServiceManager` gRPC service remains the domain owner. It
-already exposes `ListProducts`, `GetProduct`, `GetCart`, `AddCartItem`,
-`UpdateCartItem`, `RemoveCartItem`, and `ClearCart`. Phase 2 projects a bounded
-customer-facing subset through `ceerat-agent-gateway`; it does not create a new
-product service, duplicate product storage, or expose gRPC reflection publicly.
+already exposes `ListProducts` and `GetProduct`. Phase 2 replaces the current
+customer-ID-shaped cart operations with explicit `GetMyCart`, `AddMyCartItem`, `UpdateMyCartItem`,
+`RemoveMyCartItem`, and `ClearMyCart` private gRPC contracts with no user or
+customer selector, then projects them through `ceerat-agent-gateway`. It does
+not create a new product service, duplicate product storage, or expose gRPC
+reflection publicly.
 
 ```text
 ChatGPT/Codex
@@ -204,28 +206,40 @@ A catalog item may later represent a purchasable TXSE data plan, but catalog
 identity, commercial entitlement, and exchange instrument identity remain
 separate concepts.
 
+Phase 2 is deliberately MCP- and gRPC-first. Existing browser UI migration or
+compatibility is outside its scope. A later AI-assisted UI implementation may
+consume the completed APIs, but UI needs do not define ownership or weaken the
+service contract.
+
 ### Phase 2 MCP tools
 
 Start with these names and validate them during design:
 
 ```text
-list_products
-get_product
-get_my_cart
-add_product_to_my_cart
-update_my_cart_item
-remove_my_cart_item
-clear_my_cart
+products_list
+products_get
+products_cart_get
+products_cart_add_item
+products_cart_update_item
+products_cart_remove_item
+products_cart_clear
 ```
 
-`list_products` supports bounded pagination and allowlisted filters already
+MCP itself returns a flat tool list, so the `products_` name prefix is the
+portable grouping visible to ChatGPT and other clients. The CEERAT tool registry
+also records `domain: products`, emits `ceerat/domain: products` as optional
+tool metadata, and groups these operations under Products in `describe_ceerat`.
+Clients may ignore custom metadata; authorization never depends on it.
+
+`products_list` supports bounded pagination and allowlisted filters already
 represented by `ListProductsRequest`: active state, query, sort, category,
 model, size, color, price bucket, and availability. The gateway sets a safe
-maximum page size and rejects unknown filters. `get_product` accepts one opaque
+maximum page size and rejects unknown filters. `products_get` accepts one opaque
 product ID and returns `NOT_FOUND` without leaking unpublished inventory.
 
-Every cart tool is authenticated and self-scoped. The public MCP schemas must
-not contain `customer_id`, `user_id`, owner, role, scope, price, discount,
+Every cart tool and its corresponding private `My` RPC is authenticated and
+self-scoped. Neither schema may contain `customer_id`, `user_id`, owner, role,
+scope, price, discount,
 inventory count override, or total. The gateway and service derive the customer
 from the validated identity; the service remains authoritative for ownership,
 active product/variant status, inventory, price, currency, totals, and
@@ -235,13 +249,13 @@ Use separate least-privilege OAuth scopes:
 
 ```text
 ceerat.products.read
-ceerat.cart.read
-ceerat.cart.write
+ceerat.products.cart.read
+ceerat.products.cart.write
 ```
 
 Catalog list/detail are read-only. Cart mutations require explicit tool
 invocation, idempotency where a retry could duplicate quantity, and a current
-cart version or equivalent optimistic-concurrency control. `clear_my_cart` is a
+cart version or equivalent optimistic-concurrency control. `products_cart_clear` is a
 destructive operation and requires `confirmed: true`; remove/update operations
 must return enough preview/current-state information for ChatGPT to identify the
 affected item without exposing another customer's cart. Checkout, payment,
@@ -250,14 +264,24 @@ management are deferred beyond this Phase 2 slice.
 
 ### Phase 2 delivery order
 
-1. **PR 2.1 — catalog reads:** add gateway gRPC adapter methods and
-   `list_products`/`get_product` schemas, scopes, safe errors, rate limits,
+The detailed dependency-ordered PR designs are in
+[`../pr/phase2/README.md`](../pr/phase2/README.md).
+
+1. **PR 2.1 — OAuth scopes:** register optional product/cart permissions for the
+   dedicated ChatGPT and Codex clients.
+2. **PR 2.2 — catalog reads:** add gateway gRPC adapter methods and
+   `products_list`/`products_get` schemas, scopes, safe errors, rate limits,
    audit events, and deterministic tests.
-2. **PR 2.2 — self-cart read:** add `get_my_cart`, deriving the customer solely
-   from authentication and proving two-user isolation.
-3. **PR 2.3 — bounded cart writes:** add, update, remove, and confirmed clear
+3. **PR 2.3 — self-cart contract:** replace customer-ID-shaped cart RPCs with
+   protected `*MyCart*` methods whose messages contain no identity selector.
+4. **PR 2.4 — service enforcement:** implement authenticated-customer
+   resolution, an explicit tested PostgreSQL migration, ownership, idempotency,
+   versioning, and atomic cart operations.
+5. **PR 2.5 — self-cart read:** expose `products_cart_get` only through `GetMyCart` and
+   prove two-user isolation.
+6. **PR 2.6 — bounded cart writes:** add, update, remove, and confirmed clear
    with idempotency/concurrency tests and truthful uncertain-outcome handling.
-4. **PR 2.4 — live ChatGPT acceptance:** verify discovery, pagination, product
+7. **PR 2.7 — live ChatGPT acceptance:** verify discovery, pagination, product
    detail, self-cart ownership, reversible mutations, approval UX, audit
    correlation, and logout/revocation using disposable catalog data.
 
@@ -267,6 +291,22 @@ item, reject cross-user access and model-supplied identity fields, and return
 agent-actionable errors for invalid product, insufficient scope, stale cart,
 rate limit, and unavailable dependency. The test restores the original cart
 and retains no credentials or customer data in evidence.
+
+Phase 2 database changes use sortable explicit SQL migrations in the owning
+user service. Tests apply migrations to empty and representative pre-change
+PostgreSQL schemas, repeat them idempotently, validate constraints/indexes,
+exercise safe rollback or documented roll-forward, and run repository, gRPC,
+and MCP integration tests against disposable data. Production applies and
+verifies the schema before starting code that depends on it; startup
+`AutoMigrate` is not the sole production migration control.
+
+Every Phase 2 MCP and downstream gRPC operation emits sanitized, correlated
+server-side audit events for attempts, authorization decisions, dispatch, and
+outcomes. This includes discovery, authentication/scope rejection, product and
+cart reads, writes, confirmations, idempotent replay, conflicts, rate limits,
+dependency failures, logout, and post-revocation denial. Every client envelope
+returns the server request ID; logs never contain credentials, raw tool
+arguments/results, OAuth claims, prompts, SQL values, or cross-customer data.
 
 ## 8. Proposed TXSE product surface
 
@@ -526,11 +566,11 @@ After merge, deployment, and human validation, update owning documentation and m
 
 1. Complete the PR 08 human/operator acceptance checklist and attach redacted
    evidence to the Phase 1 release candidate.
-2. Design Phase 2 PR 2.1 for `list_products` and `get_product` using the existing
+2. Design Phase 2 PR 2.1 for `products_list` and `products_get` using the existing
    `service.ServiceManager` contracts and add the new OAuth scope definitions.
-3. Design self-cart projection so no public tool accepts `customer_id`; confirm
-   whether the internal gRPC contract needs a self-scoped request or a trusted
-   gateway-derived identity adapter before implementation.
+3. Implement the Phase 2 self-cart gRPC contracts so neither MCP nor the private
+   customer RPC accepts `customer_id`; derive it only from authenticated service
+   context.
 4. Seed disposable active products for repeatable Codex/ChatGPT acceptance.
 5. Create a written TXSE/vendor licensing and entitlement questionnaire.
 6. Interview customers and recruit design partners.
