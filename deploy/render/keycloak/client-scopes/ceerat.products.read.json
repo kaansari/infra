@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.products.read",
+  "description": "Read the public CEERAT product catalog",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "View products available from CEERAT"
+  },
+  "protocolMappers": []
+}

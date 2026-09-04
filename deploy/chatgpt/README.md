@@ -21,7 +21,7 @@ development-mode identity provider to the internet.
 Configure the provider with:
 
 - resource/audience: `https://YOUR_MCP_DOMAIN/mcp`
-- scopes: `openid profile email offline_access ceerat.profile.read ceerat.profile.write ceerat.connections.read ceerat.connections.revoke`
+- scopes: `openid profile email offline_access ceerat.profile.read ceerat.profile.write ceerat.connections.read ceerat.connections.revoke ceerat.products.read ceerat.products.cart.read ceerat.products.cart.write`
 - assign `offline_access` as an optional client scope; ChatGPT requests it for
   refresh-token access and Keycloak rejects the entire authorization request if
   the client is not allowed to request it

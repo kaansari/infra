@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.products.cart.write",
+  "description": "Modify the authenticated customer's CEERAT cart",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"
+  },
+  "protocolMappers": []
+}

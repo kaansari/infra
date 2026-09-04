@@ -50,5 +50,10 @@
     "ceerat.connections.read",
     "ceerat.connections.revoke"
   ],
-  "optionalClientScopes": ["offline_access"]
+  "optionalClientScopes": [
+    "offline_access",
+    "ceerat.products.read",
+    "ceerat.products.cart.read",
+    "ceerat.products.cart.write"
+  ]
 }

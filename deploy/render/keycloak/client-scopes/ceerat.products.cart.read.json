@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.products.cart.read",
+  "description": "Read the authenticated customer's CEERAT cart",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "View your CEERAT shopping cart"
+  },
+  "protocolMappers": []
+}

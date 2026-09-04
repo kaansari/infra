@@ -146,3 +146,18 @@ unset CEERAT_TEST_ACCESS_TOKEN
 
 Do not paste the token into chat, commit it, put it in `.env`, or retain it in
 shell history on a shared machine.
+
+## Phase 2 product/cart consent test
+
+The local realm offers `ceerat.products.read`,
+`ceerat.products.cart.read`, and `ceerat.products.cart.write` as optional
+scopes only to the dedicated ChatGPT and Codex MCP clients. Start an
+authorization-code + PKCE login that requests `openid` and the scopes being
+tested. Confirm the consent screen separately describes catalog viewing, cart
+viewing, and cart modification.
+
+After exchange, inspect only decoded `scope` claim names: requested and granted
+scopes must be present, omitted scopes absent, and `ceerat.products.admin`
+rejected. Never print or persist the token. These scopes do not grant cart
+ownership or authority over prices, inventory, checkout, or administration;
+the owning gRPC service makes those decisions.

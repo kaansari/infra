@@ -16,6 +16,16 @@ class RealmConfigTest < Minitest::Test
     ceerat.connections.read
     ceerat.connections.revoke
   ].freeze
+  PRODUCT_SCOPES = %w[
+    ceerat.products.read
+    ceerat.products.cart.read
+    ceerat.products.cart.write
+  ].freeze
+  PRODUCT_CONSENT = {
+    "ceerat.products.read" => "View products available from CEERAT",
+    "ceerat.products.cart.read" => "View your CEERAT shopping cart",
+    "ceerat.products.cart.write" => "Add, update, or remove items in your CEERAT shopping cart"
+  }.freeze
 
   def test_realm_uses_short_tokens_rotation_and_verified_email
     assert_equal true, REALM["verifyEmail"]
@@ -44,10 +54,38 @@ class RealmConfigTest < Minitest::Test
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
       assert_equal REQUIRED_SCOPES, client["defaultClientScopes"]
-      assert_equal ["offline_access"], client["optionalClientScopes"]
+      assert_equal ["offline_access", *PRODUCT_SCOPES], client["optionalClientScopes"]
       audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
       refute_nil audience
       assert_equal "https://ceerat-agent-gateway.onrender.com/mcp", audience.dig("config", "included.custom.audience")
+    end
+  end
+
+  def test_product_scopes_are_optional_with_explicit_consent
+    scopes = REALM.fetch("clientScopes").to_h { |scope| [scope.fetch("name"), scope] }
+    PRODUCT_CONSENT.each do |name, consent|
+      scope = scopes.fetch(name)
+      assert_equal "openid-connect", scope["protocol"]
+      assert_equal "true", scope.dig("attributes", "include.in.token.scope")
+      assert_equal "true", scope.dig("attributes", "display.on.consent.screen")
+      assert_equal consent, scope.dig("attributes", "consent.screen.text")
+      assert_empty scope["protocolMappers"]
+
+      template = JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/client-scopes/#{name}.json")))
+      assert_equal scope, template
+    end
+
+    legacy = CLIENTS.fetch("ceerat-mcp-dev")
+    assert_equal ["offline_access"], legacy["optionalClientScopes"]
+    assert_empty PRODUCT_SCOPES & Array(REALM["defaultDefaultClientScopes"])
+    assert_empty PRODUCT_SCOPES & Array(REALM["defaultOptionalClientScopes"])
+  end
+
+  def test_authentication_and_consent_events_are_audited
+    assert_equal true, REALM["eventsEnabled"]
+    assert_includes REALM["eventsListeners"], "jboss-logging"
+    %w[LOGIN_ERROR CODE_TO_TOKEN_ERROR GRANT_CONSENT DENY_CONSENT UPDATE_CONSENT].each do |event|
+      assert_includes REALM["enabledEventTypes"], event
     end
   end
 
@@ -91,6 +129,19 @@ class RealmConfigTest < Minitest::Test
     assert_includes script, 'get "clients/$internal_id/client-secret"'
     assert_includes script, '-s "secret=$existing_secret"'
     refute_includes script, "echo $existing_secret"
+  end
+
+
+  def test_reconciliation_creates_scopes_before_updating_clients
+    script = File.read(File.join(ROOT, "deploy/render/keycloak/reconcile-live-realm.sh"))
+    scope_position = script.index('for definition in "$script_dir"/client-scopes/*.json')
+    client_position = script.index('"$script_dir/clients/ceerat-mcp-chatgpt.json"')
+    refute_nil scope_position
+    refute_nil client_position
+    assert_operator scope_position, :<, client_position
+    refute_match(/\b(?:awk|jq)\b/, script)
+    assert_includes script, 'optional-client-scopes/$scope_internal_id'
+    assert_includes script, 'assign_product_scopes "$internal_id"'
   end
 
   private

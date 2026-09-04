@@ -12,8 +12,8 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 request_auth() {
-  local name="$1" client="$2" redirect="$3" response_type="$4" pkce="$5"
-  local url="$auth?client_id=$client&response_type=$response_type&scope=openid&redirect_uri=$redirect&state=test-state"
+  local name="$1" client="$2" redirect="$3" response_type="$4" pkce="$5" scope="${6:-openid}"
+  local url="$auth?client_id=$client&response_type=$response_type&scope=$scope&redirect_uri=$redirect&state=test-state"
   if [[ -n "$pkce" ]]; then
     url="$url&code_challenge=$challenge&code_challenge_method=$pkce"
   fi
@@ -33,6 +33,27 @@ fi
 request_auth codex-valid ceerat-mcp-codex-dev "$codex_callback" code S256
 if grep -Eqi 'invalid_redirect_uri|unsupported_response_type|code_challenge_method' "$tmp_dir/codex-valid.body" "$tmp_dir/codex-valid.headers"; then
   echo "valid Codex loopback authorization request failed" >&2
+  exit 1
+fi
+
+for client in ceerat-mcp-chatgpt ceerat-mcp-codex-dev; do
+  for scope in ceerat.products.read ceerat.products.cart.read ceerat.products.cart.write; do
+    test_name="${client}-${scope}"
+    redirect="$codex_callback"
+    if [[ "$client" == "ceerat-mcp-chatgpt" ]]; then
+      redirect="$chatgpt_callback"
+    fi
+    request_auth "$test_name" "$client" "$redirect" code S256 "openid%20$scope"
+    if grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/$test_name.body" "$tmp_dir/$test_name.headers"; then
+      echo "$client rejected registered optional scope $scope" >&2
+      exit 1
+    fi
+  done
+done
+
+request_auth chatgpt-unknown-scope ceerat-mcp-chatgpt "$chatgpt_callback" code S256 "openid%20ceerat.products.admin"
+if ! grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/chatgpt-unknown-scope.body" "$tmp_dir/chatgpt-unknown-scope.headers"; then
+  echo "unregistered product admin scope was not rejected" >&2
   exit 1
 fi
 

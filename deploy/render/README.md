@@ -222,3 +222,28 @@ verifies exact ChatGPT redirects plus rejection of bad redirects, missing/plain
 PKCE, implicit flow, password grant, and the disabled revoker client. It also
 verifies that the Codex client accepts a dynamic loopback callback but rejects
 the hosted ChatGPT callback.
+
+### Phase 2 product and cart OAuth scopes
+
+The reconciler creates `ceerat.products.read`,
+`ceerat.products.cart.read`, and `ceerat.products.cart.write` before updating
+the dedicated MCP clients. These scopes are optional on
+`ceerat-mcp-chatgpt` and `ceerat-mcp-codex-dev`; they are neither realm
+defaults nor assigned to the legacy rollback client. A scope authorizes only an
+operation category. The owning product/cart service still controls visibility,
+ownership, inventory, pricing, and mutations.
+
+Authentication and consent events are retained by Keycloak and emitted through
+its `jboss-logging` listener. Use the server-generated event identifier and
+client ID for correlation. Never add tokens, authorization codes, secrets, raw
+claims, or request bodies to these records.
+
+Roll out with `make test-keycloak-config`, `make reconcile-keycloak-live`, and
+then the credential-free policy probe. Reconciliation preserves the existing
+confidential ChatGPT client secret. A current connection must authorize again
+before its token can contain newly requested optional scopes.
+
+For rollback, first remove all three optional assignments from both dedicated
+client definitions and reconcile successfully. Only then delete the three
+unassigned client-scope definitions. Do not delete or recreate either Phase 1
+client, change its OAuth mode, or expose/rotate its secret during this rollback.

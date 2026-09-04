@@ -26,6 +26,23 @@
   "offlineSessionIdleTimeout": 2592000,
   "offlineSessionMaxLifespanEnabled": true,
   "offlineSessionMaxLifespan": 5184000,
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "enabledEventTypes": [
+    "LOGIN",
+    "LOGIN_ERROR",
+    "CODE_TO_TOKEN",
+    "CODE_TO_TOKEN_ERROR",
+    "REFRESH_TOKEN",
+    "REFRESH_TOKEN_ERROR",
+    "GRANT_CONSENT",
+    "GRANT_CONSENT_ERROR",
+    "DENY_CONSENT",
+    "UPDATE_CONSENT",
+    "UPDATE_CONSENT_ERROR",
+    "REVOKE_GRANT",
+    "REVOKE_GRANT_ERROR"
+  ],
   "clients": [
     {
       "clientId": "ceerat-mcp-dev",
@@ -130,7 +147,12 @@
         "ceerat.connections.read",
         "ceerat.connections.revoke"
       ],
-      "optionalClientScopes": ["offline_access"]
+      "optionalClientScopes": [
+        "offline_access",
+        "ceerat.products.read",
+        "ceerat.products.cart.read",
+        "ceerat.products.cart.write"
+      ]
     },
     {
       "clientId": "ceerat-mcp-codex-dev",
@@ -183,7 +205,12 @@
         "ceerat.connections.read",
         "ceerat.connections.revoke"
       ],
-      "optionalClientScopes": ["offline_access"]
+      "optionalClientScopes": [
+        "offline_access",
+        "ceerat.products.read",
+        "ceerat.products.cart.read",
+        "ceerat.products.cart.write"
+      ]
     },
     {
       "clientId": "ceerat-gateway-revoker",
@@ -310,6 +337,27 @@
       "description": "Revoke the customer's CEERAT agent connections",
       "protocol": "openid-connect",
       "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Disconnect CEERAT agent connections after confirmation"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.products.read",
+      "description": "Read the public CEERAT product catalog",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View products available from CEERAT"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.products.cart.read",
+      "description": "Read the authenticated customer's CEERAT cart",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your CEERAT shopping cart"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.products.cart.write",
+      "description": "Modify the authenticated customer's CEERAT cart",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"},
       "protocolMappers": []
     }
   ],
