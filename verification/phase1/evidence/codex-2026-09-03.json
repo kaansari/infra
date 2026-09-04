@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "suite": "ceerat_phase1_live_security_acceptance",
+  "generated_at": "2026-09-03T21:41:19.803Z",
+  "target": "https://ceerat-agent-gateway.onrender.com",
+  "contains_credentials": false,
+  "overall_status": "PARTIAL",
+  "counts": {
+    "PASS": 11,
+    "MANUAL_REQUIRED": 8
+  },
+  "checks": [
+    {"id": "public_mcp", "status": "PASS", "evidence": "health, readiness, discovery, OAuth challenge, and tool metadata"},
+    {"id": "oauth_policy", "status": "PASS", "evidence": "exact redirects, S256 PKCE, disabled implicit/password grants, invalid revoker secret"},
+    {"id": "tls", "status": "PASS", "evidence": "public gateway negotiates TLS 1.2 or newer with certificate verification"},
+    {"id": "jwt_dimensions", "status": "PASS", "evidence": "JWT signature, issuer, audience, time, client allowlist, and identity tests"},
+    {"id": "scope_matrix", "status": "PASS", "evidence": "every protected MCP tool rejects its missing scope before handler work"},
+    {"id": "ownership_static", "status": "PASS", "evidence": "foreign connection and preparation ownership boundaries"},
+    {"id": "profile_write_static", "status": "PASS", "evidence": "expiry, replay, content binding, conflict, and uncertain outcome"},
+    {"id": "revocation_static", "status": "PASS", "evidence": "local block, authorization-server invocation, owner isolation, and uncertain outcome"},
+    {"id": "identity_static", "status": "PASS", "evidence": "gateway authentication, verified-email, and provisioning contract tests"},
+    {"id": "rate_audit_static", "status": "PASS", "evidence": "independent/reset/concurrent limits plus audit fields and credential redaction"},
+    {"id": "rate_limit_live", "status": "PASS", "evidence": "ten unauthenticated attempts allowed; eleventh denied without invoking a tool; request_id=req_b7d890e9de13f1e1a31ca46c2bab4e14"},
+    {"id": "authenticated_codex", "status": "MANUAL_REQUIRED", "evidence": "reconnect CEERAT in Codex; verify auth status, current user, profile, and connections"},
+    {"id": "two_user_isolation_live", "status": "MANUAL_REQUIRED", "evidence": "requires disposable verified User A and User B OAuth connections"},
+    {"id": "connection_abc_live", "status": "MANUAL_REQUIRED", "evidence": "requires three disposable OAuth connections and refresh checks"},
+    {"id": "logout_refresh_live", "status": "MANUAL_REQUIRED", "evidence": "requires disposable connection; revoke then prove refresh cannot restore access"},
+    {"id": "email_provisioning_live", "status": "MANUAL_REQUIRED", "evidence": "requires disposable unverified then verified identity and datastore count evidence"},
+    {"id": "profile_write_live", "status": "MANUAL_REQUIRED", "evidence": "requires disposable profile and explicit confirmation in Codex and ChatGPT"},
+    {"id": "audit_log_live", "status": "MANUAL_REQUIRED", "evidence": "match the live RATE_LIMITED request_id in Render logs and inspect the redacted record"},
+    {"id": "chatgpt_acceptance", "status": "MANUAL_REQUIRED", "evidence": "run the interactive checklist in ChatGPT using disposable users"}
+  ]
+}

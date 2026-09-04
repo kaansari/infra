@@ -22,7 +22,7 @@ DOCKER ?= docker
 PUSH ?= false
 K8S_CONTEXT_DIR ?= $(ROOT_DIR)/.k8-build-context
 
-.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs verify-builder verify-tools verify-coverage verify-staticcheck verify-code verify-platform verify-render-native test-keycloak-config reconcile-keycloak-live verify-api-tools verify-api-read verify-api-write verify-api-security verify-api k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
+.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs verify-builder verify-tools verify-coverage verify-staticcheck verify-code verify-platform verify-render-native test-keycloak-config verify-phase1-live reconcile-keycloak-live verify-api-tools verify-api-read verify-api-write verify-api-security verify-api k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
 
 all: build-customer-ui
 
@@ -139,6 +139,9 @@ test-keycloak-config:
 	@ruby deploy/render/keycloak/realm_config_test.rb
 	@bash -n deploy/render/keycloak/reconcile-live-realm.sh
 	@bash -n deploy/render/keycloak/oauth-policy-smoke-test.sh
+
+verify-phase1-live:
+	@./verification/phase1/run-live-security-acceptance.sh
 
 reconcile-keycloak-live:
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_USERNAME:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_USERNAME" >&2; exit 1)

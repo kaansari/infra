@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ceerat.example/schemas/phase1-security-acceptance-v1.json",
+  "title": "CEERAT Phase 1 security acceptance result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "suite", "generated_at", "target", "contains_credentials", "overall_status", "counts", "checks"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "suite": {"const": "ceerat_phase1_live_security_acceptance"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "target": {"type": "string", "format": "uri", "pattern": "^https://"},
+    "contains_credentials": {"const": false},
+    "overall_status": {"enum": ["PASS", "PARTIAL", "FAIL"]},
+    "counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "status": {"enum": ["PASS", "MANUAL_REQUIRED", "FAIL"]},
+          "evidence": {"type": "string"}
+        }
+      }
+    }
+  }
+}

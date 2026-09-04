@@ -11,25 +11,28 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 curl -fsS "$base_url/healthz" >"$tmp_dir/health.json"
+curl -fsS "$base_url/readyz" >"$tmp_dir/ready.json"
 curl -fsS "$base_url/.well-known/oauth-protected-resource/mcp" >"$tmp_dir/resource.json"
 curl -fsS -X POST "$base_url/mcp" -H 'Content-Type: application/json' \
   --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"chatgpt-public-smoke-test","version":"1"}}}' >"$tmp_dir/initialize.json"
 curl -fsS -X POST "$base_url/mcp" -H 'Content-Type: application/json' \
   --data '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' >"$tmp_dir/tools.json"
 curl -fsS -X POST "$base_url/mcp" -H 'Content-Type: application/json' \
-  --data '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_current_user","arguments":{}}}' >"$tmp_dir/auth.json"
+  --data '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_my_customer_profile","arguments":{}}}' >"$tmp_dir/auth.json"
 
 node - "$base_url" "$tmp_dir" <<'NODE'
 const fs = require("fs");
 const [base, dir] = process.argv.slice(2);
 const read = name => JSON.parse(fs.readFileSync(`${dir}/${name}.json`, "utf8"));
 const health = read("health");
+const ready = read("ready");
 const resource = read("resource");
 const initialize = read("initialize");
 const tools = read("tools");
 const auth = read("auth");
 const fail = message => { throw new Error(message); };
 health.status === "ok" || fail("health check failed");
+ready.status === "ready" || fail("readiness check failed");
 resource.resource === `${base}/mcp` || fail("protected resource URL mismatch");
 resource.authorization_servers?.every(v => v.startsWith("https://")) || fail("authorization server is not HTTPS");
 initialize.result?.protocolVersion || fail("MCP initialize failed");
