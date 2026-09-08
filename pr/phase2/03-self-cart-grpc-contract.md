@@ -4,10 +4,16 @@ Repository: `contracts-repo`
 Depends on: Phase 2 PR 02  
 Domain owner: `service.ServiceManager`
 
+Status: implemented locally; contract gates pass, with runtime implementation
+intentionally deferred to Phase 2 PR 04
+
 ## Objective
 
 Add explicit customer-self-service cart RPCs so an authenticated ChatGPT user
-can reach their cart without any request field selecting a user or customer:
+can reach their cart without any request field selecting a user or customer.
+This is a new system: do not retain a legacy customer-to-cart relationship or
+compatibility path. PR 04 will establish the required schema directly rather
+than migrate an obsolete cart ownership model.
 
 ```text
 GetMyCart
@@ -64,6 +70,21 @@ until PR 04 supplies the implementation; it is not silently accepted at the
 Phase 2 aggregate gate.
 
 This PR adds no runtime behavior and does not expose gRPC publicly.
+
+## Implementation record
+
+- Replaced the five customer-ID-shaped RPCs/messages with explicit self-cart
+  contracts and regenerated the Go client/server descriptors.
+- Reserved removed request field numbers and names while removing legacy RPCs,
+  request descriptors, agent permissions, and alternate ownership paths.
+- Limited add-cart to product/variant inputs and added mutation idempotency keys
+  plus expected cart versions; `Cart.version` remains the result concurrency
+  token.
+- Registered all five methods as protected customer permissions only and added
+  descriptor, request-boundary, RBAC, authentication, and handler-boundary
+  tests.
+- Updated contract and service inventories. The service inventory explicitly
+  records that PR 04 must supply runtime handlers and storage enforcement.
 
 ## Contract integration tests
 
