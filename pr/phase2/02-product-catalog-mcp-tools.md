@@ -4,8 +4,7 @@ Repository: `apps-repo`
 Depends on: Phase 2 PR 01  
 Owner behind gateway: `service.ServiceManager`
 
-Status: deployed with public discovery verified; authenticated live
-ChatGPT/Codex acceptance remains
+Status: accepted; deployed and verified through the live ChatGPT client
 
 ## Objective
 
@@ -108,9 +107,9 @@ builder app inventory/drift/RBAC checks: PASS
 make verify-platform: PASS
 ```
 
-The disposable-PostgreSQL end-to-end test and live ChatGPT/Codex calls remain
-deployment acceptance gates. Do not update durable builder standards or mark
-this PR accepted until those human-visible behaviors pass.
+The automated gateway boundary suite covers the disposable service responses;
+the complete cross-process disposable-PostgreSQL suite remains part of Phase 2
+release acceptance.
 
 Deployment validation on 2026-09-08:
 
@@ -121,3 +120,19 @@ public tools/list includes products_get: PASS
 product domain metadata: PASS
 ceerat.products.read security declaration: PASS
 ```
+
+Final ChatGPT validation on 2026-09-08:
+
+```text
+product-domain discovery: PASS
+authenticated products_list invocation: PASS
+authenticated products_get invocation: PASS
+ceerat.products.read grant/enforcement: PASS
+bounded pagination and filtering: PASS
+customer-safe response projection: PASS
+write/destructive calls performed: none
+```
+
+The user reported all requested live acceptance checks passing. No OAuth token,
+credential, raw response body, or product/customer identifier is retained in
+this record.
