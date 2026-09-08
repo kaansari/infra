@@ -4,7 +4,8 @@ Repository: `apps-repo`
 Depends on: Phase 2 PR 01  
 Owner behind gateway: `service.ServiceManager`
 
-Status: implemented locally; deployment and live ChatGPT/Codex acceptance remain
+Status: deployed with public discovery verified; authenticated live
+ChatGPT/Codex acceptance remains
 
 ## Objective
 
@@ -110,3 +111,13 @@ make verify-platform: PASS
 The disposable-PostgreSQL end-to-end test and live ChatGPT/Codex calls remain
 deployment acceptance gates. Do not update durable builder standards or mark
 this PR accepted until those human-visible behaviors pass.
+
+Deployment validation on 2026-09-08:
+
+```text
+Render gateway deployment: PASS
+public tools/list includes products_list: PASS
+public tools/list includes products_get: PASS
+product domain metadata: PASS
+ceerat.products.read security declaration: PASS
+```
