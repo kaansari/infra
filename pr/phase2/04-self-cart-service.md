@@ -4,6 +4,9 @@ Repository: `services-repo`
 Depends on: Phase 2 PR 03  
 Owner: `service.ServiceManager`
 
+Status: implemented locally; automated contract, service, migration,
+PostgreSQL, concurrency, JWT/RBAC, logging, build, and builder gates pass
+
 ## Objective
 
 Implement the five self-cart RPCs by deriving the customer exclusively from the
@@ -132,3 +135,29 @@ and aggregate platform verification pass.
 Deployment order is schema preflight → forward SQL migration → service binary
 → private gRPC smoke test. On failure, stop before gateway deployment and use
 the tested rollback or roll-forward runbook.
+
+## Implementation record
+
+- Replaced all legacy customer-ID-shaped runtime handlers and repository paths
+  with the five self-cart operations; no admin/agent owner selector remains.
+- Added a repeatable PostgreSQL migration, catalog preflight, guarded rollback,
+  `CartIdempotencyKeyEntity`, and production startup schema enforcement.
+- Bound every write to customer, operation, normalized request hash,
+  idempotency key, and expected cart version in one database transaction.
+- Enforced product-only cart additions, active product/variant inventory,
+  server-owned pricing/totals, cross-cart item predicates, and exactly-once
+  version advancement.
+- Added stable safe gRPC error mapping and body-free correlated logs containing
+  request ID, full method, status, duration, and error code.
+- Added direct handler tests, bufconn JWT/RBAC tests, logging-redaction tests,
+  and disposable-schema PostgreSQL tests for migration replay/backfill,
+  rollback/reapply, isolation, idempotency, concurrency, pricing, and restart.
+
+## Recorded aggregate-gate exception
+
+The active contracts, service, MCP gateway, admin UI, and builder checks pass.
+The aggregate script continues into `ceerat-customer-ui`, whose old cart client
+references the deliberately removed RPCs. Migrating that UI remains explicitly
+out of Phase 2 scope; no legacy RPC or compatibility adapter is restored merely
+to make that obsolete caller compile. The active MCP/gRPC platform and
+Render-native user-service build are the release gates for this PR.
