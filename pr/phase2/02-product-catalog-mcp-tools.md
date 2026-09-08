@@ -4,6 +4,8 @@ Repository: `apps-repo`
 Depends on: Phase 2 PR 01  
 Owner behind gateway: `service.ServiceManager`
 
+Status: implemented locally; deployment and live ChatGPT/Codex acceptance remain
+
 ## Objective
 
 Add two read-only MCP tools backed by existing private gRPC methods:
@@ -71,3 +73,40 @@ gRPC service. Verify pagination/cursors, every allowlisted filter, stable detail
 customer-visible pricing, inactive-product concealment, scope denial, malformed
 input rejection before gRPC, rate limiting, restart behavior, and cleanup.
 Assert every outcome has the same request ID in the MCP envelope and audit event.
+
+## Implementation record
+
+- Added `products_list` and `products_get` without changing the nine Phase 1
+  tool names or their input contracts.
+- Both tools require a validated CEERAT identity and
+  `ceerat.products.read`, publish read-only/idempotent annotations, and carry
+  `domain: products` plus `ceerat/domain: products` discovery metadata.
+- The platform adapter calls only private authenticated
+  `service.ServiceManager/ListProducts` and `GetProduct`; list requests force
+  `active_only=true` and never accept identity or authority arguments.
+- Runtime validation defaults pages to 20, caps them at 50, bounds filter arrays
+  and strings, allowlists sort/price/availability values, rejects unknown fields
+  and malformed opaque IDs/cursors, and runs before product gRPC dispatch.
+- Public mapping omits raw inventory counts, inactive products/variants, image
+  storage fields, and internal errors. Permission-denied product detail is
+  concealed as `NOT_FOUND`.
+- Product audit events contain correlated request ID, domain, operation class,
+  required-scope decision, downstream method, safe outcome/error, latency, and
+  a hashed product reference; filters and bodies are never logged.
+- Updated protected tool discovery, `describe_ceerat`, gateway documentation,
+  active app inventory, and the standalone Render vendor tree.
+
+Local validation on 2026-09-06:
+
+```text
+gateway unit/boundary tests: PASS
+gateway standalone build: PASS
+go vet: PASS
+go test -race: PASS
+builder app inventory/drift/RBAC checks: PASS
+make verify-platform: PASS
+```
+
+The disposable-PostgreSQL end-to-end test and live ChatGPT/Codex calls remain
+deployment acceptance gates. Do not update durable builder standards or mark
+this PR accepted until those human-visible behaviors pass.
