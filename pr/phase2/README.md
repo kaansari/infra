@@ -12,9 +12,9 @@ data, social login, Kubernetes, or legacy `ceerat-agent-service` tools.
 | --- | --- | --- | --- |
 | 1 | [OAuth scopes](01-product-cart-oauth-scopes.md) | `infra` | Register product/cart scopes and consent text |
 | 2 | [Catalog reads](02-product-catalog-mcp-tools.md) | `apps-repo` | Add bounded `products_list` and `products_get` MCP tools |
-| 3 | [Self-cart gRPC contract](03-self-cart-grpc-contract.md) | `contracts-repo` | Implemented locally: explicit identity-derived cart RPCs with no customer selector; runtime follows in PR 04 |
-| 4 | [Self-cart service and storage](04-self-cart-service.md) | `services-repo` | Implemented locally: explicit migration, identity-derived ownership, idempotency, versioning, pricing, and inventory enforcement |
-| 5 | [Self-cart MCP read](05-self-cart-mcp-read.md) | `apps-repo` | Add `products_cart_get` over the self-scoped RPC |
+| 3 | [Self-cart gRPC contract](03-self-cart-grpc-contract.md) | `contracts-repo` | Implemented and pushed: explicit identity-derived cart RPCs with no customer selector; runtime follows in PR 04 |
+| 4 | [Self-cart service and storage](04-self-cart-service.md) | `services-repo` | Implemented and pushed: explicit migration, identity-derived ownership, idempotency, versioning, pricing, and inventory enforcement |
+| 5 | [Self-cart MCP read](05-self-cart-mcp-read.md) | `apps-repo` | Implemented locally: `products_cart_get` over the self-scoped RPC with strict schema, scope, safe projection, and audit controls |
 | 6 | [Cart write tools](06-cart-mutation-mcp-tools.md) | `apps-repo` | Add bounded add/update/remove/confirmed-clear tools |
 | 7 | [Live acceptance](07-product-cart-live-acceptance.md) | `infra` | Codex/ChatGPT two-user evidence and Phase 2 milestone |
 

@@ -55,3 +55,36 @@ after gateway and service restart. Retain only status, safe opaque test IDs,
 error codes, and request IDs—never tokens or database contents.
 Verify successful, empty, denied, rate-limited, timed-out, and dependency-error
 reads each produce a correlated gateway audit event and private gRPC log entry.
+
+## Implementation record
+
+Implemented in `apps-repo/ai/ceerat-agent-gateway`:
+
+- added the read-only, retry-safe `products_cart_get` tool in the `products`
+  domain with a closed empty-object schema and
+  `ceerat.products.cart.read` enforcement;
+- extended the private platform adapter only with `GetMyCart(ctx, token)` and
+  an empty `GetMyCartRequest`, so neither MCP nor gateway code can select a
+  customer or user;
+- added a customer-safe cart projection containing opaque cart/item/product
+  references, quantity, server prices/totals, cart version, timestamps, and
+  safe active product presentation while omitting ownership IDs, internal cart
+  links, inventory counts, and backend error detail;
+- added bounded read timeout/rate-limit classification and structured audit
+  metadata for `service.ServiceManager/GetMyCart` without request/response
+  bodies or cart contents;
+- updated discovery, active app inventory, and gateway documentation; and
+- added adapter and gateway tests covering internal-token propagation, strict
+  no-selector input, empty and populated carts, OAuth scope denial, safe
+  dependency failures, audit correlation, and response redaction.
+
+The existing private RPC and PR 04 service tests enforce two-user ownership at
+the authoritative service boundary. Live two-user, restart, timeout, and
+cross-process audit evidence remains the PR 07 deployment acceptance step.
+
+Local verification passed gateway unit tests, full tests, vet, build, race,
+JSON inventory validation, builder RBAC/drift/app checks, and the aggregate
+contracts/services/gateway/admin checks. The aggregate verifier reaches the
+explicitly out-of-scope `ceerat-customer-ui` and reports its removed legacy
+`GetCart`/`AddCartItem`/`UpdateCartItem`/`RemoveCartItem`/`ClearCart` calls;
+this PR does not restore that superseded identity-selecting contract.
