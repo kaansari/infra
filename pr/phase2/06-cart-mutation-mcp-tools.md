@@ -82,3 +82,40 @@ contain no caller-selected user/customer ID or credential.
 For every mutation, assert a pre-dispatch decision and final outcome share one
 request ID, include `domain=products`, safe cart versions and hashed references,
 and distinguish replay, conflict, denial, completed, and outcome-unknown.
+
+## Implementation record
+
+Implemented in `apps-repo/ai/ceerat-agent-gateway`:
+
+- added `products_cart_add_item`, `products_cart_update_item`,
+  `products_cart_remove_item`, and `products_cart_clear` under the `products`
+  domain with `ceerat.products.cart.write`;
+- restricted inputs to opaque merchandise/item references, quantity 1–99,
+  notes up to 1,000 characters, opaque idempotency keys, and positive expected
+  cart versions, with no identity, authority, type, price, total, discount, or
+  inventory controls;
+- mapped only to `AddMyCartItem`, `UpdateMyCartItem`, `RemoveMyCartItem`, and
+  `ClearMyCart` using the authenticated internal session;
+- implemented clear as a two-stage invocation of the same public tool: prepare
+  with version/key, then execute with only a ten-minute user/client-bound,
+  single-use preparation ID and `confirmed: true`;
+- mapped validation, stale-version, idempotency-conflict, inventory-state, and
+  missing-resource failures as `not_started`, while post-dispatch dependency
+  uncertainty returns `OUTCOME_UNKNOWN` and instructs the agent to read the
+  cart before retrying;
+- added correlated pre-dispatch and final audit events with safe cart versions
+  and hashed target references but no notes, keys, content, or credentials;
+- updated discovery, active app inventory, and gateway documentation; and
+- added focused tests for schemas/annotations, mapping, bounds, scope denial,
+  safe responses, clear confirmation lifecycle, error states, and redaction.
+
+The service/PostgreSQL idempotency, optimistic concurrency, ownership, and
+restart behavior was validated in PR 04. Full live MCP-to-PostgreSQL mutation,
+two-user, restart, and cleanup evidence remains PR 07 acceptance work.
+
+Local verification passed the complete gateway test suite, vet, build, race,
+JSON inventory validation, and builder RBAC/drift/app checks. Aggregate
+verification passes contracts, services, gateway, legacy agent service, and
+admin UI, then reports only the explicitly out-of-scope `ceerat-customer-ui`
+references to the removed legacy cart RPCs. This PR does not restore those
+caller-selected ownership contracts.
