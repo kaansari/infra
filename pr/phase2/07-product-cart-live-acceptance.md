@@ -82,3 +82,37 @@ dependency failure, success, logout, and post-revocation denial. For each row,
 record only the prompt/test case, expected outcome, MCP request ID, audit event
 ID, safe code/state, and PASS/FAIL. Verify retention/access policy and search by
 request ID from the operator runbook.
+
+## Release-candidate implementation record
+
+Added `verification/phase2/` with a versioned redacted result schema, an exact
+public MCP/OAuth surface verifier, deterministic gateway/service/contract and
+builder checks, optional disposable PostgreSQL coverage, a focused live-rate
+check, and a ChatGPT/Codex/operator runbook. Added
+`make verify-phase2-live` and
+`docs/public-agent-phase-2-release-candidate.md`. Results are written mode 0600
+under ignored `.verification/` and retain no credentials, response bodies,
+customer data, cart content, database URLs, or SQL rows.
+
+### Automated evidence — 2026-09-09 UTC
+
+Against `https://ceerat-agent-gateway.onrender.com`, eight checks passed:
+
+1. live health, readiness, exact 16-tool inventory, all seven product-domain
+   tools, OAuth scopes, schemas, annotations, discovery, and public denials;
+2. verified TLS 1.2-or-newer connectivity;
+3. gateway cart schema/scope/projection/confirmation/error/redaction/audit;
+4. direct service cart handler and JWT/RBAC/ownership boundaries;
+5. generated contract and security maps;
+6. builder RBAC, drift, and active-app inventory; and
+7. disposable PostgreSQL migration, rollback/reapply, ownership, pricing,
+   idempotency, concurrency, and restart behavior; and
+8. the live credential-free authentication-failure rate limit from one stable
+   source IP.
+
+There are zero automated functional failures. Authenticated Codex/ChatGPT User
+A/B mutations, Render audit correlation, production migration/deployment
+evidence, logout regression, restoration, and cleanup remain
+`MANUAL_REQUIRED`. Phase 2 is a release candidate and is deliberately not
+frozen or tagged yet. The redacted result is committed at
+`verification/phase2/evidence/codex-2026-09-09.json`.

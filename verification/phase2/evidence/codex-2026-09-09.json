@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "suite": "ceerat_phase2_product_cart_live_acceptance",
+  "generated_at": "2026-09-09T00:28:09.797Z",
+  "target": "https://ceerat-agent-gateway.onrender.com",
+  "contains_credentials": false,
+  "overall_status": "PARTIAL",
+  "counts": {
+    "PASS": 8,
+    "MANUAL_REQUIRED": 6
+  },
+  "checks": [
+    {"id": "live_public_surface", "status": "PASS", "evidence": "health, readiness, TLS MCP discovery, exact 16-tool inventory, seven product-domain tools, OAuth scopes, annotations, strict schemas, and public denials"},
+    {"id": "tls", "status": "PASS", "evidence": "public gateway certificate verifies and negotiates TLS 1.2 or newer"},
+    {"id": "gateway_cart_security", "status": "PASS", "evidence": "strict product/cart schemas, scopes, projection, confirmation binding, replay/expiry, stable errors, redaction, and correlated audit tests"},
+    {"id": "service_cart_security", "status": "PASS", "evidence": "direct private gRPC JWT/RBAC/ownership and PostgreSQL-independent cart handler boundaries"},
+    {"id": "contract_boundary", "status": "PASS", "evidence": "generated self-cart RPCs, reserved owner selectors, and security maps remain consistent"},
+    {"id": "builder_boundaries", "status": "PASS", "evidence": "contract/service/RBAC drift and active MCP inventory match"},
+    {"id": "postgres_cart", "status": "PASS", "evidence": "migration, rollback/reapply, ownership, pricing, idempotency, concurrency, and restart tests use a disposable PostgreSQL schema"},
+    {"id": "rate_limit_live", "status": "PASS", "evidence": "live authentication-failure rate limit exercised from one stable source without credentials"},
+    {"id": "authenticated_codex", "status": "MANUAL_REQUIRED", "evidence": "use disposable User A/B connections and complete the authenticated Codex matrix in verification/phase2/README.md"},
+    {"id": "authenticated_chatgpt", "status": "MANUAL_REQUIRED", "evidence": "complete the ChatGPT catalog/cart mutation and restoration matrix with explicit approvals"},
+    {"id": "two_user_isolation_live", "status": "MANUAL_REQUIRED", "evidence": "prove Users A and B receive distinct carts and cannot supply or consume the other's identifiers/preparations"},
+    {"id": "audit_correlation_live", "status": "MANUAL_REQUIRED", "evidence": "match sanitized MCP request IDs to gateway and private gRPC logs; inspect retention/access and secret/PII redaction"},
+    {"id": "migration_deployment_live", "status": "MANUAL_REQUIRED", "evidence": "record sanitized production preflight, exactly-once migration, constraints/indexes, restart, and disposable rollback-clone evidence"},
+    {"id": "logout_regression_live", "status": "MANUAL_REQUIRED", "evidence": "logout a disposable connection and prove subsequent product/cart access requires reconnection"}
+  ]
+}

@@ -15,8 +15,8 @@ data, social login, Kubernetes, or legacy `ceerat-agent-service` tools.
 | 3 | [Self-cart gRPC contract](03-self-cart-grpc-contract.md) | `contracts-repo` | Implemented and pushed: explicit identity-derived cart RPCs with no customer selector; runtime follows in PR 04 |
 | 4 | [Self-cart service and storage](04-self-cart-service.md) | `services-repo` | Implemented and pushed: explicit migration, identity-derived ownership, idempotency, versioning, pricing, and inventory enforcement |
 | 5 | [Self-cart MCP read](05-self-cart-mcp-read.md) | `apps-repo` | Implemented and pushed: `products_cart_get` over the self-scoped RPC with strict schema, scope, safe projection, and audit controls |
-| 6 | [Cart write tools](06-cart-mutation-mcp-tools.md) | `apps-repo` | Implemented locally: bounded, versioned, idempotent add/update/remove and prepared/confirmed clear tools |
-| 7 | [Live acceptance](07-product-cart-live-acceptance.md) | `infra` | Codex/ChatGPT two-user evidence and Phase 2 milestone |
+| 6 | [Cart write tools](06-cart-mutation-mcp-tools.md) | `apps-repo` | Implemented and pushed: bounded, versioned, idempotent add/update/remove and prepared/confirmed clear tools |
+| 7 | [Live acceptance](07-product-cart-live-acceptance.md) | `infra` | Automated release-candidate harness implemented; eight gates pass, interactive/deployment evidence remains before freeze |
 
 Merge and deploy in this order. With no branch environment, validate each PR
 locally, merge one repository at a time, wait for the owning Render service to
