@@ -67,8 +67,12 @@ The direct AI tools previously exposed by `ceerat-agent-service` are legacy and 
 
 - Do not add new public tools to the legacy surface.
 - Do not require new MCP tools to mirror legacy agent/customer inventories.
-- Exclude deprecated legacy inventories from active consistency gates once the builder inventory distinguishes `active` from `deprecated`.
-- Retain legacy definitions temporarily only for migration, rollback, or reference, with an owner and removal condition.
+- Remove superseded legacy tools, routes, adapters, inventories, and deployment
+  dependencies as each MCP capability becomes canonical. Do not retain an
+  executable fallback, rollback tool path, shadow implementation, or deprecated
+  callable copy.
+- Historical Git commits and completed migration documentation are sufficient
+  reference. Runtime and active inventory contain only the canonical MCP path.
 - Confirm production traffic and consumers before removing any path.
 
 The desired end state has two supported public integration paths:
@@ -93,7 +97,9 @@ visibility, and gRPC/WebSocket APIs exposed through the CEERAT API gateway. The
 API gateway and agent gateway are separate protocol edges over the same domain
 services; neither gateway owns domain data or bypasses service authorization.
 
-Builder drift checks should validate the active MCP inventory. Stale legacy entries are migration debt, not the canonical product contract.
+Builder drift checks validate the canonical MCP inventory and fail when a
+superseded tool, route, adapter, method, or inventory entry remains. Legacy
+runtime entries are removal blockers, not tolerated migration debt.
 
 ## 4. Phase 1 foundation and status
 
@@ -322,6 +328,36 @@ This completion does not expand Phase 2 into checkout, payments, orders,
 subscriptions, admin product mutation, or UI work. Those remain separately
 designed capabilities and must build on the frozen product/cart identity and
 security boundary.
+
+### Phase 2 order lifecycle extension
+
+Phase 2 next extends the validated product/cart foundation into customer-owned
+orders using the existing `order.OrderManager`. The dependency-ordered PR plan
+is [`pr/phase2/README.md`](pr/phase2/README.md). The extension adds narrow order
+OAuth scopes, self-scoped update/cancel contracts, transactional persistence,
+order read/quote/checkout/update/cancel MCP tools, and deployed acceptance.
+
+```text
+ChatGPT/Codex
+  -> HTTPS MCP + user OAuth bearer token
+  -> ceerat-agent-gateway
+  -> authenticated private order.OrderManager gRPC
+  -> ceerat-user-service order domain
+  -> PostgreSQL
+```
+
+Order creation consumes the authenticated customer's cart atomically; the
+model cannot submit identity, product lines, price, tax, shipping amount,
+discount amount, total, status, or payment state. Updates are versioned and
+limited to mutable pending-payment selections. Customer deletion is a
+versioned, confirmed cancellation transition: order records are never
+physically deleted. Separate prepare and confirm MCP tools avoid polymorphic
+hosted-client schemas and bind every consequential operation to the user,
+client, resource version, normalized inputs, and expiry.
+
+The extension has no REST API, browser UI, real payment-provider integration,
+admin order MCP, legacy AI-tool update, compatibility alias, dual-write, or
+predecessor-schema accommodation.
 
 ## 8. Proposed TXSE product surface
 
@@ -564,7 +600,7 @@ ceerat-builder patterns grpc-security --output json
 ceerat-builder docs all --output json
 ```
 
-Add service-specific context when the market service exists. Validate OAuth termination, workload authentication, service ownership, tenant/entitlement boundaries, model-controlled inputs, error/log redaction, consequential operations, active/deprecated inventories, and preservation of public MCP -> gateway -> private gRPC.
+Add service-specific context when the market service exists. Validate OAuth termination, workload authentication, service ownership, tenant/entitlement boundaries, model-controlled inputs, error/log redaction, consequential operations, the single canonical inventory, removal of superseded paths, and preservation of public MCP -> gateway -> private gRPC.
 
 After every PR:
 
@@ -573,7 +609,9 @@ ceerat-builder check apps --output json
 ceerat-builder check drift --output json
 ```
 
-Run `make verify-platform` for shared contracts, inventories, security boundaries, or deployment changes. Failures must distinguish active product drift from explicitly deprecated legacy inventory.
+Run `make verify-platform` for shared contracts, inventories, security
+boundaries, or deployment changes. A superseded callable or inventory entry is
+a failure; it cannot be waived by labeling it deprecated or rollback-only.
 
 After merge, deployment, and human validation, update owning documentation and make a focused builder documentation checkpoint for reusable, tested rules. Deployment evidence belongs in `infra`; reusable standards belong in `ceerat-platform-builder-agent`; speculation does not become a standard.
 

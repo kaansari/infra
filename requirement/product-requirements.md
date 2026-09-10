@@ -52,16 +52,36 @@ Existing contract concepts from builder inventory:
 - `service.ServiceManager/ListProducts`
 - `service.ServiceManager/UpdateProduct`
 - `service.ServiceManager/DeleteProduct`
-- `service.ServiceManager/GetCart`
-- `service.ServiceManager/AddCartItem`
-- `service.ServiceManager/UpdateCartItem`
-- `service.ServiceManager/RemoveCartItem`
-- `service.ServiceManager/ClearCart`
+- `service.ServiceManager/GetMyCart`
+- `service.ServiceManager/AddMyCartItem`
+- `service.ServiceManager/UpdateMyCartItem`
+- `service.ServiceManager/RemoveMyCartItem`
+- `service.ServiceManager/ClearMyCart`
 - `order.OrderManager/CreateMyOrder`
 - `order.OrderManager/GetMyOrder`
 - `order.OrderManager/ListMyOrders`
 
 Existing RBAC inventory already includes customer access for product list/detail and cart operations, and customer order access for self-service order flows. Confirm this in live code before relying on it.
+
+## Phase 2 MCP order extension
+
+The dependency-ordered implementation plan is in
+[`pr/phase2/README.md`](pr/phase2/README.md). For this extension, the public
+customer surface is remote MCP, not REST or browser UI. It reuses
+`order.OrderManager` and `ceerat-user-service`; no new order service or legacy
+AI tool path is created.
+
+Product-order creation is confirmed `CheckoutMyCart`, not an LLM-authored order
+payload. Customer update is limited to an unpaid pending order's notes,
+shipping selection, and discount code with service-owned repricing. Customer
+delete means `CancelMyOrder`, which retains the order as `cancelled`; physical
+deletion, arbitrary status changes, and post-checkout product-line editing are
+not supported.
+
+The PR plan's MCP/gRPC requirements supersede the browser/REST execution items
+elsewhere in this older broad product document for this phase only. Payment
+gateway integration, browser UI, REST endpoints, admin/agent order MCP, and
+legacy compatibility remain outside the extension.
 
 ## Product Requirements
 
