@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.orders.read",
+  "description": "Read the authenticated customer's CEERAT orders and cart pricing quotes",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "View your CEERAT orders and checkout pricing"
+  },
+  "protocolMappers": []
+}

@@ -45,57 +45,6 @@
   ],
   "clients": [
     {
-      "clientId": "ceerat-mcp-dev",
-      "name": "CEERAT MCP Legacy Rollback Client",
-      "enabled": true,
-      "publicClient": true,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "consentRequired": true,
-      "redirectUris": ["http://127.0.0.1:*", "http://localhost:*", "https://chatgpt.com/connector_platform_oauth_redirect"],
-      "webOrigins": [],
-      "attributes": {
-        "pkce.code.challenge.method": "S256"
-      },
-      "protocolMappers": [
-        {
-          "name": "CEERAT user id",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.attribute": "ceerat_user_id",
-            "claim.name": "ceerat_user_id",
-            "jsonType.label": "String",
-            "access.token.claim": "true",
-            "id.token.claim": "true",
-            "userinfo.token.claim": "true"
-          }
-        },
-        {
-          "name": "CEERAT MCP audience",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.custom.audience": "https://ceerat-agent-gateway.onrender.com/mcp",
-            "access.token.claim": "true"
-          }
-        }
-      ],
-      "defaultClientScopes": [
-        "profile",
-        "email",
-        "ceerat.profile.read",
-        "ceerat.profile.write",
-        "ceerat.connections.read",
-        "ceerat.connections.revoke"
-      ],
-      "optionalClientScopes": ["offline_access"]
-    },
-    {
       "clientId": "ceerat-mcp-chatgpt",
       "name": "CEERAT MCP ChatGPT",
       "description": "Hosted ChatGPT MCP OAuth client; exact hosted callback only",
@@ -151,7 +100,10 @@
         "offline_access",
         "ceerat.products.read",
         "ceerat.products.cart.read",
-        "ceerat.products.cart.write"
+        "ceerat.products.cart.write",
+        "ceerat.orders.read",
+        "ceerat.orders.checkout",
+        "ceerat.orders.write"
       ]
     },
     {
@@ -209,7 +161,10 @@
         "offline_access",
         "ceerat.products.read",
         "ceerat.products.cart.read",
-        "ceerat.products.cart.write"
+        "ceerat.products.cart.write",
+        "ceerat.orders.read",
+        "ceerat.orders.checkout",
+        "ceerat.orders.write"
       ]
     },
     {
@@ -358,6 +313,27 @@
       "description": "Modify the authenticated customer's CEERAT cart",
       "protocol": "openid-connect",
       "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.orders.read",
+      "description": "Read the authenticated customer's CEERAT orders and cart pricing quotes",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your CEERAT orders and checkout pricing"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.orders.checkout",
+      "description": "Create an order from the authenticated customer's CEERAT cart after confirmation",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Create CEERAT orders from your cart after confirmation"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.orders.write",
+      "description": "Update or cancel the authenticated customer's eligible CEERAT orders after confirmation",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"},
       "protocolMappers": []
     }
   ],

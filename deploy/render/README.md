@@ -56,9 +56,8 @@ to a deployment where clients can reach the Go process directly or supply an
 untrusted `X-Forwarded-For` header.
 
 `CEERAT_OAUTH_ALLOWED_CLIENT_IDS` is an independent allowlist for the token's
-authorized-party/client claim. During the PR 03 rollback window it contains the
-dedicated ChatGPT and Codex clients plus legacy `ceerat-mcp-dev`. Remove the
-legacy ID when that Keycloak client is disabled.
+authorized-party/client claim. It contains only the dedicated ChatGPT and Codex
+clients. The superseded `ceerat-mcp-dev` client is not an accepted path.
 
 Live reconciliation preserves the existing confidential ChatGPT client secret
 without printing it. If that secret is intentionally rotated in Keycloak,
@@ -178,10 +177,11 @@ make reconcile-keycloak-live
 
 The Make target runs the pinned Keycloak image as a disposable administrative
 client, so the workstation needs Docker but does not need a local `kcadm`
-installation. The script is idempotent: it creates or updates the three PR 03
-clients and reapplies bounded lifetimes and verified-email policy. It
-deliberately leaves `ceerat-mcp-dev` enabled for rollback. To run the script
-directly instead, set `KCADM` to a Keycloak 26 `kcadm.sh`; for a local realm,
+installation. The script is idempotent: it creates or updates the three
+canonical clients, removes the superseded `ceerat-mcp-dev` client, and reapplies
+bounded lifetimes and verified-email policy. Removing that client invalidates
+its saved connections. To run the script directly instead, set `KCADM` to a
+Keycloak 26 `kcadm.sh`; for a local realm,
 also set `CEERAT_KEYCLOAK_SERVER=http://127.0.0.1:8080`.
 
 The PR 05 revoker is service-account-only and receives only Keycloak's built-in
@@ -207,8 +207,7 @@ After reconciliation, configure ChatGPT with client ID
 `ceerat-mcp-chatgpt`, its Render-managed client secret, and
 `client_secret_basic` token endpoint authentication. Configure Codex with the
 public client `ceerat-mcp-codex-dev` and token endpoint authentication method
-`none`. Move one client at a time. After both smoke
-tests pass, disable—but do not delete—`ceerat-mcp-dev` for the rollback window.
+`none`.
 
 Run the static policy tests before deployment:
 
@@ -228,8 +227,7 @@ the hosted ChatGPT callback.
 The reconciler creates `ceerat.products.read`,
 `ceerat.products.cart.read`, and `ceerat.products.cart.write` before updating
 the dedicated MCP clients. These scopes are optional on
-`ceerat-mcp-chatgpt` and `ceerat-mcp-codex-dev`; they are neither realm
-defaults nor assigned to the legacy rollback client. A scope authorizes only an
+`ceerat-mcp-chatgpt` and `ceerat-mcp-codex-dev`; they are not realm defaults. A scope authorizes only an
 operation category. The owning product/cart service still controls visibility,
 ownership, inventory, pricing, and mutations.
 
@@ -243,7 +241,26 @@ then the credential-free policy probe. Reconciliation preserves the existing
 confidential ChatGPT client secret. A current connection must authorize again
 before its token can contain newly requested optional scopes.
 
-For rollback, first remove all three optional assignments from both dedicated
-client definitions and reconcile successfully. Only then delete the three
-unassigned client-scope definitions. Do not delete or recreate either Phase 1
-client, change its OAuth mode, or expose/rotate its secret during this rollback.
+### Phase 2 order OAuth scopes
+
+PR 08 adds optional `ceerat.orders.read`, `ceerat.orders.checkout`, and
+`ceerat.orders.write` scopes to only the two canonical MCP clients. They are
+separate so a read-only connection cannot create or modify an order, and a
+checkout-only connection cannot update or cancel an existing order. These
+grants never replace service-side subject ownership, order-state, confirmation,
+idempotency, and RBAC checks.
+
+| Operation class | OAuth scope |
+| --- | --- |
+| quote, list, detail, operation-status reconciliation | `ceerat.orders.read` |
+| confirmed product-cart conversion into an order | `ceerat.orders.checkout` |
+| confirmed eligible pending-order update or cancellation | `ceerat.orders.write` |
+
+The scopes are independent: requesting or granting one does not imply either of
+the others. Admin pricing, arbitrary status transitions, payments, refunds,
+fulfillment, and cross-customer operations are outside all three scopes.
+
+Reconcile, run the policy smoke test, and reconnect each ChatGPT/Codex
+connection so its new authorization request can include the optional scopes.
+The protected-resource metadata advertises the scopes before order tools are
+introduced; PRs 09-12 attach the narrow required scope to each tool.

@@ -26,6 +26,16 @@ class RealmConfigTest < Minitest::Test
     "ceerat.products.cart.read" => "View your CEERAT shopping cart",
     "ceerat.products.cart.write" => "Add, update, or remove items in your CEERAT shopping cart"
   }.freeze
+  ORDER_SCOPES = %w[
+    ceerat.orders.read
+    ceerat.orders.checkout
+    ceerat.orders.write
+  ].freeze
+  ORDER_CONSENT = {
+    "ceerat.orders.read" => "View your CEERAT orders and checkout pricing",
+    "ceerat.orders.checkout" => "Create CEERAT orders from your cart after confirmation",
+    "ceerat.orders.write" => "Update or cancel eligible CEERAT orders after confirmation"
+  }.freeze
 
   def test_realm_uses_short_tokens_rotation_and_verified_email
     assert_equal true, REALM["verifyEmail"]
@@ -54,16 +64,16 @@ class RealmConfigTest < Minitest::Test
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
       assert_equal REQUIRED_SCOPES, client["defaultClientScopes"]
-      assert_equal ["offline_access", *PRODUCT_SCOPES], client["optionalClientScopes"]
+      assert_equal ["offline_access", *PRODUCT_SCOPES, *ORDER_SCOPES], client["optionalClientScopes"]
       audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
       refute_nil audience
       assert_equal "https://ceerat-agent-gateway.onrender.com/mcp", audience.dig("config", "included.custom.audience")
     end
   end
 
-  def test_product_scopes_are_optional_with_explicit_consent
+  def test_domain_scopes_are_optional_with_explicit_consent
     scopes = REALM.fetch("clientScopes").to_h { |scope| [scope.fetch("name"), scope] }
-    PRODUCT_CONSENT.each do |name, consent|
+    PRODUCT_CONSENT.merge(ORDER_CONSENT).each do |name, consent|
       scope = scopes.fetch(name)
       assert_equal "openid-connect", scope["protocol"]
       assert_equal "true", scope.dig("attributes", "include.in.token.scope")
@@ -75,10 +85,11 @@ class RealmConfigTest < Minitest::Test
       assert_equal scope, template
     end
 
-    legacy = CLIENTS.fetch("ceerat-mcp-dev")
-    assert_equal ["offline_access"], legacy["optionalClientScopes"]
-    assert_empty PRODUCT_SCOPES & Array(REALM["defaultDefaultClientScopes"])
-    assert_empty PRODUCT_SCOPES & Array(REALM["defaultOptionalClientScopes"])
+    refute CLIENTS.key?("ceerat-mcp-dev")
+    domain_scopes = PRODUCT_SCOPES + ORDER_SCOPES
+    assert_empty domain_scopes & Array(REALM["defaultDefaultClientScopes"])
+    assert_empty domain_scopes & Array(REALM["defaultOptionalClientScopes"])
+    refute scopes.key?("ceerat.orders.admin")
   end
 
   def test_authentication_and_consent_events_are_audited
@@ -141,7 +152,8 @@ class RealmConfigTest < Minitest::Test
     assert_operator scope_position, :<, client_position
     refute_match(/\b(?:awk|jq)\b/, script)
     assert_includes script, 'optional-client-scopes/$scope_internal_id'
-    assert_includes script, 'assign_product_scopes "$internal_id"'
+    assert_includes script, 'assign_mcp_optional_scopes "$internal_id"'
+    assert_includes script, 'delete_superseded_client "ceerat-mcp-dev"'
   end
 
   private

@@ -13,6 +13,7 @@ const expected = [
 ];
 const productTools = expected.filter(name => name.startsWith("products_"));
 const productScopes = ["ceerat.products.read", "ceerat.products.cart.read", "ceerat.products.cart.write"];
+const orderScopes = ["ceerat.orders.read", "ceerat.orders.checkout", "ceerat.orders.write"];
 const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "ceerat-phase2-public-"));
 const request = async (pathname, options = {}) => {
   const response = await fetch(base + pathname, {signal: AbortSignal.timeout(30000), ...options});
@@ -26,6 +27,7 @@ try {
   const resource = await request("/.well-known/oauth-protected-resource/mcp");
   if (resource.resource !== `${base}/mcp`) throw new Error("protected resource mismatch");
   for (const scope of productScopes) if (!resource.scopes_supported?.includes(scope)) throw new Error(`missing protected-resource scope ${scope}`);
+  for (const scope of orderScopes) if (!resource.scopes_supported?.includes(scope)) throw new Error(`missing protected-resource scope ${scope}`);
   const rpc = (id, method, params) => request("/mcp", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({jsonrpc: "2.0", id, method, params})});
   const initialized = await rpc(1, "initialize", {protocolVersion: "2025-06-18", capabilities: {}, clientInfo: {name: "ceerat-phase2-acceptance", version: "1"}});
   if (!initialized.result?.protocolVersion) throw new Error("initialize failed");

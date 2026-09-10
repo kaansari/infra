@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.orders.write",
+  "description": "Update or cancel the authenticated customer's eligible CEERAT orders after confirmation",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"
+  },
+  "protocolMappers": []
+}

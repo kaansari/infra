@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.orders.checkout",
+  "description": "Create an order from the authenticated customer's CEERAT cart after confirmation",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Create CEERAT orders from your cart after confirmation"
+  },
+  "protocolMappers": []
+}

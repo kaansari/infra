@@ -12,13 +12,13 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 request_auth() {
-  local name="$1" client="$2" redirect="$3" response_type="$4" pkce="$5" scope="${6:-openid}"
+  local name="$1" client="$2" redirect="$3" response_type="$4" pkce="$5" scope="${6:-openid}" allow_unknown="${7:-false}"
   local url="$auth?client_id=$client&response_type=$response_type&scope=$scope&redirect_uri=$redirect&state=test-state"
   if [[ -n "$pkce" ]]; then
     url="$url&code_challenge=$challenge&code_challenge_method=$pkce"
   fi
   curl -sS --max-time 20 -D "$tmp_dir/$name.headers" -o "$tmp_dir/$name.body" "$url"
-  if grep -Eqi 'client[[:space:]]+not[[:space:]]+found|unknown[[:space:]]+client' "$tmp_dir/$name.body" "$tmp_dir/$name.headers"; then
+  if [[ "$allow_unknown" != "true" ]] && grep -Eqi 'client[[:space:]]+not[[:space:]]+found|unknown[[:space:]]+client' "$tmp_dir/$name.body" "$tmp_dir/$name.headers"; then
     echo "$client is not provisioned in the live realm; run make reconcile-keycloak-live" >&2
     exit 1
   fi
@@ -37,7 +37,13 @@ if grep -Eqi 'invalid_redirect_uri|unsupported_response_type|code_challenge_meth
 fi
 
 for client in ceerat-mcp-chatgpt ceerat-mcp-codex-dev; do
-  for scope in ceerat.products.read ceerat.products.cart.read ceerat.products.cart.write; do
+  for scope in \
+    ceerat.products.read \
+    ceerat.products.cart.read \
+    ceerat.products.cart.write \
+    ceerat.orders.read \
+    ceerat.orders.checkout \
+    ceerat.orders.write; do
     test_name="${client}-${scope}"
     redirect="$codex_callback"
     if [[ "$client" == "ceerat-mcp-chatgpt" ]]; then
@@ -54,6 +60,18 @@ done
 request_auth chatgpt-unknown-scope ceerat-mcp-chatgpt "$chatgpt_callback" code S256 "openid%20ceerat.products.admin"
 if ! grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/chatgpt-unknown-scope.body" "$tmp_dir/chatgpt-unknown-scope.headers"; then
   echo "unregistered product admin scope was not rejected" >&2
+  exit 1
+fi
+
+request_auth chatgpt-unknown-order-scope ceerat-mcp-chatgpt "$chatgpt_callback" code S256 "openid%20ceerat.orders.admin"
+if ! grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/chatgpt-unknown-order-scope.body" "$tmp_dir/chatgpt-unknown-order-scope.headers"; then
+  echo "unregistered order admin scope was not rejected" >&2
+  exit 1
+fi
+
+request_auth superseded-client ceerat-mcp-dev "$codex_callback" code S256 openid true
+if ! grep -Eqi 'client[[:space:]]+not[[:space:]]+found|unknown[[:space:]]+client' "$tmp_dir/superseded-client.body" "$tmp_dir/superseded-client.headers"; then
+  echo "superseded ceerat-mcp-dev client is still accepted" >&2
   exit 1
 fi
 

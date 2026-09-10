@@ -67,13 +67,16 @@ client_scope_id() {
   return 1
 }
 
-assign_product_scopes() {
+assign_mcp_optional_scopes() {
   local client_internal_id="$1"
   local scope_name scope_internal_id
   for scope_name in \
     ceerat.products.read \
     ceerat.products.cart.read \
-    ceerat.products.cart.write; do
+    ceerat.products.cart.write \
+    ceerat.orders.read \
+    ceerat.orders.checkout \
+    ceerat.orders.write; do
     scope_internal_id="$(client_scope_id "$scope_name")" || {
       echo "Unable to find reconciled client scope $scope_name" >&2
       return 1
@@ -117,8 +120,8 @@ reconcile_client() {
   fi
 
   if [[ "$client_id" == "ceerat-mcp-chatgpt" || "$client_id" == "ceerat-mcp-codex-dev" ]]; then
-    assign_product_scopes "$internal_id"
-    echo "Assigned optional product scopes to $client_id"
+    assign_mcp_optional_scopes "$internal_id"
+    echo "Assigned optional product and order scopes to $client_id"
   fi
 
   if [[ "$client_id" == "ceerat-gateway-revoker" ]]; then
@@ -128,6 +131,17 @@ reconcile_client() {
       --uusername "service-account-ceerat-gateway-revoker" \
       --cclientid realm-management --rolename manage-users
     echo "Updated revoker secret and assigned realm-management/manage-users"
+  fi
+}
+
+delete_superseded_client() {
+  local client_id="$1"
+  local internal_id
+  internal_id="$("$kcadm" get clients --config "$config_file" -r "$realm" \
+    -q "clientId=$client_id" --fields id --format csv --noquotes | tail -n 1)"
+  if [[ -n "$internal_id" && "$internal_id" != "id" ]]; then
+    "$kcadm" delete "clients/$internal_id" --config "$config_file" -r "$realm"
+    echo "Deleted superseded client $client_id"
   fi
 }
 
@@ -142,4 +156,6 @@ for definition in \
   reconcile_client "$definition"
 done
 
-echo "Reconciled realm $realm. Legacy ceerat-mcp-dev remains enabled for rollback."
+delete_superseded_client "ceerat-mcp-dev"
+
+echo "Reconciled realm $realm with the canonical ChatGPT and Codex MCP clients."

@@ -54,6 +54,9 @@
     "offline_access",
     "ceerat.products.read",
     "ceerat.products.cart.read",
-    "ceerat.products.cart.write"
+    "ceerat.products.cart.write",
+    "ceerat.orders.read",
+    "ceerat.orders.checkout",
+    "ceerat.orders.write"
   ]
 }

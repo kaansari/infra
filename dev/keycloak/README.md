@@ -13,8 +13,8 @@ The realm separates hosted and native clients:
   `https://chatgpt.com/connector_platform_oauth_redirect`;
 - `ceerat-mcp-codex-dev` accepts only dynamic `127.0.0.1` and `localhost`
   loopback callbacks required by the native CLI;
-- `ceerat-mcp-dev` remains temporarily enabled as a rollback client and must
-  not receive new integrations;
+- `ceerat-mcp-dev` is superseded and absent; only the dedicated ChatGPT and
+  Codex clients are valid MCP OAuth clients;
 - `ceerat-gateway-revoker` is a confidential service-only client used by the
   gateway to delete one identified Keycloak user/offline session. It has only
   the `realm-management/manage-users` client role and cannot use browser or
@@ -147,7 +147,7 @@ unset CEERAT_TEST_ACCESS_TOKEN
 Do not paste the token into chat, commit it, put it in `.env`, or retain it in
 shell history on a shared machine.
 
-## Phase 2 product/cart consent test
+## Phase 2 product/cart and order consent test
 
 The local realm offers `ceerat.products.read`,
 `ceerat.products.cart.read`, and `ceerat.products.cart.write` as optional
@@ -158,6 +158,8 @@ viewing, and cart modification.
 
 After exchange, inspect only decoded `scope` claim names: requested and granted
 scopes must be present, omitted scopes absent, and `ceerat.products.admin`
-rejected. Never print or persist the token. These scopes do not grant cart
+rejected. Repeat the check for `ceerat.orders.read`,
+`ceerat.orders.checkout`, and `ceerat.orders.write`, and verify that
+`ceerat.orders.admin` is rejected. Never print or persist the token. These scopes do not grant cart
 ownership or authority over prices, inventory, checkout, or administration;
 the owning gRPC service makes those decisions.
