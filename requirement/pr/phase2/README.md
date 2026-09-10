@@ -144,8 +144,8 @@ integration, admin tools, hard deletion, or a legacy compatibility surface.
 
 ## PR order
 
-1. [PR 08 — OAuth scopes](08-order-oauth-scopes.md)
-2. [PR 09 — self-order gRPC contracts](09-self-order-grpc-contract.md)
+1. [PR 08 — OAuth scopes](08-order-oauth-scopes.md) — complete; locally and live validated 2026-09-10
+2. [PR 09 — self-order gRPC contracts](09-self-order-grpc-contract.md) — implemented; automated contract validation complete 2026-09-10
 3. [PR 10 — order service and migration hardening](10-self-order-service.md)
 4. [PR 11 — order read MCP tools](11-order-read-mcp-tools.md)
 5. [PR 12 — quote and checkout MCP tools](12-order-checkout-mcp-tools.md)

@@ -1,5 +1,12 @@
 # Phase 2 PR 08: Order OAuth scopes
 
+Status: **COMPLETE — locally and live validated 2026-09-10**
+
+Validation confirmed that reconciliation and the OAuth policy smoke test pass,
+protected-resource metadata advertises all three order scopes, and a fresh
+hosted ChatGPT grant receives the distinct requested permissions while retaining
+the Phase 1 and product/cart scopes. No order tool was exposed by this PR.
+
 Repository: `infra`  
 Depends on: completed product/cart milestone
 

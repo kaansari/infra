@@ -1,5 +1,22 @@
 # Phase 2 PR 09: Self-scoped order gRPC contract
 
+Status: **IMPLEMENTED — automated contract validation complete 2026-09-10**
+
+Builder keyword ranking initially surfaced `admin.AdminService` because of the
+generic word “status”; its detailed contract/service evidence and direct source
+inspection identify `order.OrderManager` as the existing canonical owner. The
+implemented method inventory is `GetMyOrder`, `ListMyOrders`,
+`QuoteMyCartPricing`, `CheckoutMyCart`, `PreviewMyOrderUpdate`, `UpdateMyOrder`,
+`PreviewMyOrderCancellation`, `CancelMyOrder`, and
+`GetMyOrderOperationStatus`. All are protected, customer-permitted, and absent
+from the public allowlist; the five new methods are not agent-permitted.
+
+The coordinated contract cutover introduces shared exact `commerce.Money`,
+reserves replaced float tags/names, returns customer-safe `MyOrder`
+projections, and adds version/fingerprint/idempotency inputs without an identity
+selector or hard-delete RPC. Contract tests/build and builder RBAC/drift checks
+pass. Service behavior and database migration remain PR 10 scope.
+
 Repository: `contracts-repo`  
 Depends on: PR 08
 
