@@ -116,3 +116,23 @@ evidence, logout regression, restoration, and cleanup remain
 `MANUAL_REQUIRED`. Phase 2 is a release candidate and is deliberately not
 frozen or tagged yet. The redacted result is committed at
 `verification/phase2/evidence/codex-2026-09-09.json`.
+
+## Final human acceptance — 2026-09-09
+
+The production migration and preflight completed, the current user-service
+deployment started successfully, and ChatGPT exercised catalog and cart through
+the public MCP/private-gRPC path. Cart read and reversible mutation passed;
+version advanced correctly, totals were service-computed, and the cart finished
+empty without unintended modification.
+
+The `products_cart_clear` preparation exposed a client-compatibility defect in
+the original polymorphic input schema. Apps commit `b265929` replaced the
+top-level `oneOf` with a flat closed schema while retaining exact preparation
+versus confirmation pair enforcement at runtime. After refreshing the ChatGPT
+development app version to discard its cached schema, clear preparation passed.
+
+The final milestone record is
+[`../../docs/public-agent-phase-2-milestone.md`](../../docs/public-agent-phase-2-milestone.md).
+Phase 2 product catalog and self-cart acceptance is complete; the broader audit
+retention review and two-disposable-user evidence remain operational hardening,
+not blockers for this validated development milestone.

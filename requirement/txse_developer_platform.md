@@ -308,6 +308,21 @@ dependency failures, logout, and post-revocation denial. Every client envelope
 returns the server request ID; logs never contain credentials, raw tool
 arguments/results, OAuth claims, prompts, SQL values, or cross-customer data.
 
+### Phase 2 completion record
+
+The product catalog and authenticated self-cart slice was completed and
+human-validated through ChatGPT on 2026-09-09. The deployed path proved OAuth
+scope expansion, Products-domain discovery, catalog reads, self-scoped cart
+read/write, service-owned totals, optimistic versioning, idempotency, confirmed
+clear preparation, structured dependency failures, and private gRPC ownership.
+The durable evidence and deployment/schema lessons are recorded in
+[`../docs/public-agent-phase-2-milestone.md`](../docs/public-agent-phase-2-milestone.md).
+
+This completion does not expand Phase 2 into checkout, payments, orders,
+subscriptions, admin product mutation, or UI work. Those remain separately
+designed capabilities and must build on the frozen product/cart identity and
+security boundary.
+
 ## 8. Proposed TXSE product surface
 
 Subject to licensing, capabilities include symbol/reference discovery, latest quotes, recent trades, streams, current/historical books, historical data, replay, derived aggregates, anomalies, and explanations that separate observations, calculations, and model interpretation.
