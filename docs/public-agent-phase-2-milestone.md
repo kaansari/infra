@@ -117,3 +117,17 @@ Phase 2 product catalog and customer-owned cart are complete. Checkout,
 payment, orders, subscriptions, admin catalog mutation, inventory management,
 and browser UI are outside this milestone. Future phases must reuse the same
 MCP -> OAuth -> gateway -> private gRPC -> service-owned database boundary.
+# PR 10 transactional self-order service (implementation milestone)
+
+The private `order.OrderManager` is the only customer-order writer. PR 10 adds
+subject-derived ownership, exact minor-unit pricing, bounded quote/update/cancel
+previews, cart/order optimistic versions, fingerprint-bound confirmations,
+atomic cart checkout and cancellation payment-placeholder invalidation, and
+durable customer-scoped operation outcomes for reconnect/restart reconciliation.
+
+Deployment is dependency ordered: apply
+`20260910_phase2_self_orders.sql`, run its preflight, deploy the matching
+user-service commit, verify startup and one private-gRPC self-order call, and
+only then enable PR 11+ MCP tools. The implementation milestone does not claim
+live deployment. There is no legacy schema, float-money, dual-write, fallback
+read, hard-delete cancellation, or gateway-owned order path.
