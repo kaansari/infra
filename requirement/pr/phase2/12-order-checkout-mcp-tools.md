@@ -94,3 +94,25 @@ an otherwise recorded cart, and save the cart version. Test in this order:
 If read/quote/prepare fails, do not attempt confirmation. If confirmation is
 `OUTCOME_UNKNOWN`, inspect/get/list the order by correlation and idempotency
 state before any retry. Record the created disposable order for PR 13 cleanup.
+
+## Implementation record (2026-09-11)
+
+Implemented the four `orders` tools in `ceerat-agent-gateway` without exposing
+generic order creation or model-authored lines/prices. Quote and operation
+status require `ceerat.orders.read`; prepare and confirm require
+`ceerat.orders.checkout`. The adapter calls only private self-scoped order/cart
+gRPC and uses the standard safe MCP envelope.
+
+Checkout preparation is durable, subject/client-bound, exact-money preserving,
+digest-verified, quote-expiring, and atomically single-dispatch. Confirmation
+accepts only an opaque preparation ID plus `confirmed: true`. Deterministic
+service rejection is `not_started`; uncertain post-dispatch outcomes direct the
+agent to `orders_operation_status` rather than blind retry. A completed replay
+resolves and returns the original durable service outcome.
+
+Automated tests and race detection cover closed schemas, scopes, normalized
+bound inputs, tampering, expiry, foreign/replayed and concurrent confirmation,
+restart-capable PostgreSQL state, exact-money invariants,
+deterministic/uncertain error mapping, operation reconciliation, safe
+projection, rate limiting, and correlated redacted audit events. The full
+gateway build passes. Live Render and ChatGPT acceptance remain separate.

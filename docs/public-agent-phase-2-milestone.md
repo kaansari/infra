@@ -153,3 +153,21 @@ filters, raw IDs, or dependency text.
 The implementation and deterministic gateway tests are complete. Live Render
 deployment, live `tools/list` comparison, app-version refresh, and authenticated
 ChatGPT list/detail calls remain PR 11 deployment acceptance work.
+
+## PR 12 quote and checkout (implementation milestone)
+
+The order MCP domain now includes server-owned cart pricing, durable checkout
+preview, explicitly confirmed checkout, and subject-scoped operation-status
+reconciliation. The gateway never accepts customer identity, cart/order lines,
+quantities, prices, totals, tax, lifecycle/payment status, or provider data.
+All business authority stays in private `order.OrderManager` gRPC.
+
+Preparations bind the authenticated user and OAuth client to normalized inputs,
+cart version, idempotency key, service pricing fingerprint, exact reviewed
+components/currency, digest, and expiry. A single atomic state transition occurs
+before dispatch. Unknown results are never retried blindly; the agent receives
+the operation kind/key needed for the read-only status lookup. Completed replay
+returns the service's original durable order result.
+
+Normal tests, race tests, build, and local security/schema/audit checks pass.
+Live deployment and the disposable ChatGPT checkout exercise remain pending.
