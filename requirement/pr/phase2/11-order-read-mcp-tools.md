@@ -71,3 +71,21 @@ version the ChatGPT development app before its first order test. In a new chat,
 invoke `orders_list` and then `orders_get` for one returned order; if none exist,
 report the empty result and create disposable state only in the later checkout
 PR. Do not treat tool discovery alone as proof that private gRPC dispatch works.
+
+## Implementation record (2026-09-11)
+
+Implemented in `ceerat-agent-gateway` with 18 total tools. `orders_list` and
+`orders_get` are grouped under `orders`, require `ceerat.orders.read`, forward
+the internal bearer token only to `ListMyOrders`/`GetMyOrder`, and return the
+standard safe MCP envelope. Closed-schema, scope, self-scope, bounds, status,
+not-found concealment, exact-money projection, timeout, rate-limit, and
+redacted-audit tests pass. The gateway vendor tree was refreshed to the PR 09
+exact-money/order contract; product and cart projections were updated to emit
+the same canonical money representation rather than preserve a parallel float
+contract.
+
+Automated implementation gates completed: full gateway tests and build,
+application inventory validation, OAuth/RBAC validation, and contract/service
+drift validation. Render deployment and the documented live ChatGPT list/get
+acceptance remain intentionally separate from this source implementation
+record.

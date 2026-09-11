@@ -131,3 +131,25 @@ user-service commit, verify startup and one private-gRPC self-order call, and
 only then enable PR 11+ MCP tools. The implementation milestone does not claim
 live deployment. There is no legacy schema, float-money, dual-write, fallback
 read, hard-delete cancellation, or gateway-owned order path.
+
+## PR 11 self-scoped order reads (implementation milestone)
+
+The public MCP gateway now exposes `orders_list` and `orders_get` in an
+`orders` domain. Both require only `ceerat.orders.read`, accept closed bounded
+schemas without identity selectors, and dispatch exclusively to the private
+authenticated `ListMyOrders` and `GetMyOrder` gRPC methods. Ownership and stable
+pagination remain service-owned; the gateway is a projection and error-mapping
+boundary, not an order data source.
+
+Customer responses use the `MyOrder` snapshot projection and exact
+`minor_units` plus currency money objects. They omit customer/user IDs,
+provider/payment internals, database details, inventory/cost/storage fields,
+and idempotency records. Missing and foreign orders are indistinguishable.
+Read failures remain `not_started`, with retry guidance where safe, and never
+claim a mutation outcome is unknown. Correlated audit records include the
+tool/domain/scope/downstream method and hashed resource ID without order notes,
+filters, raw IDs, or dependency text.
+
+The implementation and deterministic gateway tests are complete. Live Render
+deployment, live `tools/list` comparison, app-version refresh, and authenticated
+ChatGPT list/detail calls remain PR 11 deployment acceptance work.
