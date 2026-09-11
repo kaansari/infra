@@ -119,6 +119,22 @@ now returned with the server-owned pricing breakdown so a user or agent can
 verify the identity and validity window of the quote being confirmed; confirm
 still accepts only the opaque preparation ID and `confirmed: true`.
 
+### Live acceptance result
+
+The 2026-09-11 ChatGPT acceptance run passed the complete success path: profile
+address prerequisites were satisfied, cart version 5 was quoted and prepared at
+USD 174.40 from a USD 160.00 subtotal plus USD 14.40 server-calculated tax, and
+explicit confirmation created exactly one `pending_payment` order. A subsequent
+`orders_get` returned the same order and totals, while the cart advanced to
+version 6 and contained no items. No retry or reconciliation was needed.
+
+The run identified one final response-shape omission: initial successful confirm
+did not explicitly return whether the result was a replay. The success response
+now always includes `replayed: false`; reconciliation/idempotent replay returns
+`replayed: true`. The remaining live acceptance action is to repeat the consumed
+preparation once and verify that the original order is returned without creating
+a second order.
+
 Checkout preparation is durable, subject/client-bound, exact-money preserving,
 digest-verified, quote-expiring, and atomically single-dispatch. Confirmation
 accepts only an opaque preparation ID plus `confirmed: true`. Deterministic
