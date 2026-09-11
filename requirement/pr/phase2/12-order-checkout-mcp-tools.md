@@ -113,6 +113,12 @@ values appear in the confirmation preview because they were explicitly supplied
 by the user. Missing checkout addresses are classified as actionable validation
 failures with `not_started`, never as dependency outages.
 
+The live preparation acceptance test also verified that the preview must expose
+the exact bound `pricing_fingerprint` and `quote_expires_at`. These values are
+now returned with the server-owned pricing breakdown so a user or agent can
+verify the identity and validity window of the quote being confirmed; confirm
+still accepts only the opaque preparation ID and `confirmed: true`.
+
 Checkout preparation is durable, subject/client-bound, exact-money preserving,
 digest-verified, quote-expiring, and atomically single-dispatch. Confirmation
 accepts only an opaque preparation ID plus `confirmed: true`. Deterministic
