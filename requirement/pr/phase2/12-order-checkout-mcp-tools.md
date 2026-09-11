@@ -103,6 +103,16 @@ status require `ceerat.orders.read`; prepare and confirm require
 `ceerat.orders.checkout`. The adapter calls only private self-scoped order/cart
 gRPC and uses the standard safe MCP envelope.
 
+Live acceptance exposed and closed one prerequisite gap: the existing prepared
+customer-profile update now accepts complete, closed-schema `shipping_address`
+and `billing_address` objects through the existing self-scoped
+`UpdateMyCustomerProfile` gRPC method. Address updates remain behind
+`ceerat.profile.write`, resource-version checking, preparation, and explicit
+confirmation. Profile reads expose only address-completeness flags; address
+values appear in the confirmation preview because they were explicitly supplied
+by the user. Missing checkout addresses are classified as actionable validation
+failures with `not_started`, never as dependency outages.
+
 Checkout preparation is durable, subject/client-bound, exact-money preserving,
 digest-verified, quote-expiring, and atomically single-dispatch. Confirmation
 accepts only an opaque preparation ID plus `confirmed: true`. Deterministic
