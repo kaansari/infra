@@ -84,3 +84,19 @@ across different inputs.
 The live test must also force one stale update preview and one stale cancellation
 preview and prove both fail before mutation, then exercise one controlled
 post-dispatch unknown outcome and reconcile it via `orders_operation_status`.
+
+## Implementation record (2026-09-11)
+
+Implemented the four independent order-domain tools in the existing gateway and
+mapped them exclusively to the self-scoped private gRPC methods above. All use
+`ceerat.orders.write`; operation-status reconciliation remains read-only under
+`ceerat.orders.read` and now accepts checkout, update, and cancel kinds.
+
+Update input is limited to presence-aware notes, shipping method, and discount
+code. Cancellation accepts only a bounded reason. PostgreSQL-backed preparation
+state binds user, OAuth client, operation kind, order ID/version, normalized
+patch or reason, before/after exact pricing where applicable, service-issued
+fingerprint, idempotency key, digest, and expiry. Confirmation atomically moves
+the preparation to dispatching before calling gRPC and returns an explicit
+`replayed` boolean. No legacy, generic status, delete, line, payment, identity,
+address, or client-priced path was added.

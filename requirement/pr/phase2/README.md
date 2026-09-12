@@ -149,7 +149,7 @@ integration, admin tools, hard deletion, or a legacy compatibility surface.
 3. [PR 10 — order service and migration hardening](10-self-order-service.md)
 4. [PR 11 — order read MCP tools](11-order-read-mcp-tools.md)
 5. [PR 12 — quote and checkout MCP tools](12-order-checkout-mcp-tools.md)
-6. [PR 13 — update and cancel MCP tools](13-order-update-cancel-mcp-tools.md)
+6. [PR 13 — update and cancel MCP tools](13-order-update-cancel-mcp-tools.md) — implemented; automated gateway and builder validation complete 2026-09-11
 7. [PR 14 — live acceptance and milestone](14-order-live-acceptance.md)
 
 Each PR must begin with builder context/evidence/ownership checks, preserve the
