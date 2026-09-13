@@ -1,7 +1,7 @@
 services:
   - type: web
     name: ceerat-keycloak
-    plan: free
+    plan: 0.5c-512mb
     runtime: docker
     repo: https://github.com/kaansari/infra
     branch: main
@@ -49,7 +49,7 @@ services:
       - key: KC_HEALTH_ENABLED
         value: "true"
       - key: JAVA_OPTS_KC_HEAP
-        value: -Xms64m -Xmx192m -XX:MaxHeapFreeRatio=30
+        value: -Xms64m -Xmx192m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30
       - key: CEERAT_GOOGLE_CLIENT_ID
         sync: false
       - key: CEERAT_GOOGLE_CLIENT_SECRET

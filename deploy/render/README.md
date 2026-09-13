@@ -12,10 +12,12 @@ image or Kubernetes cluster is involved.
 | `ceerat-postgres` | Render Postgres | Render private network | Phase 1 CEERAT and Keycloak data |
 | `ceerat-keycloak` | `infra` | Public HTTPS | OAuth/OIDC authorization server |
 
-The development Blueprint constrains Keycloak to a 64 MiB initial and 192 MiB
-maximum Java heap so Keycloak 26.4 can start within Render's 512 MiB instance.
-This is a Phase 2 test setting, not a production sizing recommendation. Monitor
-memory and move Keycloak to at least a 1 GiB instance before meaningful load.
+The development Blueprint uses Render's paid `0.5c-512mb` plan and constrains
+Keycloak to a 64 MiB initial and 192 MiB maximum Java heap so Keycloak 26.4 can
+start within its 512 MiB limit. Explicit compatible minimum/maximum heap-free
+ratios prevent JVM startup rejection. This is a Phase 2 test setting, not a
+production sizing recommendation. Monitor memory and use a larger plan before
+meaningful load.
 
 For the cost-conscious Phase 1 deployment, Keycloak and the user service share
 one Render PostgreSQL database and the `public` schema. This means they share
