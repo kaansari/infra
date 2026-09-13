@@ -167,7 +167,7 @@ start_keycloak() {
     -e KC_BOOTSTRAP_ADMIN_USERNAME="${CEERAT_KEYCLOAK_ADMIN:-admin}" \
     -e KC_BOOTSTRAP_ADMIN_PASSWORD="$admin_password" \
     -v "$SCRIPT_DIR/dev/keycloak/ceerat-realm.json:/opt/keycloak/data/import/ceerat-realm.json:ro" \
-    "${CEERAT_KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.3}" \
+    "${CEERAT_KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.4.0}" \
     start-dev --import-realm --health-enabled=true >/dev/null
   sleep 2
 }

@@ -1,6 +1,6 @@
 services:
   ceerat-keycloak:
-    image: ${CEERAT_KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.3}
+    image: ${CEERAT_KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.4.0}
     command: ["start-dev", "--import-realm", "--health-enabled=true"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${CEERAT_KEYCLOAK_ADMIN:-admin}

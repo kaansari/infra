@@ -13,6 +13,9 @@ trap 'rm -rf "$tmp_dir"' EXIT
 curl -fsS "$base_url/healthz" >"$tmp_dir/health.json"
 curl -fsS "$base_url/readyz" >"$tmp_dir/ready.json"
 curl -fsS "$base_url/.well-known/oauth-protected-resource/mcp" >"$tmp_dir/resource.json"
+authorization_server="$(node -e 'const m=require(process.argv[1]); process.stdout.write(m.authorization_servers[0])' "$tmp_dir/resource.json")"
+authorization_metadata_url="$(node -e 'const u=new URL(process.argv[1]); process.stdout.write(`${u.origin}/.well-known/oauth-authorization-server${u.pathname}`)' "$authorization_server")"
+curl -fsS "$authorization_metadata_url" >"$tmp_dir/authorization.json"
 curl -fsS -X POST "$base_url/mcp" -H 'Content-Type: application/json' \
   --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"chatgpt-public-smoke-test","version":"1"}}}' >"$tmp_dir/initialize.json"
 curl -fsS -X POST "$base_url/mcp" -H 'Content-Type: application/json' \
@@ -27,6 +30,7 @@ const read = name => JSON.parse(fs.readFileSync(`${dir}/${name}.json`, "utf8"));
 const health = read("health");
 const ready = read("ready");
 const resource = read("resource");
+const authorization = read("authorization");
 const initialize = read("initialize");
 const tools = read("tools");
 const auth = read("auth");
@@ -35,6 +39,7 @@ health.status === "ok" || fail("health check failed");
 ready.status === "ready" || fail("readiness check failed");
 resource.resource === `${base}/mcp` || fail("protected resource URL mismatch");
 resource.authorization_servers?.every(v => v.startsWith("https://")) || fail("authorization server is not HTTPS");
+authorization.issuer === resource.authorization_servers[0] || fail("RFC 8414 authorization-server metadata issuer mismatch");
 initialize.result?.protocolVersion || fail("MCP initialize failed");
 const catalog = tools.result?.tools;
 Array.isArray(catalog) && catalog.length > 0 || fail("empty tool catalog");

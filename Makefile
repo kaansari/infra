@@ -156,7 +156,7 @@ reconcile-keycloak-live:
 		-e CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET \
 		-e CEERAT_KEYCLOAK_SERVER=https://ceerat-keycloak.onrender.com \
 		-v "$(ROOT_DIR)/deploy/render/keycloak:/work:ro" \
-		quay.io/keycloak/keycloak:26.3 /work/reconcile-live-realm.sh
+		quay.io/keycloak/keycloak:26.4.0 /work/reconcile-live-realm.sh
 
 # Phase 2 live API verification. Stack startup is opt-in with
 # VERIFY_API_START_STACK=true and always goes through make start-stack.
