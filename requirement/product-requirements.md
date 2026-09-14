@@ -73,10 +73,12 @@ AI tool path is created.
 
 Product-order creation is confirmed `CheckoutMyCart`, not an LLM-authored order
 payload. Customer update is limited to an unpaid pending order's notes,
-shipping selection, and discount code with service-owned repricing. Customer
+shipping selection, discount code, and explicitly prepared product-line
+add/remove/set-quantity changes with service-owned catalog validation and
+repricing. Customer
 delete means `CancelMyOrder`, which retains the order as `cancelled`; physical
-deletion, arbitrary status changes, and post-checkout product-line editing are
-not supported.
+deletion and arbitrary status changes are not supported. Product-line editing
+stops permanently once the order leaves `pending_payment`/`unpaid`.
 
 The PR plan's MCP/gRPC requirements supersede the browser/REST execution items
 elsewhere in this older broad product document for this phase only. Payment

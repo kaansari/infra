@@ -32,8 +32,10 @@ the read-only service preview, returns the exact normalized patch, exact-money
 before/after pricing summary, pricing fingerprint, order version, and expiry.
 Confirmation binds all of those reviewed values and fails before mutation if the
 order version, pricing inputs, shipping eligibility, discount eligibility, or
-currency changed. Product lines and snapshotted addresses are immutable after
-checkout. Omitted and explicitly cleared mutable fields have distinct semantics.
+currency changed. PR 13 keeps product lines and snapshotted addresses immutable;
+PR 15 later extends this same prepare/confirm path with bounded line amendments
+while preserving immutable addresses. Omitted and explicitly cleared mutable
+fields have distinct semantics.
 
 ## Cancellation policy
 
