@@ -286,3 +286,11 @@ also exposed catalog filters/sorts still querying the retired `services.price`
 column; they now use exact `price_minor_units`. Gateway mapping now reports
 `FailedPrecondition` and `Aborted` truthfully instead of classifying them as
 dependency outages.
+
+A subsequent cart regression check produced `OUTCOME_UNKNOWN` but an immediate
+read showed the cart unchanged at version 6. Log correlation proved the service
+transaction rolled back on another retired exact-money column reference:
+`SUM(cart_items.total_price)`. Both cart recalculation paths now sum
+`total_price_minor_units` into `subtotal_minor_units` and `total_minor_units`
+using `int64`. The failed idempotency key must not be reused even though the
+database rollback left no visible cart change.
