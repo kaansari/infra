@@ -66,7 +66,7 @@ customer "delete" is modeled as cancellation, never physical deletion.
 
 ## Cross-cutting invariants
 
-These invariants apply to PRs 08–15 and are release blockers, not optional
+These invariants apply to PRs 08–16 and are release blockers, not optional
 implementation details:
 
 - **Money is exact and server-owned.** Reuse the canonical money type (integer
@@ -152,6 +152,7 @@ integration, admin tools, hard deletion, or a legacy compatibility surface.
 6. [PR 13 — update and cancel MCP tools](13-order-update-cancel-mcp-tools.md) — implemented; automated gateway and builder validation complete 2026-09-11
 7. [PR 14 — live acceptance and milestone](14-order-live-acceptance.md)
 8. [PR 15 — pending-order product-line amendments](15-pending-order-line-items.md)
+9. [PR 16 — self-profile shipping and billing address read](16-self-profile-address-read.md)
 
 Each PR must begin with builder context/evidence/ownership checks, preserve the
 MCP -> OAuth -> gateway -> private gRPC -> service -> database boundary, update
@@ -214,3 +215,5 @@ hosted model to improvise a destructive test.
   a predecessor order model.
 - feature-flagged, shadow, rollback, or deprecated copies of superseded customer
   order paths.
+- alternate address APIs, caller-selected customer identity, or exposing address
+  PII through logs, errors, discovery, or acceptance artifacts.
