@@ -274,3 +274,15 @@ changed. The correction makes product-line changes satisfy the update presence
 rule and independently validates each closed add/set-quantity/remove shape
 before gRPC dispatch. A regression test now covers both a valid line-only
 update and an invalid remove carrying quantity.
+
+The next live attempt reached private gRPC but returned `FailedPrecondition`.
+Correlation showed checkout stores `payment_setup_required`, which the public
+contract intentionally projects as `unpaid`; the initial PR 15 repository gate
+incorrectly accepted only the literal storage value `unpaid`. The fixed gate
+accepts exactly the storage states represented to the customer as unpaid
+(`unpaid`, `not_configured`, and `payment_setup_required`) and continues to
+reject pending, paid, failed, refunded, and terminal orders. The same evidence
+also exposed catalog filters/sorts still querying the retired `services.price`
+column; they now use exact `price_minor_units`. Gateway mapping now reports
+`FailedPrecondition` and `Aborted` truthfully instead of classifying them as
+dependency outages.
