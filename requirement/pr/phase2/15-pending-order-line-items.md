@@ -265,3 +265,12 @@ continues to require explicit confirmation. PostgreSQL migration and preflight
 enforce positive bounded quantities and add the order/variant lookup index.
 Automated contract, service, gateway, build, RBAC, drift, and live acceptance
 results must be appended before this PR is marked complete.
+
+The first live preparation exposed a gateway boundary regression: the imported
+schema accepted `product_line_changes`, but runtime validation omitted that
+field from its `at_least_one_change_required` decision. The request failed
+safely as `not_started` (`req_401ba40e5467e502b898d08a8eccefc6`), and no order
+changed. The correction makes product-line changes satisfy the update presence
+rule and independently validates each closed add/set-quantity/remove shape
+before gRPC dispatch. A regression test now covers both a valid line-only
+update and an invalid remove carrying quantity.
