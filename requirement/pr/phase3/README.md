@@ -12,6 +12,11 @@ health, classification, formulas, or warnings.
 
 ## Dependency order
 
+Before Phase 3 PR 04 is exposed, complete the canonical authentication cutover
+in [`../oauth-grpc-auth/`](../oauth-grpc-auth/). Preference gRPC and MCP must use
+the same original Keycloak OAuth access token and must not introduce or depend
+on a separately minted CEERAT end-user JWT.
+
 | Order | PR | Primary repository | Outcome |
 | --- | --- | --- | --- |
 | 1 | [OAuth scopes](01-preference-oauth-scopes.md) | `infra`, `apps-repo` metadata | Implemented locally; register read/write scopes and consent policy, then complete live reconciliation |
@@ -33,7 +38,8 @@ database, service, OAuth, and gateway versions are live and verified.
 
 ```text
 AI host -> HTTPS MCP + user OAuth -> ceerat-agent-gateway
-        -> authenticated private gRPC -> preference.PreferenceService
+        -> private gRPC carrying the original OAuth access token
+        -> OAuth + scope + RBAC + ownership -> preference.PreferenceService
         -> ceerat-user-service preference module -> PostgreSQL
 ```
 
@@ -61,8 +67,9 @@ customer/user/tenant/role/scope identity. The two OAuth scopes are
 
 ## Cross-cutting release blockers
 
-- External OAuth terminates at the gateway; private gRPC uses authenticated
-  workload/user context and repeats RBAC and ownership enforcement.
+- The gateway validates OAuth early and forwards the original access token;
+  private gRPC independently repeats OAuth, scope, RBAC, account-status, and
+  ownership enforcement. No separately minted CEERAT end-user JWT is allowed.
 - Definitions are server-owned and immutable through customer MCP.
 - Values are closed typed unions; reuse canonical exact money and avoid
   arbitrary JSON and floating-point identity/hash behavior.

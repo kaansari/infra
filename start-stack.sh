@@ -4,6 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
+# The current platform is MCP/gRPC-first. Set this for backend development when
+# the legacy agent and browser applications do not need to be built or started.
+CEERAT_MCP_ONLY="${CEERAT_MCP_ONLY:-false}"
+
 start_detached() {
   local log_file="$1"
   local pid_file="$2"
@@ -279,7 +283,9 @@ else
 fi
 
 # agent service
-if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+  echo "Skipping legacy agent service and browser applications (CEERAT_MCP_ONLY=true)"
+elif [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" ]]; then
   (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-service" .) || {
     echo "Agent build failed" >&2
     exit 1
@@ -289,7 +295,9 @@ else
 fi
 
 # web UI
-if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+  :
+elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-web-ui" .) || {
     echo "Web UI build failed" >&2
     exit 1
@@ -299,7 +307,9 @@ else
 fi
 
 # admin UI
-if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+  :
+elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-admin-ui" .) || {
     echo "Admin UI build failed" >&2
     exit 1
@@ -309,7 +319,9 @@ else
 fi
 
 # customer UI
-if [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+  :
+elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-customer-ui" .) || {
     echo "Customer UI build failed" >&2
     exit 1
@@ -323,10 +335,12 @@ start_typesense
 start_keycloak
 start_user_service
 start_agent_gateway
-start_agent_service
-start_web_ui
-start_admin_ui
-start_customer_ui
+if [[ "$CEERAT_MCP_ONLY" != "true" ]]; then
+  start_agent_service
+  start_web_ui
+  start_admin_ui
+  start_customer_ui
+fi
 
 "$SCRIPT_DIR/status.sh"
 print_log_paths
