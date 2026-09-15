@@ -39,6 +39,9 @@ health.status === "ok" || fail("health check failed");
 ready.status === "ready" || fail("readiness check failed");
 resource.resource === `${base}/mcp` || fail("protected resource URL mismatch");
 resource.authorization_servers?.every(v => v.startsWith("https://")) || fail("authorization server is not HTTPS");
+for (const scope of ["ceerat.preferences.read", "ceerat.preferences.write"]) {
+  resource.scopes_supported?.includes(scope) || fail(`protected resource is missing ${scope}`);
+}
 authorization.issuer === resource.authorization_servers[0] || fail("RFC 8414 authorization-server metadata issuer mismatch");
 initialize.result?.protocolVersion || fail("MCP initialize failed");
 const catalog = tools.result?.tools;

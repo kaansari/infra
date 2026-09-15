@@ -36,6 +36,14 @@ class RealmConfigTest < Minitest::Test
     "ceerat.orders.checkout" => "Create CEERAT orders from your cart after confirmation",
     "ceerat.orders.write" => "Update or cancel eligible CEERAT orders after confirmation"
   }.freeze
+  PREFERENCE_SCOPES = %w[
+    ceerat.preferences.read
+    ceerat.preferences.write
+  ].freeze
+  PREFERENCE_CONSENT = {
+    "ceerat.preferences.read" => "View your saved CEERAT preferences",
+    "ceerat.preferences.write" => "Save, update, or remove your CEERAT preferences after confirmation"
+  }.freeze
 
   def test_realm_uses_short_tokens_rotation_and_verified_email
     assert_equal true, REALM["verifyEmail"]
@@ -64,7 +72,7 @@ class RealmConfigTest < Minitest::Test
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
       assert_equal REQUIRED_SCOPES, client["defaultClientScopes"]
-      assert_equal ["offline_access", *PRODUCT_SCOPES, *ORDER_SCOPES], client["optionalClientScopes"]
+      assert_equal ["offline_access", *PRODUCT_SCOPES, *ORDER_SCOPES, *PREFERENCE_SCOPES], client["optionalClientScopes"]
       audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
       refute_nil audience
       assert_equal "https://ceerat-agent-gateway.onrender.com/mcp", audience.dig("config", "included.custom.audience")
@@ -73,7 +81,7 @@ class RealmConfigTest < Minitest::Test
 
   def test_domain_scopes_are_optional_with_explicit_consent
     scopes = REALM.fetch("clientScopes").to_h { |scope| [scope.fetch("name"), scope] }
-    PRODUCT_CONSENT.merge(ORDER_CONSENT).each do |name, consent|
+    PRODUCT_CONSENT.merge(ORDER_CONSENT).merge(PREFERENCE_CONSENT).each do |name, consent|
       scope = scopes.fetch(name)
       assert_equal "openid-connect", scope["protocol"]
       assert_equal "true", scope.dig("attributes", "include.in.token.scope")
@@ -86,10 +94,11 @@ class RealmConfigTest < Minitest::Test
     end
 
     refute CLIENTS.key?("ceerat-mcp-dev")
-    domain_scopes = PRODUCT_SCOPES + ORDER_SCOPES
+    domain_scopes = PRODUCT_SCOPES + ORDER_SCOPES + PREFERENCE_SCOPES
     assert_empty domain_scopes & Array(REALM["defaultDefaultClientScopes"])
     assert_empty domain_scopes & Array(REALM["defaultOptionalClientScopes"])
     refute scopes.key?("ceerat.orders.admin")
+    refute scopes.key?("ceerat.preferences.admin")
   end
 
   def test_authentication_and_consent_events_are_audited

@@ -76,7 +76,9 @@ assign_mcp_optional_scopes() {
     ceerat.products.cart.write \
     ceerat.orders.read \
     ceerat.orders.checkout \
-    ceerat.orders.write; do
+    ceerat.orders.write \
+    ceerat.preferences.read \
+    ceerat.preferences.write; do
     scope_internal_id="$(client_scope_id "$scope_name")" || {
       echo "Unable to find reconciled client scope $scope_name" >&2
       return 1
@@ -121,7 +123,7 @@ reconcile_client() {
 
   if [[ "$client_id" == "ceerat-mcp-chatgpt" || "$client_id" == "ceerat-mcp-codex-dev" ]]; then
     assign_mcp_optional_scopes "$internal_id"
-    echo "Assigned optional product and order scopes to $client_id"
+    echo "Assigned optional product, order, and preference scopes to $client_id"
   fi
 
   if [[ "$client_id" == "ceerat-gateway-revoker" ]]; then

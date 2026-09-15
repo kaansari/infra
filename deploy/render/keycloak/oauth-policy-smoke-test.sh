@@ -43,7 +43,9 @@ for client in ceerat-mcp-chatgpt ceerat-mcp-codex-dev; do
     ceerat.products.cart.write \
     ceerat.orders.read \
     ceerat.orders.checkout \
-    ceerat.orders.write; do
+    ceerat.orders.write \
+    ceerat.preferences.read \
+    ceerat.preferences.write; do
     test_name="${client}-${scope}"
     redirect="$codex_callback"
     if [[ "$client" == "ceerat-mcp-chatgpt" ]]; then
@@ -66,6 +68,12 @@ fi
 request_auth chatgpt-unknown-order-scope ceerat-mcp-chatgpt "$chatgpt_callback" code S256 "openid%20ceerat.orders.admin"
 if ! grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/chatgpt-unknown-order-scope.body" "$tmp_dir/chatgpt-unknown-order-scope.headers"; then
   echo "unregistered order admin scope was not rejected" >&2
+  exit 1
+fi
+
+request_auth chatgpt-unknown-preference-scope ceerat-mcp-chatgpt "$chatgpt_callback" code S256 "openid%20ceerat.preferences.admin"
+if ! grep -Eqi 'invalid.scope|invalid_scope|unknown.scope' "$tmp_dir/chatgpt-unknown-preference-scope.body" "$tmp_dir/chatgpt-unknown-preference-scope.headers"; then
+  echo "unregistered preference admin scope was not rejected" >&2
   exit 1
 fi
 

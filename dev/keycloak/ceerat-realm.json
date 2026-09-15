@@ -103,7 +103,9 @@
         "ceerat.products.cart.write",
         "ceerat.orders.read",
         "ceerat.orders.checkout",
-        "ceerat.orders.write"
+        "ceerat.orders.write",
+        "ceerat.preferences.read",
+        "ceerat.preferences.write"
       ]
     },
     {
@@ -164,7 +166,9 @@
         "ceerat.products.cart.write",
         "ceerat.orders.read",
         "ceerat.orders.checkout",
-        "ceerat.orders.write"
+        "ceerat.orders.write",
+        "ceerat.preferences.read",
+        "ceerat.preferences.write"
       ]
     },
     {
@@ -334,6 +338,20 @@
       "description": "Update or cancel the authenticated customer's eligible CEERAT orders after confirmation",
       "protocol": "openid-connect",
       "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.preferences.read",
+      "description": "Read the authenticated customer's saved CEERAT preferences and preference definitions",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your saved CEERAT preferences"},
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.preferences.write",
+      "description": "Save, update, or remove the authenticated customer's CEERAT preferences after confirmation",
+      "protocol": "openid-connect",
+      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Save, update, or remove your CEERAT preferences after confirmation"},
       "protocolMappers": []
     }
   ],

@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.preferences.write",
+  "description": "Save, update, or remove the authenticated customer's CEERAT preferences after confirmation",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Save, update, or remove your CEERAT preferences after confirmation"
+  },
+  "protocolMappers": []
+}

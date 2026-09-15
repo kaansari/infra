@@ -271,3 +271,28 @@ Reconcile, run the policy smoke test, and reconnect each ChatGPT/Codex
 connection so its new authorization request can include the optional scopes.
 The protected-resource metadata advertises the scopes before order tools are
 introduced; PRs 09-12 attach the narrow required scope to each tool.
+
+### Phase 3 preference OAuth scopes
+
+The reconciler creates `ceerat.preferences.read` and
+`ceerat.preferences.write` as optional scopes on only
+`ceerat-mcp-chatgpt` and `ceerat-mcp-codex-dev`.
+
+| Operation class | OAuth scope |
+| --- | --- |
+| definitions, context, list, detail, and operation-status reconciliation | `ceerat.preferences.read` |
+| upsert/delete preparation and confirmed persistence | `ceerat.preferences.write` |
+
+The read grant does not imply write, and the write grant does not bypass
+service-side identity, ownership, validation, version, confirmation, or
+idempotency enforcement. Definition mutation, cross-customer access, automatic
+preference inference, and administrative preference operations are outside
+both scopes.
+
+Protected-resource metadata advertises both scopes before preference tools are
+introduced. This permits a controlled fresh OAuth grant but does not expose a
+tool or private RPC. Existing access and refresh tokens do not gain newly
+optional scopes: after the preference MCP tools are deployed, reconnect or
+reauthorize ChatGPT and Codex and verify the granted scope claim. Reconciliation
+must preserve the existing ChatGPT client secret and must not create a new MCP
+client per customer.

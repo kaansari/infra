@@ -57,6 +57,8 @@
     "ceerat.products.cart.write",
     "ceerat.orders.read",
     "ceerat.orders.checkout",
-    "ceerat.orders.write"
+    "ceerat.orders.write",
+    "ceerat.preferences.read",
+    "ceerat.preferences.write"
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.preferences.read",
+  "description": "Read the authenticated customer's saved CEERAT preferences and preference definitions",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "View your saved CEERAT preferences"
+  },
+  "protocolMappers": []
+}
