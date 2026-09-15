@@ -46,13 +46,15 @@ ceerat-builder rbac check --output json
 ceerat-builder check drift --output json
 ```
 
+Before push, run the validator against tokens issued by local Keycloak in
+addition to synthetic cryptographic fixtures. It must not contact Render.
+
 ## Out of scope
 
 Service wiring, identity database access, gateway forwarding, browser apps,
-legacy validators, and live deployment.
+runtime validator activation, and live deployment.
 
 ## Documentation after PR
 
 Update contract security docs and inventory with validator inputs, principal
 fields, cache/rotation behavior, and error contract.
-

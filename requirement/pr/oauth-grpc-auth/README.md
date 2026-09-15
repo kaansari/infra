@@ -51,6 +51,7 @@ No MCP request is translated into a CEERAT HS256 user session.
 | 1 | [Architecture and scope policy](01-architecture-scope-policy.md) | `infra`, `contracts-repo`, builder docs after validation | Freeze audience, clients, claims, method scopes, workload boundary, and cutover contract |
 | 2 | [Shared OAuth validator](02-shared-oauth-validator.md) | `contracts-repo` | Add reusable JWKS/OIDC access-token validation and authenticated principal context |
 | 3 | [Identity resolution and account authority](03-identity-resolution.md) | `services-repo` | Resolve/JIT-provision verified Keycloak subjects and remove password-token assumptions from the protected path |
+| 3A | [Google identity broker](03a-google-identity-broker.md) | `infra`, Keycloak configuration | Add Google login through Keycloak while preserving one Keycloak-token security path |
 | 4 | [gRPC OAuth enforcement](04-grpc-oauth-enforcement.md) | `contracts-repo`, `services-repo`, `infra` | Cut protected gRPC to OAuth-only scope/RBAC/ownership enforcement and add direct OAuth test login |
 | 5 | [MCP bearer pass-through](05-mcp-token-passthrough.md) | `apps-repo`, `services-repo` | Forward the original OAuth bearer token and remove gateway end-user token exchange |
 | 6 | [Unified tracing and security logs](06-unified-observability.md) | `contracts-repo`, `services-repo`, `apps-repo`, `infra` | Make direct gRPC and MCP calls produce the same correlation and authorization evidence |
@@ -60,6 +61,48 @@ PRs 01–03 add policy or dormant components and must not enable a second runtim
 authentication path. PRs 04 and 05 form one coordinated deployment unit:
 service first in a maintenance/deployment window and gateway immediately after.
 Do not expose a release that silently accepts both end-user token formats.
+
+## New-system rule
+
+CEERAT is a new system. This series implements one final authentication design;
+it does not preserve compatibility with the current development-only internal
+JWT path. At coordinated cutover, superseded code, RPCs, configuration, secrets,
+tests, and documentation are removed rather than retained behind aliases,
+fallback validation, feature flags, dual issuance, dual reads, or migration
+shims. Browser applications will be rebuilt later against the canonical API and
+do not constrain this cutover.
+
+## Local-first delivery gate
+
+No implementation PR in this series may be pushed for Render deployment until
+the complete affected path passes locally. Mocked tokens, unit tests, a process
+health check, unauthenticated reflection, or gateway-only validation do not
+satisfy this gate.
+
+Run validation in this order:
+
+1. Start only local Postgres, Typesense, Keycloak, `ceerat-user-service`, and
+   `ceerat-agent-gateway` with `CEERAT_MCP_ONLY=true make start-stack`.
+2. Reconcile only the local Keycloak realm. The command and output must clearly
+   identify `http://localhost:8080/realms/ceerat`; never use a target containing
+   `live` for this gate.
+3. Complete a real authorization-code + PKCE login through the local
+   `ceerat-grpc-dev` client and obtain a short-lived Keycloak access token.
+4. Call protected gRPC methods directly with that token. Verify issuer,
+   audience, client, scope, current CEERAT RBAC, ownership, trace, and logs.
+5. Complete a separate local OAuth authorization through the MCP development
+   client, call MCP, and prove the original OAuth token reaches the same gRPC
+   enforcement chain.
+6. Run missing/invalid/expired/wrong-audience/wrong-client/missing-scope,
+   wrong-role, cross-customer, refresh, and revocation cases locally.
+7. Run contract, service, gateway, race, database, RBAC, drift, and redaction
+   gates and save only sanitized evidence.
+8. Review the local evidence. Only then commit/push the PR and permit Render to
+   build or deploy it.
+
+The local harness must fail if it resolves a public Render hostname, uses a
+live Keycloak issuer, or lacks an explicit local-only acknowledgement. Live
+reconciliation and Render acceptance remain separate post-push gates.
 
 ## OAuth clients and audience
 
@@ -74,6 +117,8 @@ Do not expose a release that silently accepts both end-user token formats.
   review does not remove OAuth client registration or redirect validation.
 - Client credentials are reserved for explicitly authorized workloads and are
   never accepted as customer identity.
+- Google is an upstream Keycloak identity provider only. CEERAT and its clients
+  still trust and receive only Keycloak-issued API access tokens.
 
 ## Scope model
 
@@ -132,4 +177,9 @@ validation confirms the reusable pattern.
 - Database lifecycle, contract, service, gateway, security, race, log-redaction,
   and deployment-skew gates pass.
 - Browser apps and legacy agent service remain untouched and out of scope.
+- Local direct gRPC/OAuth and local MCP/OAuth end-to-end tests pass before the
+  implementing commit is pushed or any Render deployment begins.
 
+Local functional completion is not production completion. The required
+configuration-hardening gates in [`../confi/`](../confi/) must also pass before
+this authentication series is declared production-ready.

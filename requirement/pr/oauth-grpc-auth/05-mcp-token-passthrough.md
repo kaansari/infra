@@ -46,6 +46,11 @@ ceerat-builder check apps --output json
 ceerat-builder check drift --output json
 ```
 
+Before push, run local MCP/OAuth with a real local-Keycloak authorization and
+prove from correlated gateway/gRPC logs that the original access token reached
+the gRPC validator. Also rerun direct gRPC/OAuth so the coordinated pair is
+validated together. Do not use ChatGPT or Render as the first integration test.
+
 ## Out of scope
 
 Tool additions, domain behavior, browser apps, legacy agent tools, token storage,
@@ -55,4 +60,3 @@ REST, and accepting both internal and OAuth end-user tokens.
 
 Update gateway architecture/security, MCP OAuth flow, structured errors,
 service caller inventory, and deployment ordering documentation.
-

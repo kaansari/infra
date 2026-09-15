@@ -43,6 +43,11 @@ make verify-api-security
 ceerat-builder check drift --output json
 ```
 
+Before push, capture sanitized local evidence for both origins—direct gRPC and
+MCP—and verify a continuous request/trace chain through the same OAuth, scope,
+RBAC, ownership, and handler decisions. Public Render logs are not the initial
+test environment.
+
 ## Out of scope
 
 New telemetry vendor, payload logging, browser analytics, UI tracing, and
@@ -53,4 +58,3 @@ business-domain behavior changes.
 Update service and gateway logging/security docs, incident lookup instructions,
 and safe evidence examples. Update builder logging standards only after tests
 and human validation pass.
-

@@ -45,6 +45,10 @@ ceerat-builder check sql --output json
 ceerat-builder check drift --output json
 ```
 
+Before push, exercise identity resolution with a real local-Keycloak token and
+disposable local PostgreSQL identities. The resolver remains dormant in the
+production path until the coordinated cutover.
+
 ## Out of scope
 
 OAuth interceptor activation, gateway changes, UI compatibility, account-linking
@@ -54,4 +58,3 @@ UX, social-provider configuration, and generic identity-provider abstraction.
 
 Update service architecture, gRPC security, database/migration, privacy, and
 identity lifecycle documentation and service inventory.
-

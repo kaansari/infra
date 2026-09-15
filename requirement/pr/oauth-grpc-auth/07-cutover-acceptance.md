@@ -2,12 +2,15 @@
 
 Repositories: `contracts-repo`, `services-repo`, `apps-repo`, `infra`, builder
 documentation after validation  
-Depends on: PRs 01–06
+Depends on: PRs 01–06, including PR 03A
 
 ## Objective
 
 Prove the single OAuth authentication path end to end, remove obsolete
 end-user token machinery, and freeze deployment and operational evidence.
+
+Production completion additionally depends on all required configuration gates
+in [`../confi/`](../confi/). OAuth code acceptance alone is insufficient.
 
 ## Automated acceptance
 
@@ -29,13 +32,18 @@ end-user token machinery, and freeze deployment and operational evidence.
   server-session state from access-token expiry.
 - Verify deployment skew fails closed and no write is blindly retried.
 
+This entire automated acceptance runs locally first. All failures are fixed and
+the full local suite rerun before commits are pushed for Render deployment.
+Render/ChatGPT testing is a distinct post-push confirmation, never the defect
+discovery baseline.
+
 ## Cleanup
 
-- Remove internal end-user JWT encode/decode and gateway exchange code once no
-  active backend/MCP caller uses it.
+- Remove superseded internal end-user JWT encode/decode and gateway exchange
+  code in the coordinated cutover. Do not retain a compatibility mode.
 - Remove obsolete `JWT_SECRET` and gateway workload-secret wiring used only for
   end-user exchange. Retain separately justified workload authentication.
-- Remove obsolete public password/login/token-validation RPCs from the canonical
+- Remove superseded public password/login/token-validation RPCs from the canonical
   contract in a coordinated new-system cutover; reserve removed protobuf fields
   and method identifiers where applicable. Do not retain aliases or stubs as a
   compatibility API.
@@ -52,7 +60,7 @@ end-user token machinery, and freeze deployment and operational evidence.
 3. Server evidence shows the same issuer/subject/client/scope semantics and a
    continuous request/trace chain, with no raw credential.
 4. Refresh continues access; logout/revocation requires reauthorization.
-5. A captured old internal CEERAT test JWT is rejected by protected gRPC.
+5. A captured superseded internal CEERAT test JWT is rejected by protected gRPC.
 
 ## Required evidence
 
@@ -86,4 +94,3 @@ Update platform, service, contract, gateway, infrastructure, OAuth, security,
 logging, API-testing, incident, and deployment documentation. Only after human
 acceptance, update the platform-builder architecture/security/service standards
 to make Keycloak OAuth -> gRPC scope -> RBAC -> ownership the reusable rule.
-
