@@ -69,3 +69,35 @@ schema version without recording customer preference contents.
 
 RPC handlers, MCP, extra database, ORM-only production migration, arbitrary
 JSON, embeddings/search service, browser/REST/legacy paths.
+
+## Implementation record (2026-09-14)
+
+Implemented the five-table preference schema in the existing user-service
+PostgreSQL database with explicit idempotent forward migration, development
+rollback, committed SQL/startup preflight, customer foreign keys, closed typed
+value/scope constraints, logical uniqueness, positive versions, customer-first
+pagination/context indexes, durable idempotency/reconciliation records, and
+history/retention indexes. Preference models were deliberately excluded from
+`AutoMigrate`; production now fails closed before dependent behavior if the
+reviewed migration is absent.
+
+Added reviewed non-overwriting definitions, including bounded
+`txse_intelligence` signal-family, explanation, window, severity, and units
+settings. No market data, environment, entitlement, health, formula, position,
+suitability, warning suppression, or trading authority is stored. Repository
+interfaces/implementation repeat customer predicates, enforce bounds, redact
+dependency errors, and document profile -> preference -> operation/history
+locking.
+
+Preference package, full user-service tests, and build pass. The local Go 1.26
+race runtime is unavailable (`runtime/race: package testmain: cannot find
+package`), so the race gate must be rerun in CI/a supported toolchain. The PostgreSQL
+lifecycle harness covers missing-schema failure, apply/reapply, preflight,
+logical uniqueness, two-customer isolation, invalid scope rejection, rollback,
+and post-rollback failure when `CEERAT_TEST_DATABASE_URL` is supplied; it was
+skipped locally because that variable was not set. No RPC handler or tool was
+registered.
+
+Operator deployment record: `20260914_phase3_preferences.sql` was applied to
+the target database before this PR was pushed. The production service preflight
+therefore remains the authoritative deployment verification.

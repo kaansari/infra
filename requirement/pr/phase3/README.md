@@ -16,7 +16,7 @@ health, classification, formulas, or warnings.
 | --- | --- | --- | --- |
 | 1 | [OAuth scopes](01-preference-oauth-scopes.md) | `infra`, `apps-repo` metadata | Implemented locally; register read/write scopes and consent policy, then complete live reconciliation |
 | 2 | [gRPC contract](02-preference-grpc-contract.md) | `contracts-repo` | Implemented locally; typed, protected, self-scoped contract and inventories pass |
-| 3 | [Database foundation](03-preference-storage.md) | `services-repo` | Add migrations, constraints, seed catalog, preflight, and repositories |
+| 3 | [Database foundation](03-preference-storage.md) | `services-repo` | Implemented locally; migrations, constraints, seed catalog, preflight, and repositories pass automated gates |
 | 4 | [Read service](04-preference-read-service.md) | `services-repo` | Implement self-scoped get/list/context/definition reads |
 | 5 | [Write service](05-preference-write-service.md) | `services-repo` | Implement preview, confirmed idempotent mutation, history, and reconciliation |
 | 6 | [MCP read tools](06-preference-mcp-read-tools.md) | `apps-repo` | Expose bounded preference discovery and read tools |
