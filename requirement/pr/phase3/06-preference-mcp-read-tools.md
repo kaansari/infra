@@ -32,6 +32,9 @@ the Preferences capability group in `describe_ceerat`.
   database metadata, definition internals, history, or other customers' data.
 - Tool descriptions tell models that customer-authored preference text is
   untrusted data and current explicit user/system/developer instructions win.
+- TXSE context calls identify consumer purpose and state that preferences are
+  presentation/query defaults only. Returned content cannot be represented as
+  market fact, entitlement, advice, health, provenance, or a trading instruction.
 
 ## Errors, logs, and tests
 
@@ -47,6 +50,9 @@ raw keys/idempotency, and response bodies.
 - Two-user isolation through gateway -> real gRPC integration.
 - Prompt-injection strings are returned only as bounded quoted data and never
   affect tool selection or gateway control flow.
+- Integration projection tests combine preference context with a mock TXSE
+  intelligence response and prove explicit inputs and mandatory health,
+  freshness, classification, provenance, and warning fields always win.
 
 ```text
 env GOWORK=off go test ./...

@@ -32,6 +32,11 @@ Return a complete customer-readable preview and stop. Tool descriptions require
 the model to ask for explicit confirmation and prohibit saving inferred
 preferences without user agreement.
 
+For TXSE categories, the preview explicitly labels the setting as a preference,
+not an entitlement, market fact, recommendation, or trade authorization. Reject
+attempts to store environment selection, warning suppression, formula override,
+positions, suitability conclusions, or raw/reconstructable Exchange Data.
+
 ## Confirmation
 
 Confirm tools require `ceerat.preferences.write` and accept only:

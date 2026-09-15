@@ -4,12 +4,18 @@ Phase 3 implements customer-owned portable preferences for ChatGPT, Codex, and
 compatible MCP clients. The canonical requirement is
 [`../../pref.md`](../../pref.md).
 
+Phase 3 also prepares this domain for the new TXSE Intelligence direction in
+[`../../txse_developer_platform.md`](../../txse_developer_platform.md). This is
+an accommodation boundary, not a TXSE data implementation: preferences may
+shape bounded presentation/query defaults but never market truth, entitlement,
+health, classification, formulas, or warnings.
+
 ## Dependency order
 
 | Order | PR | Primary repository | Outcome |
 | --- | --- | --- | --- |
 | 1 | [OAuth scopes](01-preference-oauth-scopes.md) | `infra`, `apps-repo` metadata | Implemented locally; register read/write scopes and consent policy, then complete live reconciliation |
-| 2 | [gRPC contract](02-preference-grpc-contract.md) | `contracts-repo` | Add typed, protected, self-scoped preference contract |
+| 2 | [gRPC contract](02-preference-grpc-contract.md) | `contracts-repo` | Implemented locally; typed, protected, self-scoped contract and inventories pass |
 | 3 | [Database foundation](03-preference-storage.md) | `services-repo` | Add migrations, constraints, seed catalog, preflight, and repositories |
 | 4 | [Read service](04-preference-read-service.md) | `services-repo` | Implement self-scoped get/list/context/definition reads |
 | 5 | [Write service](05-preference-write-service.md) | `services-repo` | Implement preview, confirmed idempotent mutation, history, and reconciliation |
@@ -68,6 +74,13 @@ customer/user/tenant/role/scope identity. The two OAuth scopes are
   tokens, raw idempotency keys, prompts, credentials, and request bodies.
 - Explicit migrations and preflight precede the dependent service binary.
 - Hosted MCP schemas are versioned/refreshed and verified live after changes.
+- TXSE-oriented definitions are curated typed settings with declared consumer
+  domain; opaque instrument/watchlist references are resolved only by the TXSE
+  owner. No FEED, reconstructed book, signal history, positions, or suitability
+  data enters preference storage.
+- Preference-context failure cannot fail TXSE ingest/recovery/book publication;
+  the intelligence caller uses documented defaults and preserves health,
+  freshness, provenance, entitlement, and classification controls.
 
 ## Required builder workflow
 

@@ -44,6 +44,10 @@ Run through both clients with exact prompts stored in the acceptance harness:
     safe dependency failure, and prompt-like fixture handling.
 11. Clean all disposable preferences and verify original state restored except
     monotonic versions/audit allowed by policy.
+12. With an approved non-sensitive TXSE fixture, prove a saved explanation/window
+    preference affects only presentation/defaults; an explicit prompt overrides
+    it, missing entitlement remains denied, and health/freshness/provenance/
+    classification/warnings remain present. Do not expose live/raw FEED data.
 
 Each write has a fresh idempotency key, its own preview, and separate explicit
 human confirmation. Stop immediately on dependency unavailable, schema mismatch,

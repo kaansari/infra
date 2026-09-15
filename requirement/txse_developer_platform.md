@@ -1,634 +1,255 @@
-# CEERAT TXSE Developer Platform — Product and Technical Direction
+# CEERAT TXSE Intelligence Platform — Product and Technical Direction
 
-## 1. Purpose
+Status: canonical direction
 
-This document defines the proposed TXSE market-data product and how it fits the
-CEERAT platform established during the identity-focused Phase 1. It also makes
-the existing CEERAT product catalog and customer cart the first Phase 2 MCP
-expansion, before introducing licensed market-data operations.
+Sources: `TXSE_Intelligence_Platform_Project_Plan_v1.1_UAT.md` and `docs/txse/`
 
-CEERAT is not initially a retail trading application, broker, exchange member, order router, or custodian. The proposed product is a developer- and agent-facing data service that hides exchange feed, normalization, history, replay, and entitlement complexity behind stable APIs.
+Interfaces: public gRPC, WebSocket, and MCP; private authenticated gRPC
 
-> Reliable, licensed TXSE data through one CEERAT integration—for software developers and user-authorized AI assistants.
+## 1. Direction
 
-This is a directional requirement, not proof that CEERAT has permission to consume or redistribute TXSE data. Data licensing is the first commercial gate.
+CEERAT will build an intelligence platform around TXSE FEED, deterministic
+recovery/replay, reconstructed market state, versioned analytics, evidence-backed
+signals, and agent-native access. It consists of a restricted raw Exchange Data
+plane and a customer-facing Derived Intelligence plane. The first external
+product is approved, non-reversible intelligence—not broad raw FEED resale.
 
-## 2. Business thesis
+TXSE UAT is the primary pre-production environment. Production connectivity is
+purchased only after explicit recovery, book-correctness, compliance, and soak
+gates pass. This replaces the earlier quote/trade-API-first TXSE concept. Phase 1
+identity, Phase 2 commerce, and Phase 3 preferences remain reusable foundations,
+but do not own TXSE market truth.
 
-The initial customer is a fintech, research team, financial-software company, or smaller financial institution that needs market data without operating exchange connectivity and feed infrastructure.
+## 2. Binding source constraints
 
-```text
-Without CEERAT:
-exchange connectivity -> decoder -> sequence recovery -> normalization
--> order-book state -> historical storage -> replay -> customer API
+- Production is at NY6 and DR at DA11; VPN/cloud is test/certification only.
+- FEED uses five units and redundant A/B multicast. Logical feed IDs are not
+  `matchingEngineId` or `streamId`; daily reference data is authoritative.
+- Bounded gaps use TCP Rewind; bootstrap/major recovery uses SILO Snapshot.
+- Decoders must support FEED presence-bit/trailing-field extensibility and fail
+  closed on unsupported protocol versions without silently corrupting state.
+- Canonical coverage includes session/symbol status; displayed order lifecycle;
+  displayed executions; non-displayed trades/breaks; and auction preamble,
+  band-window, extension, and print semantics.
+- Records of receipt, use, display, and distribution are retained for at least
+  three years, or longer when required.
+- Systems, external outputs, and material changes remain within a TXSE-approved
+  System Description. CEERAT cannot self-approve a “Derived Data” label.
 
-With CEERAT:
-customer software -> gRPC/WebSocket -> CEERAT market-data services
-customer + AI chat -> OAuth + MCP    -> CEERAT market-data services
-```
+The UAT plan mentions REST, but CEERAT adapts that recommendation to its frozen
+boundary: gRPC for typed queries, WebSocket for streaming, and MCP for AI hosts.
+No REST compatibility or parallel backend is introduced.
 
-Both paths use the same authoritative domain services, authorization rules, entitlements, metering, and audit controls. MCP is an additional customer interface, not a separate business implementation.
+## 3. Product boundary
 
-### Product priorities
+> Evidence-backed TXSE intelligence without requiring customers or authorized
+> AI assistants to build exchange-feed infrastructure.
 
-1. **Licensed** — access, storage, redistribution, display/non-display, and derived-data rights are documented before commercial launch.
-2. **Reliable** — sequence integrity and correct normalized data take priority over analytics or AI explanations.
-3. **Simple** — a developer should reach a first successful sandbox call in minutes.
-4. **Developer-first** — stable gRPC/WebSocket contracts, documentation, credentials, usage reporting, and SDKs.
-5. **Agent-native** — user-authorized assistants receive a bounded MCP tool surface over the same backend.
-6. **Intelligent** — anomaly detection and explanations sit on authoritative data and remain distinguishable from observed facts.
-
-## 3. CEERAT platform direction
-
-CEERAT has two public integration styles:
-
-| Interface | Consumer | Authentication | Best suited for |
-| --- | --- | --- | --- |
-| gRPC/WebSocket | Customer software | OAuth workload/user credentials or scoped API credentials, as appropriate | Typed queries and streaming |
-| Remote MCP | ChatGPT, Codex, and compatible assistants | User-delegated OAuth authorization code with PKCE | Tool discovery and user-authorized actions |
-
-```text
-Chat user
-   |
-AI host (ChatGPT/Codex/other MCP client)
-   | HTTPS MCP + user OAuth bearer token
-ceerat-agent-gateway
-   | authenticated private gRPC
-CEERAT domain service
-   | ownership + policy + validation + persistence
-CEERAT stores / licensed upstream data
-```
-
-The public gateway owns protocol adaptation, discovery, external token validation, coarse scope checks, safe response shaping, and gateway abuse controls. Domain services remain authoritative for ownership, entitlements, validation, business policy, concurrency, and persistence.
-
-### Legacy AI-tool retirement
-
-The direct AI tools previously exposed by `ceerat-agent-service` are legacy and are not the target public integration. Their capabilities will move to remote MCP.
-
-- Do not add new public tools to the legacy surface.
-- Do not require new MCP tools to mirror legacy agent/customer inventories.
-- Remove superseded legacy tools, routes, adapters, inventories, and deployment
-  dependencies as each MCP capability becomes canonical. Do not retain an
-  executable fallback, rollback tool path, shadow implementation, or deprecated
-  callable copy.
-- Historical Git commits and completed migration documentation are sufficient
-  reference. Runtime and active inventory contain only the canonical MCP path.
-- Confirm production traffic and consumers before removing any path.
-
-The desired end state has two supported public integration paths:
-
-```text
-AI host -> remote MCP -> ceerat-agent-gateway -------+
-                                                      |
-Developer application -> CEERAT API gateway ---------+
-                                                      v
-                                          authenticated private gRPC
-                                                      |
-                                             gRPC security/RBAC
-                                                      |
-                                             CEERAT domain services
-                                                      |
-                                              databases/backends
-```
-
-The developer platform includes the developer portal, application/client
-registration, credentials, API documentation, sandbox access, usage and quota
-visibility, and gRPC/WebSocket APIs exposed through the CEERAT API gateway. The
-API gateway and agent gateway are separate protocol edges over the same domain
-services; neither gateway owns domain data or bypasses service authorization.
-
-Builder drift checks validate the canonical MCP inventory and fail when a
-superseded tool, route, adapter, method, or inventory entry remains. Legacy
-runtime entries are removal blockers, not tolerated migration debt.
-
-## 4. Phase 1 foundation and status
-
-Phase 1 establishes identity and safe account operations before CEERAT publishes jobs, skills, applications, or market-data tools.
-
-The deployed development integration has demonstrated:
-
-- public remote MCP discovery from Codex and ChatGPT;
-- OAuth authorization-code login with PKCE;
-- bearer tokens on protected MCP requests;
-- current-user and authentication-status queries;
-- customer-profile read and confirmed low-risk update;
-- connection listing, revocation, and logout;
-- typed schemas, request IDs, and agent-actionable errors;
-- public MCP backed by private gRPC services.
-
-This proves the integration direction but does not close the full security milestone. The completed Phase 1 plan lives in [`done/pr01/README.md`](done/pr01/README.md):
-
-| PR | Outcome |
-| --- | --- |
-| 01 | Strict gateway contracts and correct authentication-status behavior |
-| 02 | Truthful connection/access-token lifecycle and `is_current` |
-| 03 | Keycloak OAuth/OIDC client and policy hardening |
-| 04 | Negative tests for token validation and per-tool scopes |
-| 05 | Session-aware logout and connection revocation |
-| 06 | Prepare/confirm profile-write safety and replay/conflict tests |
-| 07 | Rate limiting and safe audit controls |
-| 08 | Live two-user and credential-revocation acceptance |
-| 09 | Evidence, documentation synchronization, and Phase 1 freeze |
-
-PRs 01–07 are implemented. PR 08 has eleven passing Codex checks and eight
-explicit human/operator checks remaining. PR 09 freezes the release candidate,
-but Phase 1 is complete only when those remaining checks pass and the milestone
-tag is created. A successful development login is not production security
-sign-off.
-
-Phase 1 includes identity, self-profile, agent connections, OAuth, scopes, safe
-errors, auditability, and abuse protection. It excludes products, carts, jobs,
-skills, applications, TXSE data, account deletion, brokerage, and Kubernetes.
-Phase 2 begins with the existing product/cart domain. TXSE work builds on the
-same frozen identity boundary; neither changes Phase 1.
-
-## 5. Identity and authorization
-
-An AI host must not receive a shared CEERAT platform key. Each user connects their own CEERAT account through OAuth and grants explicit scopes. Protected calls carry the resulting bearer access token. OAuth supplies delegated, revocable consent; the bearer token is the credential used afterward.
-
-The gateway validates at least signature and algorithm, issuer, audience/resource, expiration, not-before time, subject, required scope, and applicable session/revocation policy.
-
-The model must never supply a `user_id`, `customer_id`, tenant, role, scope, or connection owner to gain authority. Identity and ownership derive from validated credentials and server-side records.
-
-The external token terminates at the gateway. Internal calls use authenticated workload identity and trusted identity context. Services must not trust arbitrary gRPC metadata.
-
-Authorization and approval are separate. Consequential operations must use prepare/confirm where appropriate. Prepared actions bind subject, normalized inputs, policy decision, expiry, and a single-use or replay-safe identifier. An uncertain write result must not invite blind retries.
-
-## 6. Agent-compatible contracts and errors
-
-Every MCP tool publishes a closed, typed schema with descriptions, required fields, bounds, enums, and defaults where appropriate. Unknown fields and malformed nested values fail before execution. No-argument tools reject unexpected arguments.
-
-Errors must safely tell an assistant whether to correct the request, ask the user, authenticate, obtain consent/entitlement, wait, retry, or stop.
-
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "INSUFFICIENT_SCOPE",
-    "message": "This operation requires an additional permission.",
-    "category": "authorization",
-    "retryable": false,
-    "user_action_required": true,
-    "required_scopes": ["ceerat.market.history.read"],
-    "correct_arguments": null,
-    "operation_state": "not_started",
-    "request_id": "req_..."
-  }
-}
-```
-
-Public errors may include a stable code/category, safe message, retryability and bounded retry delay, required user action, scopes/entitlements, safe validation paths, operation state, and request ID.
-
-They must not expose tokens, secrets, passwords, raw upstream responses, stack traces, SQL, private addresses, topology, or cross-customer data. Sanitized internal diagnostics correlate through the request ID.
-
-## 7. Phase 2: existing product and cart domain
-
-The first post-identity expansion reuses the existing CEERAT commerce domain.
-This is intentionally simpler than TXSE market data and provides a controlled
-way to prove that ChatGPT can discover and call additional MCP tools through the
-same OAuth, gateway, private-gRPC, RBAC, ownership, error, rate, and audit
-boundaries.
-
-The existing `service.ServiceManager` gRPC service remains the domain owner. It
-already exposes `ListProducts` and `GetProduct`. Phase 2 replaces the current
-customer-ID-shaped cart operations with explicit `GetMyCart`, `AddMyCartItem`, `UpdateMyCartItem`,
-`RemoveMyCartItem`, and `ClearMyCart` private gRPC contracts with no user or
-customer selector, then projects them through `ceerat-agent-gateway`. It does
-not create a new product service, duplicate product storage, or expose gRPC
-reflection publicly.
-
-```text
-ChatGPT/Codex
-  -> remote MCP + user OAuth bearer token
-  -> ceerat-agent-gateway
-  -> authenticated private gRPC
-  -> service.ServiceManager
-  -> product/catalog and customer-cart repositories
-```
-
-This CEERAT product catalog represents goods or services CEERAT sells. It is
-separate from TXSE instruments, quotes, subscriptions, or financial products.
-A catalog item may later represent a purchasable TXSE data plan, but catalog
-identity, commercial entitlement, and exchange instrument identity remain
-separate concepts.
-
-Phase 2 is deliberately MCP- and gRPC-first. Existing browser UI migration or
-compatibility is outside its scope. A later AI-assisted UI implementation may
-consume the completed APIs, but UI needs do not define ownership or weaken the
-service contract.
-
-### Phase 2 MCP tools
-
-Start with these names and validate them during design:
-
-```text
-products_list
-products_get
-products_cart_get
-products_cart_add_item
-products_cart_update_item
-products_cart_remove_item
-products_cart_clear
-```
-
-MCP itself returns a flat tool list, so the `products_` name prefix is the
-portable grouping visible to ChatGPT and other clients. The CEERAT tool registry
-also records `domain: products`, emits `ceerat/domain: products` as optional
-tool metadata, and groups these operations under Products in `describe_ceerat`.
-Clients may ignore custom metadata; authorization never depends on it.
-
-`products_list` supports bounded pagination and allowlisted filters already
-represented by `ListProductsRequest`: active state, query, sort, category,
-model, size, color, price bucket, and availability. The gateway sets a safe
-maximum page size and rejects unknown filters. `products_get` accepts one opaque
-product ID and returns `NOT_FOUND` without leaking unpublished inventory.
-
-Every cart tool and its corresponding private `My` RPC is authenticated and
-self-scoped. Neither schema may contain `customer_id`, `user_id`, owner, role,
-scope, price, discount,
-inventory count override, or total. The gateway and service derive the customer
-from the validated identity; the service remains authoritative for ownership,
-active product/variant status, inventory, price, currency, totals, and
-concurrency. A product or variant ID selects merchandise, never authority.
-
-Use separate least-privilege OAuth scopes:
-
-```text
-ceerat.products.read
-ceerat.products.cart.read
-ceerat.products.cart.write
-```
-
-Catalog list/detail are read-only. Cart mutations require explicit tool
-invocation, idempotency where a retry could duplicate quantity, and a current
-cart version or equivalent optimistic-concurrency control. `products_cart_clear` is a
-destructive operation and requires `confirmed: true`; remove/update operations
-must return enough preview/current-state information for ChatGPT to identify the
-affected item without exposing another customer's cart. Checkout, payment,
-orders, subscriptions, discounts, admin catalog mutation, and inventory
-management are deferred beyond this Phase 2 slice.
-
-### Phase 2 delivery order
-
-The detailed dependency-ordered PR designs are in
-[`../pr/phase2/README.md`](../pr/phase2/README.md).
-
-1. **PR 2.1 — OAuth scopes:** register optional product/cart permissions for the
-   dedicated ChatGPT and Codex clients.
-2. **PR 2.2 — catalog reads:** add gateway gRPC adapter methods and
-   `products_list`/`products_get` schemas, scopes, safe errors, rate limits,
-   audit events, and deterministic tests.
-3. **PR 2.3 — self-cart contract:** replace customer-ID-shaped cart RPCs with
-   protected `*MyCart*` methods whose messages contain no identity selector.
-4. **PR 2.4 — service enforcement:** implement authenticated-customer
-   resolution, an explicit tested PostgreSQL migration, ownership, idempotency,
-   versioning, and atomic cart operations.
-5. **PR 2.5 — self-cart read:** expose `products_cart_get` only through `GetMyCart` and
-   prove two-user isolation.
-6. **PR 2.6 — bounded cart writes:** add, update, remove, and confirmed clear
-   with idempotency/concurrency tests and truthful uncertain-outcome handling.
-7. **PR 2.7 — live ChatGPT acceptance:** verify discovery, pagination, product
-   detail, self-cart ownership, reversible mutations, approval UX, audit
-   correlation, and logout/revocation using disposable catalog data.
-
-Phase 2 acceptance requires ChatGPT and Codex to list products, retrieve one
-product, read the authenticated user's cart, add/update/remove a disposable
-item, reject cross-user access and model-supplied identity fields, and return
-agent-actionable errors for invalid product, insufficient scope, stale cart,
-rate limit, and unavailable dependency. The test restores the original cart
-and retains no credentials or customer data in evidence.
-
-Phase 2 database changes use sortable explicit SQL migrations in the owning
-user service. Tests apply migrations to empty and representative pre-change
-PostgreSQL schemas, repeat them idempotently, validate constraints/indexes,
-exercise safe rollback or documented roll-forward, and run repository, gRPC,
-and MCP integration tests against disposable data. Production applies and
-verifies the schema before starting code that depends on it; startup
-`AutoMigrate` is not the sole production migration control.
-
-Every Phase 2 MCP and downstream gRPC operation emits sanitized, correlated
-server-side audit events for attempts, authorization decisions, dispatch, and
-outcomes. This includes discovery, authentication/scope rejection, product and
-cart reads, writes, confirmations, idempotent replay, conflicts, rate limits,
-dependency failures, logout, and post-revocation denial. Every client envelope
-returns the server request ID; logs never contain credentials, raw tool
-arguments/results, OAuth claims, prompts, SQL values, or cross-customer data.
-
-### Phase 2 completion record
-
-The product catalog and authenticated self-cart slice was completed and
-human-validated through ChatGPT on 2026-09-09. The deployed path proved OAuth
-scope expansion, Products-domain discovery, catalog reads, self-scoped cart
-read/write, service-owned totals, optimistic versioning, idempotency, confirmed
-clear preparation, structured dependency failures, and private gRPC ownership.
-The durable evidence and deployment/schema lessons are recorded in
-[`../docs/public-agent-phase-2-milestone.md`](../docs/public-agent-phase-2-milestone.md).
-
-This completion does not expand Phase 2 into checkout, payments, orders,
-subscriptions, admin product mutation, or UI work. Those remain separately
-designed capabilities and must build on the frozen product/cart identity and
-security boundary.
-
-### Phase 2 order lifecycle extension
-
-Phase 2 next extends the validated product/cart foundation into customer-owned
-orders using the existing `order.OrderManager`. The dependency-ordered PR plan
-is [`pr/phase2/README.md`](pr/phase2/README.md). The extension adds narrow order
-OAuth scopes, self-scoped update/cancel contracts, transactional persistence,
-order read/quote/checkout/update/cancel MCP tools, and deployed acceptance.
-
-```text
-ChatGPT/Codex
-  -> HTTPS MCP + user OAuth bearer token
-  -> ceerat-agent-gateway
-  -> authenticated private order.OrderManager gRPC
-  -> ceerat-user-service order domain
-  -> PostgreSQL
-```
-
-Order creation consumes the authenticated customer's cart atomically; the
-model cannot submit identity, product lines, price, tax, shipping amount,
-discount amount, total, status, or payment state. Updates are versioned and
-limited to mutable pending-payment selections. Customer deletion is a
-versioned, confirmed cancellation transition: order records are never
-physically deleted. Separate prepare and confirm MCP tools avoid polymorphic
-hosted-client schemas and bind every consequential operation to the user,
-client, resource version, normalized inputs, and expiry.
-
-The extension has no REST API, browser UI, real payment-provider integration,
-admin order MCP, legacy AI-tool update, compatibility alias, dual-write, or
-predecessor-schema accommodation.
-
-## 8. Proposed TXSE product surface
-
-Subject to licensing, capabilities include symbol/reference discovery, latest quotes, recent trades, streams, current/historical books, historical data, replay, derived aggregates, anomalies, and explanations that separate observations, calculations, and model interpretation.
-
-Illustrative gRPC/WebSocket surface:
-
-```text
-MarketDataService.SearchSymbols(...)
-MarketDataService.GetQuote(...)
-MarketDataService.ListTrades(...)
-MarketDataService.GetOrderBook(...)
-MarketDataService.GetTradeHistory(...)
-WSS /api/v1/market/stream
-```
-
-Illustrative MCP surface:
-
-```text
-search_market_symbols
-get_market_quote
-list_market_trades
-get_market_orderbook
-get_market_history
-list_market_anomalies
-explain_market_anomaly
-```
-
-Names remain provisional until rights, use cases, and canonical domain contracts are validated. Native WebSocket remains the streaming interface unless MCP client support makes an MCP stream operationally sound.
-
-| Class | Examples | Default control |
+| Class | Contents | Default exposure |
 | --- | --- | --- |
-| Low-impact read | Quote, symbol lookup | Scope + entitlement + rate limit |
-| Costly/bulk read | Long history, replay, export | Scope + entitlement + quotas/cost bounds |
-| Derived/model output | Anomaly explanation | Provenance + uncertainty + factual grounding |
-| Consequential mutation | Purchase, subscription, future order action | Prepare/confirm + policy + audit; defer unless required |
+| Raw Exchange Data | packets, decoded events, order book | internal or separately approved/entitled |
+| Analytics | depth, imbalance, velocity, withdrawal/replenishment, auction metrics | candidate Derived Data; approval required |
+| Intelligence | anomaly/regime signals, confidence, evidence, explanations | primary external product after approval |
+| AI projection | bounded MCP tools over intelligence contracts | delegated, entitled, and audited |
 
-Bound symbols, time ranges, pages, book depth, subscriptions, concurrent streams, and export volume. Server-side entitlements override model requests.
+MVP excludes order entry/execution, brokerage, custody, personalized investment
+advice, consolidated-NBBO claims without other licensed sources, unrestricted
+raw redistribution, LLM computation of market truth, REST, browser backends,
+legacy AI tools, compatibility aliases, fallbacks, and dual implementations.
 
-## 9. Target architecture
+## 4. Architecture and ownership
 
 ```text
-Licensed TXSE/vendor feed or approved replay data
-                  |
-       ingest + decoder + sequence checks
-                  |
-          normalized event stream
-             /           \
-  real-time/book state   historical writer
-             \           /
-              market-data service
-                       |
-             authenticated private gRPC
-                       |
-                gRPC security/RBAC
-                  /             \
-                 /               \
-       CEERAT API gateway    MCP agent gateway
-          /           \              |
-       gRPC         WebSocket     remote MCP
-         |              |             |
- developer apps      data apps      AI hosts
+TXSE FEED 1-5 A/B
+ -> edge ingest -> immutable raw archive
+ -> sequence/duplicate merge -> Rewind or SILO recovery
+ -> versioned decoder -> canonical MarketEvent stream
+ -> reference + book + trades + auction
+ -> metrics -> signals -> evidence-backed Intelligence
+ -> txse-intelligence-service (private gRPC authority)
+      -> CEERAT API gateway -> public gRPC/WebSocket
+      -> ceerat-agent-gateway -> public HTTPS MCP
+ -> entitlement + usage + compliance ledger
+
+PreferenceService in ceerat-user-service
+ -> bounded customer presentation/query defaults only
 ```
 
-### Responsibilities
+`txse-edge-ingest` owns sockets, timestamps, raw envelopes, and transport
+telemetry. `txse-recovery` owns gaps, Rewind, SILO, buffering, and catch-up.
+`txse-feed-decoder` owns framing-aware spec-versioned decoding. `txse-reference`
+owns effective-dated mappings. `txse-book`, `txse-trades`, and `txse-auction`
+own deterministic state. `txse-metrics` and `txse-signals` own versioned
+calculation and evidence. A new `txse-intelligence-service` owns query contracts
+and safe projections. The gateways only authenticate, authorize, meter, and
+adapt; they own no market logic.
 
-**Ingest/decoder:** use approved transport, decode canonical events, preserve timestamps, detect duplicates/order/gaps/reconnects, and retain raw data only when permitted.
+External OAuth terminates at a public gateway. Private calls use workload
+identity and integrity-protected user/tenant context. Each service repeats RBAC,
+entitlement, ownership, deadline, and classification checks. Public inputs never
+select trusted identity, role, scope, environment, source feed, or data class.
 
-**Real-time processor:** preserve per-symbol ordering, maintain bounded state and reproducible snapshots, produce data-quality metrics, and contain corrupt partitions.
+## 5. Events, health, and intelligence
 
-**Historical storage:** evaluate PostgreSQL/TimescaleDB using measured volumes; define numeric precision, partitions, indexes, retention, compression, replay, and deletion around contractual rights.
+Every canonical event carries environment, FEED unit/side, engine/stream,
+exchange/receive/decode timestamps, session/sequence, symbol, raw/canonical type,
+decoder version, and recovery/replay correlation.
 
-**Market-data service:** own query semantics, data ownership, entitlements,
-plans, pagination, validation, and usage accounting; expose private gRPC and
-stable domain errors.
-
-**gRPC security/RBAC boundary:** authenticate calling workloads, propagate only
-trusted subject/customer context, authorize service methods, and preserve
-defense in depth inside domain services. Network reachability alone never grants
-authority.
-
-**CEERAT API gateway:** expose the developer gRPC/WebSocket surface,
-authenticate customers and applications, translate public contracts into
-private gRPC, and enforce edge limits, heartbeat, reconnect, backpressure, and
-gap semantics.
-
-**MCP gateway:** translate bounded tools to domain calls, derive identity from OAuth, avoid duplicating market logic, and return timestamps, freshness, provenance, and partial-data warnings.
-
-## 10. Canonical data model
-
-Define versioned objects for `Instrument`, `Trade`, `Quote`, `OrderEvent` where licensed, `OrderBookSnapshot`, `FeedHealth`, `SequenceGap`, `AggregateMetric`, and `Anomaly` with evidence/detector version.
-
-Every event carries source, schema version, exchange timestamp, ingestion timestamp, sequence identity where available, and data-quality state. Responses state whether data is real-time, delayed, simulated, replayed, incomplete, or stale.
-
-Book reconstruction begins with a verified snapshot and ordered deltas. A missing sequence invalidates the affected book until recovery; guessed state is never presented as authoritative.
-
-## 11. Licensing and entitlements
-
-Obtain written answers for:
-
-1. permitted feeds and test/certification environments;
-2. connectivity and approved-provider requirements;
-3. internal-use and external-redistribution rights;
-4. gRPC, WebSocket, MCP, bulk, display, and non-display treatment;
-5. historical storage and redistribution;
-6. derived-data and AI-analysis rights;
-7. downstream agreements and identity requirements;
-8. entitlement, usage reporting, attribution, and audit obligations;
-9. delayed-data requirements;
-10. data, connectivity, certification, and redistribution fees;
-11. retention/deletion obligations;
-12. incident and compliance-review obligations.
-
-An authoritative entitlement module maps customer and credential to datasets, symbols, depth, latency class, history, usage, and redistribution mode. OAuth scopes express operation categories; they do not replace commercial entitlements.
-
-## 12. Security and operations
-
-- Require TLS for public interfaces and authenticated internal traffic.
-- Keep secrets in deployment secret stores, never Git, examples, logs, or responses.
-- Apply least privilege, rotation, expiry, and revocation to user/workload credentials.
-- Rate-limit by subject, customer, credential, operation, and costly query dimensions.
-- Audit actor, client, operation, target class, decision, result, request ID, and safe reason—never credentials.
-- Isolate customer data, queries, entitlements, usage, and saved artifacts.
-- Fail closed when identity, entitlement, feed integrity, or ownership is uncertain.
-- Treat model output as untrusted presentation, not market fact or policy input.
-- Do not imply a trading recommendation or execution workflow from anomaly output.
-
-Development may use direct Go deployment, managed services, and approved simulation/replay. Kubernetes is not required during development.
-
-## 13. Reliability and observability
-
-Monitor feed/heartbeat state; gaps, duplicates, and recovery; event and delivery latency; stream lag; storage failures; quote/book freshness; API availability; WebSocket backpressure/reconnects; entitlement/rate-limit/OAuth failures; MCP outcomes; and reconciliation correctness.
-
-Health must distinguish process health from data readiness. A running service with stale or gapped data is not ready to serve authoritative results.
-
-## 14. Testing and acceptance
-
-### Data correctness
-
-- Golden vectors for decoded messages and fuzz tests for malformed inputs.
-- Duplicate, out-of-order, gap, reconnect, and rollover scenarios.
-- Deterministic snapshot-plus-delta reconstruction and replay.
-- Reconciliation against an approved reference source where permitted.
-
-### APIs and streams
-
-- Contract tests across public gRPC, WebSocket, private gRPC, and MCP projections.
-- Pagination, time boundaries, freshness, and partial-data behavior.
-- Subscription, reconnect, backpressure, slow-consumer, and measured load tests.
-
-### Identity and isolation
-
-- Missing, malformed, expired, wrong-issuer/audience, and revoked tokens.
-- Insufficient scope versus insufficient commercial entitlement.
-- Two-user and two-customer isolation.
-- Attempts to select another identity through model-controlled fields.
-- Rotation/revocation and secret/PII/topology leakage checks.
-
-### LLM/MCP acceptance
-
-1. Discover only intended active tools.
-2. Complete OAuth and identify the correct user.
-3. Request an entitled quote/history operation.
-4. Verify missing scope and entitlement produce distinct safe guidance.
-5. Reject unknown/out-of-range arguments before execution.
-6. Clearly label stale, gapped, simulated, or replayed data.
-7. Revoke the connection and reject subsequent calls.
-8. Confirm legacy `ceerat-agent-service` tools are absent.
-
-Chat testing is acceptance evidence, not a replacement for deterministic security and data tests.
-
-## 15. Roadmap and gates
-
-### Gate A — Finish identity
-
-Complete Phase 1 PRs 02–09 and freeze the OAuth/MCP boundary. TXSE discovery may proceed in parallel, but TXSE tools must not bypass unfinished controls.
-
-### Gate B — Product and cart MCP pilot
-
-Implement Phase 2 PRs 2.1–2.4 against the existing `ServiceManager` domain.
-Release catalog reads before cart writes. Prove ChatGPT discovery, user-derived
-cart ownership, safe mutation semantics, and reuse of Phase 1 controls before
-adding TXSE tools.
-
-### Gate C — Validate TXSE business and rights
-
-Interview 15–25 prospects, recruit 3–5 design partners, document licensing/entitlements/fees, and stop or reshape the product if rights or economics fail.
-
-### Gate D — Prove feed feasibility
-
-Using approved data, define schemas, decode required events, demonstrate sequencing/replay/reconciliation, and measure throughput, latency, storage, and cost.
-
-### Gate E — Developer API pilot
-
-Implement the domain service, minimal public gRPC and WebSocket surfaces,
-credentials, entitlements, limits, metering, documentation, and design-partner
-onboarding.
-
-### Gate F — TXSE MCP pilot
-
-Project a small read-only subset through the gateway. Begin with symbol search, quote, and bounded recent trades/history. Reuse Phase 1 OAuth, errors, connections, scopes, and audit controls. Validate with distinct Codex/ChatGPT users and entitlements.
-
-Do not begin with bulk export, unconstrained history, execution, or an open-ended model-controlled query language.
-
-### Gate G — Expansion
-
-Add books, longer history, anomaly detection, and model explanations only when rights, correctness, and customer demand justify them.
-
-## 16. MVP scope
-
-The Phase 2 commerce pilot includes bounded product list/detail and the
-authenticated customer's cart through MCP, backed by the existing gRPC domain.
-It is the integration proving ground before the TXSE MVP.
-
-The TXSE MVP includes approved data ingestion; normalized symbol/quote/trade
-schemas; sequence/readiness monitoring; quote/recent-trade APIs; bounded
-streaming; basic licensed history; identity, credentials, entitlements, rate
-limits and metering; quickstart documentation; and a small read-only MCP
-projection after Phase 1 closure and the product/cart pilot.
-
-Defer brokerage, custody, routing, execution, AI-first intelligence, unbounded exports, unnecessary full-depth books, multi-exchange support, Kubernetes, broad SDK coverage, and new legacy `ceerat-agent-service` tools.
-
-## 17. Commercial model
-
-Derive pricing from interviews, measured infrastructure cost, and exchange/provider charges. Potential developer, professional, and enterprise tiers may vary by latency, datasets, history, depth, throughput, streams, retention, SLA, and support. Earlier illustrative prices are not commitments.
-
-Track time to first call, active customers/credentials, delivered usage, paid conversion, margin after data/infrastructure fees, reliability, support burden, retention, and expansion.
-
-## 18. Builder-agent governance
-
-`ceerat-platform-builder-agent` is a development-time source of CEERAT context, security standards, ownership boundaries, inventories, and validation. It is not a runtime anomaly-analysis service and does not sit in the market-data request path.
-
-Before every implementation PR:
-
-```bash
-ceerat-builder check-context
-ceerat-builder codex-context --output json
-ceerat-builder app-context ceerat-agent-gateway --output json
-ceerat-builder patterns grpc-security --output json
-ceerat-builder docs all --output json
+```text
+INITIALIZING -> SNAPSHOT_LOADING -> CATCHING_UP -> LIVE
+LIVE -> GAP_DETECTED -> RECOVERING -> LIVE
+RECOVERING -> DEGRADED -> SNAPSHOT_LOADING
 ```
 
-Add service-specific context when the market service exists. Validate OAuth termination, workload authentication, service ownership, tenant/entitlement boundaries, model-controlled inputs, error/log redaction, consequential operations, the single canonical inventory, removal of superseded paths, and preservation of public MCP -> gateway -> private gRPC.
+Authoritative book-derived output is suppressed while required state is
+untrusted. Every response/update carries environment, as-of time, freshness,
+health, completeness, and degradation/recovery warnings.
 
-After every PR:
+Initial signals are depth imbalance, liquidity withdrawal/replenishment,
+execution velocity, hidden/non-displayed-liquidity ratio, and auction pressure.
+Each has versioned formulas, units, windows, baselines, confidence, evidence,
+health requirements, and replay tests. LLMs explain bounded evidence only; they
+cannot invent causation, hide degradation, or describe a TXSE-only view as the
+whole market.
 
-```bash
-ceerat-builder check apps --output json
-ceerat-builder check drift --output json
+## 6. Public interfaces
+
+Illustrative gRPC operations are `GetSymbolIntelligence`,
+`ListUnusualActivity`, `GetLiquidityAnalysis`, `GetAuctionIntelligence`,
+`GetHaltState`, `GetSignal`, `ListHistoricalSignals`, and
+`ExplainSignalEvidence`.
+
+WebSocket publishes entitled intelligence updates with bounded subscriptions,
+resumable cursors, heartbeats, backpressure, and explicit gap/reset semantics.
+It is never a raw FEED tunnel.
+
+Initial MCP tools use a flat `txse_` namespace and
+`ceerat/domain: txse_intelligence`:
+
+```text
+txse_get_symbol_intelligence
+txse_get_unusual_activity
+txse_get_liquidity_analysis
+txse_get_auction_state
+txse_get_halt_state
+txse_explain_signal
 ```
 
-Run `make verify-platform` for shared contracts, inventories, security
-boundaries, or deployment changes. A superseded callable or inventory entry is
-a failure; it cannot be waived by labeling it deprecated or rollback-only.
+Schemas are closed/bounded. Responses include request ID, operation state,
+timestamps, provenance, health, classification, and safe actionable errors.
+Any future raw tools require distinct contracts, scopes, product entitlement,
+audit classification, TXSE approval, and hosted-app review—not aliases.
 
-After merge, deployment, and human validation, update owning documentation and make a focused builder documentation checkpoint for reusable, tested rules. Deployment evidence belongs in `infra`; reusable standards belong in `ceerat-platform-builder-agent`; speculation does not become a standard.
+## 7. Preference-engine accommodation
 
-## 19. Immediate actions
+Phase 3 preferences may hold curated, typed choices such as preferred signal
+families, explanation detail, default time window, alert-severity threshold,
+presentation units, and bounded references to instruments/watchlists. Relevant
+definitions declare consumer domain `txse_intelligence`.
 
-1. Complete the PR 08 human/operator acceptance checklist and attach redacted
-   evidence to the Phase 1 release candidate.
-2. Design Phase 2 PR 2.1 for `products_list` and `products_get` using the existing
-   `service.ServiceManager` contracts and add the new OAuth scope definitions.
-3. Implement the Phase 2 self-cart gRPC contracts so neither MCP nor the private
-   customer RPC accepts `customer_id`; derive it only from authenticated service
-   context.
-4. Seed disposable active products for repeatable Codex/ChatGPT acceptance.
-5. Create a written TXSE/vendor licensing and entitlement questionnaire.
-6. Interview customers and recruit design partners.
-7. Obtain approved specifications and sample/certification/replay data.
-8. Draft the canonical event schema and minimal read-only API contract.
-9. Prototype decoding, sequence recovery, and reconciliation before AI explanations or a broad portal.
+```text
+explicit current request
+ > entitlement and server policy
+ > health, quality, and classification controls
+ > saved preferences
+ > service defaults
+```
 
-The governing principle is: make licensed market data easy to consume without moving correctness, identity, entitlement, or customer policy decisions into an LLM.
+Preferences cannot grant access, choose UAT/PROD/DR, suppress provenance,
+freshness, health, risk, or licensing warnings, change formulas, authorize
+trades, or represent holdings/suitability. Instrument/watchlist IDs are opaque
+references validated by their owning domain; PreferenceService never ingests
+FEED or dereferences market IDs. Customer-authored text remains untrusted data,
+never system/developer instruction.
+
+An intelligence service may request minimized self-scoped preference context
+over authenticated private gRPC, or an AI host may call `preferences_context`
+before a TXSE tool. Category, consumer purpose, and result size are mandatory
+and audited. TXSE ingest/recovery/book availability never depends on preferences.
+
+## 8. Entitlement, compliance, and errors
+
+- OAuth scopes and product/data entitlements are independent; a scope alone is
+  never permission to receive Exchange Data.
+- Server-enforce symbol, window, history, rate, concurrency, and size limits.
+- Classify every field by source, raw/derived status, time basis, use,
+  distribution, retention, formula version, and required grant.
+- Audit pseudonymous actor/tenant, product, entitlement, endpoint/tool, data
+  class, time basis, formula version, outcome, request ID, and safe counts.
+- Never log tokens, exchange credentials, packet bodies, reconstructable data,
+  preference values, prompts, or customer content.
+- Block unreviewed fields, formulas, tools, routes, external uses, and material
+  System Description changes; provide emergency tenant/product/output disable.
+- Errors include safe code/category/message, retryability/delay, operation state,
+  request ID, safe violated rule/dependency class, and next action. They exclude
+  topology, multicast/recovery credentials, SQL, raw data, and foreign identity.
+
+## 9. Storage, replay, and observability
+
+Use encrypted immutable raw object archives; an ordered replayable canonical
+stream; integrity-checked book snapshots; and measured Postgres/Timescale stores
+for reference, trades, metrics, signals, and compliance. Preference data remains
+in CEERAT PostgreSQL, outside TXSE raw/event storage. Live and replay paths share
+the decoder/book implementation and produce stable events and book hashes.
+
+Observe A/B divergence, duplicates, gaps, Rewind/SILO, decoder unknowns,
+reference age, event lag, book hashes/health, storage/backpressure, metric/signal
+lag, WebSocket gaps, OAuth/RBAC/entitlement denials, MCP outcomes, compliance
+ledger health, and preference minimization. Silent recovery or stale-data
+downgrade is release-blocking.
+
+## 10. UAT-first gates
+
+1. **Legal/access:** Data Recipient, System Description, FEED/Rewind/SILO/
+   reference access, certification cases, network path, and external-output
+   classification path.
+2. **Raw truth:** FEED 1–5 A/B, archive-before-decode, sequence merge, reference
+   mapping, golden decoders, deterministic replay.
+3. **Recovery/book:** injected Rewind recovery, empty-start SILO recovery,
+   invariants, stable hashes, and fail-closed health publication.
+4. **History/contracts:** replay reconciliation, measured cost/latency,
+   authenticated internal gRPC/WebSocket, and 24-hour soak.
+5. **Intelligence:** five backtested signals, evidence/confidence,
+   false-positive review, and non-reversibility assessment.
+6. **Customer/MCP:** entitled public gRPC/WebSocket/MCP, metering, audit,
+   constrained explanations, sandbox docs, and safe preference defaults.
+7. **Production/beta:** certification, approved System Description, network/DR,
+   chaos/capacity/security/runbooks, then controlled 30-day live beta.
+
+UAT acceptance requires repeatable A/B receipt/capture; decoder/replay/book-hash
+determinism; working Rewind and SILO; chaos and soak evidence; historical
+reconciliation; five reviewed signals; authenticated/entitled/audited public
+interfaces; two-customer isolation and token lifecycle; redaction; and proof
+that preferences cannot override explicit requests, entitlement, health,
+classification, or warnings.
+
+## 11. Existing milestones and governance
+
+Phase 1 established OAuth MCP, PKCE/refresh, structured errors, private gRPC,
+and authorization-server revocation. Phase 2 established catalog/cart/order,
+prepare-confirm safety, idempotency/reconciliation, migrations/preflight, and
+live clients. Commerce `Product` is not a TXSE instrument. Phase 3 provides
+portable preferences and must follow the safeguards above without blocking the
+TXSE data plane.
+
+Use `ceerat-platform-builder-agent` for owner evidence, contracts, gRPC
+security/RBAC, app surfaces, impact, and drift on every PR. Current evidence
+finds no TXSE owner, so define a new explicit intelligence owner rather than
+letting keyword matching place it in `ceerat-user-service`. Builder output is
+evidence, not authority for generic CRUD, public gRPC methods, REST, or aliases.
+After validation, update contract/service/app inventories and durable builder
+architecture, security, compliance, logging, AI-tool, and testing standards.
+
+## 12. Immediate actions
+
+1. Confirm Data Recipient and submit/update the System Description for UAT,
+   internal non-display processing, storage, derived outputs, gRPC/WebSocket/MCP,
+   AI explanation, and entitlement.
+2. Request current FEED framing, UAT 1–5 A/B, Rewind, SILO, reference data,
+   test-symbol, and certification material.
+3. Obtain written classification, non-reversibility, MCP/LLM delivery,
+   reporting, and fee answers for representative outputs.
+4. Create canonical protobuf/events, environment-separated configuration, raw
+   capture, decoder fixtures, replay tooling, and observability.
+5. Demonstrate capture -> decode -> deterministic replay before UI or production
+   connectivity spend; define the five signal specs and compliance dictionary.

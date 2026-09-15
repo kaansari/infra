@@ -39,6 +39,10 @@ No OAuth tokens, prompts, raw tool payloads, or secrets enter these tables.
   preference -> operation/history.
 - Seed a small reviewed definition catalog idempotently with stable keys and
   versions. Application startup must not overwrite operator-reviewed changes.
+- Seed only reviewed typed TXSE Intelligence preferences (signal family,
+  explanation detail, default window, severity, units). Store bounded opaque
+  references only; never FEED events, books, signals, portfolios, positions,
+  entitlements, suitability, or reconstructed/raw Exchange Data.
 - Add explicit rollback for development and preflight SQL/startup checks that
   fail closed when required objects/constraints are absent.
 
@@ -48,6 +52,8 @@ No OAuth tokens, prompts, raw tool payloads, or secrets enter these tables.
 - Logical uniqueness and two-customer isolation under concurrency.
 - Stable pagination indexes and operation-retention cleanup.
 - Repository error redaction and transaction rollback.
+- Constraints reject customer mutation of consumer-domain metadata and any
+  attempted market environment/entitlement/classification authority.
 
 ```text
 go test ./services/ceerat-user-service/preferences/...

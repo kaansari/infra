@@ -27,6 +27,10 @@ SearchPreferenceDefinitions
 - Context requires bounded categories, optional context/entities, explicit
   include-global policy, deterministic precedence ordering, compact projection,
   profile version, truncation indicator, and deterministic safe summary.
+- TXSE requests require consumer purpose `txse_intelligence`, return only its
+  allowlisted categories, and preserve opaque instrument/watchlist references
+  without dereferencing. Failure returns a safe error; the TXSE caller—not this
+  service—uses documented defaults and never degrades market-data controls.
 - Do not call an LLM, infer relevance from natural language, resolve conflicts,
   or dereference entity/context keys.
 - Treat stored strings as untrusted data; deterministic guidance comes only from
@@ -50,6 +54,8 @@ summary, page token, or returned body.
   tokens rejected.
 - Prompt-like stored data remains quoted data and cannot change service flow.
 - Dependency/timeouts map to safe gRPC errors with no content leakage.
+- Prove context cannot override explicit input, entitlement, source environment,
+  health/freshness/provenance, data classification, signal version, or warnings.
 
 ```text
 go test -race ./services/ceerat-user-service/preferences/...

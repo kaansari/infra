@@ -669,7 +669,35 @@ Phase 3 is complete only when:
 - browser UI and existing UI migration;
 - REST, legacy AI tools, compatibility aliases, flags, dual paths, or fallbacks.
 
-## 20. Required builder workflow
+## 20. TXSE Intelligence consumer profile
+
+The TXSE Intelligence Platform is a supported preference consumer, not part of
+the preference domain. Curated definitions may declare consumer domain
+`txse_intelligence` for preferred signal families, explanation detail, default
+time window, alert severity, presentation units, and bounded opaque
+instrument/watchlist references.
+
+The mandatory precedence is: current explicit request; entitlement/server
+policy; market-data health, quality, and classification controls; saved
+preference; service default. A preference must never grant Exchange Data access,
+select UAT/PROD/DR, suppress provenance/freshness/book-health/risk/licensing
+warnings, alter a metric or signal definition, authorize trading, or represent
+positions or suitability. Market identifiers are resolved by their owning TXSE
+domain; this service neither ingests FEED nor dereferences them.
+
+`GetMyPreferenceContext` must require a bounded consumer purpose and categories
+for TXSE use and return only the minimum matching projection. Server-authored
+definition metadata may include `consumer_domains`; it is allowlisted and never
+customer writable. Customer text remains untrusted data and is never converted
+to instructions. TXSE services remain available without the preference service
+and fall back only to documented service defaults.
+
+Acceptance must prove preference values cannot override explicit query inputs,
+OAuth scope, product entitlement, data classification, health/freshness fields,
+formula versions, or required warnings; no raw/reconstructable Exchange Data or
+market-derived customer profile is stored in preference tables.
+
+## 21. Required builder workflow
 
 Every implementing PR must use `ceerat-platform-builder-agent` before design and
 after changes:

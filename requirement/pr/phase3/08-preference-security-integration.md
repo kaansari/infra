@@ -51,6 +51,19 @@ Test old/new combinations and fail closed when contract, schema, service, OAuth
 metadata, or gateway are mismatched. Readiness must exercise an authenticated
 private preference RPC, not only process liveness.
 
+### TXSE Intelligence boundary
+
+- prove saved preferences cannot broaden OAuth/product entitlement or alter
+  environment, data classification, formula version, source provenance,
+  freshness/book health, degradation state, or mandatory warnings;
+- prove prompt-like custom values cannot become investment/trading instructions;
+- prove opaque instrument/watchlist references are not dereferenced by the
+  preference service and no FEED/book/signal/position data is persisted there;
+- fail preference retrieval independently while TXSE ingest/recovery/book stays
+  healthy and intelligence uses documented defaults with all safety fields;
+- scan combined projections and logs for reconstructable Exchange Data and
+  cross-customer preference leakage.
+
 ## Gates
 
 ```text

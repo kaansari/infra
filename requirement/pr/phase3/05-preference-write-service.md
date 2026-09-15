@@ -19,6 +19,10 @@ GetMyPreferenceOperationStatus
 
 - Canonical writes resolve the current enabled definition and validate category,
   type, allowed values, and supported levels.
+- TXSE-oriented writes are limited to the reviewed typed catalog. Reject keys or
+  values purporting to grant data access, select environment, alter formulas,
+  suppress health/licensing warnings, record holdings/suitability, or authorize
+  market actions.
 - Custom writes require a valid `custom.<category>.<slug>` key, safe bounded name,
   and typed value; they cannot shadow canonical definitions.
 - Normalize logical identity exactly once. Create or update is explicit in the
@@ -56,6 +60,8 @@ window and is safe under restart/horizontal instances.
   confirm/confirm, and definition-disable/confirm; one deterministic winner.
 - History and logs contain no raw preference content, prompts, queries, tokens,
   raw keys, or raw idempotency values.
+- No TXSE raw/reconstructable data, signal evidence/history, portfolio, position,
+  or entitlement is persisted through custom preferences.
 
 ```text
 go test -race ./services/ceerat-user-service/preferences/...

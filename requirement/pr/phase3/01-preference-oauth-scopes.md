@@ -31,6 +31,11 @@ platform key, per-user OAuth client, public-token path, or browser handoff.
 
 ## Security and tests
 
+Preference scopes never imply TXSE Intelligence or Exchange Data entitlement.
+Any future TXSE scopes and product grants remain separate and are enforced by
+the TXSE owner in addition to OAuth; do not add them to this PR or overload
+`ceerat.preferences.read/write`.
+
 - Existing tokens do not silently gain optional scopes; require fresh consent.
 - Read-only tools never require write. Every write/prepare/confirm requires
   write; operation status requires read.

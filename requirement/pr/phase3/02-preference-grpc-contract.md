@@ -36,6 +36,12 @@ resource/profile versions, idempotency keys, and typed operation status.
   `commerce.Money`; represent general decimals canonically as validated strings,
   not `double`.
 - Scope uses explicit context/entity fields with operation-dependent validation.
+- Add an allowlisted consumer-domain/purpose selector for minimized context
+  retrieval and server-owned `consumer_domains` definition metadata. Include
+  `txse_intelligence` without adding market-data payloads to this contract.
+- Instrument/watchlist references remain bounded opaque entity identifiers; no
+  environment, entitlement, book health, formula, position, or trading field is
+  accepted as preference authority.
 - Separate full customer projection, compact context item, definition, preview,
   confirmed result, and operation-status messages.
 - Previews return normalized before/after, profile/resource versions, safe
@@ -56,6 +62,8 @@ not replace the explicit `My` methods.
 - Proto/mapper tests for every valid/invalid value, scope, filter, bound, enum,
   version, ID, and mutually exclusive field combination.
 - Prove no trusted identity or arbitrary JSON field is accepted.
+- Prove TXSE consumer context cannot select UAT/PROD/DR, entitlement, data class,
+  health, provenance, formula version, or suppress required warnings.
 - RBAC/public allowlist and inventory parity tests.
 
 ```text
@@ -71,3 +79,20 @@ ceerat-builder check drift --output json
 
 Database/service implementation, public tools, admin definition mutation,
 generic CRUD, new binary, REST, browser UI, legacy/compatibility contract.
+
+## Implementation record (2026-09-14)
+
+Implemented `preference.PreferenceService` with the nine approved self-scoped
+RPCs, closed typed value/scope models, exact `commerce.Money`, positive-version
+contract fields, preview/confirm fingerprints and expiry, operation-state
+reconciliation, and server-owned consumer-domain metadata including the bounded
+TXSE Intelligence consumer profile. Generated Go and gRPC output is committed.
+
+All methods are known, customer-role protected, absent from public and agent
+permissions, and represented in contract/service inventories as contract-only
+until the Phase 3 service PR registers the implementation. Reflection tests
+prove requests expose no customer/user/tenant/role/OAuth or TXSE environment,
+entitlement, health, classification, formula, position, warning-suppression, or
+trading-authority selector. `make proto`, `go test ./...`, `go build ./...`,
+builder RBAC, and builder drift checks pass. No database, handler, MCP tool,
+public method, runtime registration, or compatibility route was added.
