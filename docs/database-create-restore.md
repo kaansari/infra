@@ -15,7 +15,8 @@ from a database backup or provider point-in-time recovery (PITR).
 ## Required environment
 
 Set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME`, and `DB_PASSWORD`. Set
-`DB_SSLMODE=require` for hosted PostgreSQL. Never put passwords in commands,
+`DB_SSLMODE=require` and `DB_SCHEMA=ceerat` for hosted PostgreSQL. Keycloak uses
+the separate `keycloak` schema; the gateway owns `ceerat_agent_gateway`. Never put passwords in commands,
 Git, logs, or migration files.
 
 ## Brand-new empty database
