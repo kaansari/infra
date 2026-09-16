@@ -48,9 +48,6 @@ CEERAT_KEYCLOAK_PORT="${CEERAT_KEYCLOAK_PORT:-8080}"
 CEERAT_OAUTH_ISSUER="${CEERAT_OAUTH_ISSUER:-http://localhost:$CEERAT_KEYCLOAK_PORT/realms/ceerat}"
 CEERAT_MCP_RESOURCE="${CEERAT_MCP_RESOURCE:-http://localhost:$CEERAT_AGENT_GATEWAY_PORT/mcp}"
 CEERAT_OAUTH_AUDIENCE="${CEERAT_OAUTH_AUDIENCE:-$CEERAT_MCP_RESOURCE}"
-CEERAT_JWT_SECRET="${CEERAT_JWT_SECRET:-dev-secret}"
-CEERAT_GATEWAY_WORKLOAD_SECRET="${CEERAT_GATEWAY_WORKLOAD_SECRET:-ceerat-local-gateway-workload-secret-change-me}"
-JWT_AUTH_ENABLED="${JWT_AUTH_ENABLED:-true}"
 USER_SERVICE_ADDR="${USER_SERVICE_ADDR:-localhost:$CEERAT_SERVICE_PORT}"
 CEERAT_ENV="${CEERAT_ENV:-development}"
 CEERAT_CUSTOMER_UI_PORT="${CEERAT_CUSTOMER_UI_PORT:-3005}"
@@ -71,6 +68,30 @@ CUSTOMER_PID="$RUN_DIR/customer-ui.pid"
 
 ensure_dirs() {
   mkdir -p "$RUN_DIR" "$LOG_DIR" "$BIN_DIR" "$(dirname "$CEERAT_PGDATA")"
+}
+
+require_local_development_targets() {
+  local name value
+  if [[ "$CEERAT_ENV" != "development" && "$CEERAT_ENV" != "local" && "$CEERAT_ENV" != "test" ]]; then
+    echo "Local stack refused CEERAT_ENV=$CEERAT_ENV; use development, local, or test" >&2
+    return 1
+  fi
+
+  while IFS='=' read -r name value; do
+    case "$value" in
+      *onrender.com*|*render.com*)
+        echo "Local stack refused live Render target in $name" >&2
+        return 1
+        ;;
+    esac
+  done <<EOF
+CEERAT_OAUTH_ISSUER=$CEERAT_OAUTH_ISSUER
+CEERAT_MCP_RESOURCE=$CEERAT_MCP_RESOURCE
+CEERAT_AGENT_BASE_URL=$CEERAT_AGENT_BASE_URL
+CEERAT_API_BASE_URL=${CEERAT_API_BASE_URL:-}
+USER_SERVICE_ADDR=$USER_SERVICE_ADDR
+CEERAT_DB_HOST=$CEERAT_DB_HOST
+EOF
 }
 
 configure_docker_cli() {

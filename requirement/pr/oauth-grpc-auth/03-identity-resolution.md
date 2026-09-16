@@ -3,6 +3,9 @@
 Repository: `services-repo`  
 Depends on: PR 02
 
+Implementation status: complete and dormant (local Keycloak/PostgreSQL gates
+passed; no production wiring or live mutation)
+
 ## Objective
 
 Map a cryptographically verified Keycloak `(issuer, subject)` to the current
@@ -58,3 +61,34 @@ UX, social-provider configuration, and generic identity-provider abstraction.
 
 Update service architecture, gRPC security, database/migration, privacy, and
 identity lifecycle documentation and service inventory.
+
+## Implemented result
+
+- Added a principal-only resolver; request payloads cannot select identity,
+  client, role, status, user, customer, or ownership.
+- Exact issuer/subject mappings are transactional and concurrent first calls
+  converge through the unique identity boundary.
+- Verified-email first login creates one active customer user and customer
+  profile. Existing case-insensitive email is a conflict, never an automatic
+  merge. Changed claim email/name does not overwrite stored profile data.
+- Current PostgreSQL role/status and customer ownership are reloaded on every
+  resolution. Blocked, pending, missing-user, and missing-customer states fail
+  closed with sanitized errors.
+- OAuth-only users store a nullable password and no generated placeholder.
+  Access/refresh tokens, authorization codes, cookies, and token roles are not
+  persisted.
+- Added forward migration, preflight, refusal-safe development rollback,
+  disposable PostgreSQL lifecycle/concurrency tests, and a combined local
+  Keycloak PKCE + resolver acceptance harness.
+
+## Evidence
+
+```text
+go test -race ./user/... ./customers/... PASS
+CEERAT_TEST_DATABASE_URL=<local> go test ./user -run TestOAuthIdentity PASS
+go test ./... PASS
+make db-verify PASS
+ceerat-builder check sql PASS
+ceerat-builder check drift PASS
+local Keycloak PKCE + PostgreSQL resolver acceptance PASS
+```

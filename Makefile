@@ -22,7 +22,7 @@ DOCKER ?= docker
 PUSH ?= false
 K8S_CONTEXT_DIR ?= $(ROOT_DIR)/.k8-build-context
 
-.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs verify-builder verify-tools verify-coverage verify-staticcheck verify-code verify-platform verify-render-native test-keycloak-config verify-phase1-live verify-phase2-live reconcile-keycloak-live verify-api-tools verify-api-read verify-api-write verify-api-security verify-api k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
+.PHONY: all build-customer-ui start-customer-ui stop-customer-ui build-admin-ui start-admin-ui stop-admin-ui start-stack stop-stack status-stack ensure-dirs verify-builder verify-tools verify-coverage verify-staticcheck verify-code verify-platform verify-render-native test-keycloak-config reconcile-google-local reconcile-grpc-local test-google-local verify-grpc-oauth verify-phase1-live verify-phase2-live reconcile-keycloak-live verify-api-tools verify-api-read verify-api-write verify-api-security verify-api k8-context k8-build k8-push k8-deploy k8-render start-k8 stop-k8 status-k8 k8-logs
 
 all: build-customer-ui
 
@@ -137,8 +137,22 @@ verify-render-native:
 
 test-keycloak-config:
 	@ruby deploy/render/keycloak/realm_config_test.rb
+	@ruby -c deploy/render/keycloak/reconcile-google-provider.rb
+	@ruby -c verification/oauth-grpc/verify-local-google-broker.rb
 	@bash -n deploy/render/keycloak/reconcile-live-realm.sh
 	@bash -n deploy/render/keycloak/oauth-policy-smoke-test.sh
+
+reconcile-google-local:
+	@deploy/render/keycloak/reconcile-google-provider.rb
+
+reconcile-grpc-local:
+	@deploy/render/keycloak/reconcile-local-grpc-client.rb
+
+test-google-local:
+	@verification/oauth-grpc/run-local-google-acceptance.rb
+
+verify-grpc-oauth:
+	@verification/oauth-grpc/verify-grpc-oauth.rb
 
 verify-phase1-live:
 	@./verification/phase1/run-live-security-acceptance.sh

@@ -84,12 +84,6 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: JWT_AUTH_ENABLED
-        value: "true"
-      - key: JWT_SECRET
-        generateValue: true
-      - key: CEERAT_GATEWAY_WORKLOAD_SECRET
-        generateValue: true
       - key: DB_HOST
         fromDatabase:
           name: ceerat-postgres
@@ -112,6 +106,12 @@ services:
           property: database
       - key: DB_SSLMODE
         value: require
+      - key: CEERAT_OAUTH_ISSUER
+        value: https://ceerat-keycloak.onrender.com/realms/ceerat
+      - key: CEERAT_OAUTH_AUDIENCE
+        value: ceerat-api
+      - key: CEERAT_OAUTH_ALLOWED_CLIENTS
+        value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev
 
   - type: web
     name: ceerat-agent-gateway
@@ -148,11 +148,6 @@ services:
           type: web
           name: ceerat-keycloak
           envVarKey: CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET
-      - key: CEERAT_GATEWAY_WORKLOAD_SECRET
-        fromService:
-          type: pserv
-          name: ceerat-user-service
-          envVarKey: CEERAT_GATEWAY_WORKLOAD_SECRET
       - key: CEERAT_GATEWAY_DATABASE_URL
         fromDatabase:
           name: ceerat-postgres

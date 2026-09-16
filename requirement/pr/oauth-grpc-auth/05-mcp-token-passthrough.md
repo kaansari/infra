@@ -1,5 +1,7 @@
 # PR 05: MCP original OAuth bearer-token pass-through
 
+Implementation status: implemented locally; production acceptance remains pending.
+
 Repositories: `apps-repo`, `services-repo` cleanup  
 Depends on: PR 04; deploy as the same coordinated unit
 
@@ -60,3 +62,16 @@ REST, and accepting both internal and OAuth end-user tokens.
 
 Update gateway architecture/security, MCP OAuth flow, structured errors,
 service caller inventory, and deployment ordering documentation.
+
+## Implemented result
+
+- The gateway retains the validated inbound bearer only in request scope and
+  forwards it as standard gRPC authorization metadata.
+- Private gRPC independently repeats OAuth validation, identity resolution,
+  method-scope enforcement, database RBAC, account checks, and ownership.
+- `SessionForIdentity`, `ExchangeExternalIdentity`, the gateway workload secret,
+  internal end-user JWT minting, and all fallback paths were removed.
+- MCP client tokens carry both their exact MCP resource audience and
+  `ceerat-api`; the gateway still requires the former and gRPC requires the latter.
+- Unit tests assert exact original-token forwarding. Raw tokens are not placed
+  in MCP responses, preparations, durable state, or logs.

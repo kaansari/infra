@@ -1,0 +1,22 @@
+{
+  "name": "ceerat-api-audience",
+  "description": "Planned canonical CEERAT API audience mapper; PR 01 design only",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "false",
+    "display.on.consent.screen": "false"
+  },
+  "protocolMappers": [
+    {
+      "name": "CEERAT API audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "consentRequired": false,
+      "config": {
+        "included.custom.audience": "ceerat-api",
+        "access.token.claim": "true",
+        "id.token.claim": "false"
+      }
+    }
+  ]
+}

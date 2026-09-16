@@ -7,39 +7,35 @@ provisioning acceptance remains pending
 ## Outcome
 
 A ChatGPT or Codex user authenticates at CEERAT Keycloak using a native CEERAT
-account. On the first protected MCP call, the gateway validates
-the external access token and exchanges the verified issuer/subject identity
-over private gRPC. The user service idempotently creates or resolves the CEERAT
-customer user and profile and returns a short-lived internal CEERAT session.
+account. On each protected MCP call, the gateway validates the Keycloak access
+token and forwards that exact bearer token over private gRPC. The user service
+independently validates it and idempotently creates or resolves the CEERAT
+customer user and profile from the verified issuer/subject.
 
 ```text
 ChatGPT/Codex
   -> Keycloak native login or Google federation
   -> OAuth access token with verified email and stable subject
   -> ceerat-agent-gateway
-  -> gateway-workload-authenticated ExchangeExternalIdentity
+  -> same OAuth token over private gRPC
   -> external_identities mapping + CEERAT user/customer
-  -> internal JWT for private gRPC operations
+  -> method scopes + RBAC + ownership
 ```
 
-The legacy `Auth(User{id})` token-minting behavior is removed. External OAuth
-tokens never become internal service credentials, and model arguments never
-select a CEERAT user.
+There is no password/token-minting or identity-exchange RPC. Model arguments
+never select a CEERAT user.
 
 ## Security properties
 
 - The gateway validates OAuth signature, issuer, audience, client, lifetime,
   subject, verified email, and operation scopes.
-- The user service requires a separate random workload secret of at least 32
-  characters using constant-time comparison.
-- Render generates the secret once on the private user service and references
-  the same value from the gateway with `fromService.envVarKey`.
+- The user service repeats issuer, signature, canonical `ceerat-api` audience,
+  client, lifetime, subject, scope, role, account, and ownership enforcement.
 - Provisioning stores a unique `(issuer, subject)` mapping and creates the user,
   customer, and mapping in one transaction.
 - A verified email may resolve an existing active customer account. Noncustomer
   or inactive accounts fail closed.
-- Externally provisioned users receive a random unusable local password hash;
-  provider credentials and tokens are never stored by CEERAT.
+- Provider credentials and tokens are never stored by CEERAT.
 - Public failures remain generic and model-actionable; workload credentials and
   identity internals are not returned.
 
@@ -74,8 +70,8 @@ login method and is not part of the Phase 1 release gate.
 2. Repeated and concurrent exchanges do not create duplicates.
 3. A new native user completes verified-email provisioning without duplicate
    CEERAT records; Google federation is tested only if it is enabled later.
-4. Missing or incorrect workload credentials fail with `Unauthenticated`.
-5. ID-only `auth.Auth/Auth` requests cannot mint a token.
+4. Missing, malformed, or wrong-audience OAuth credentials fail with `Unauthenticated`.
+5. No CEERAT RPC can mint or exchange an end-user token.
 6. Invalid OAuth identity or scope data fails safely.
 7. ChatGPT and Codex can access only the provisioned customer's records.
 8. Credentials and tokens never appear in responses or logs.

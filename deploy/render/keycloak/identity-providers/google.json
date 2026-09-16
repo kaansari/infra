@@ -1,0 +1,19 @@
+{
+  "alias": "google",
+  "displayName": "Google",
+  "providerId": "google",
+  "enabled": true,
+  "trustEmail": true,
+  "storeToken": false,
+  "addReadTokenRoleOnCreate": false,
+  "authenticateByDefault": false,
+  "linkOnly": false,
+  "firstBrokerLoginFlowAlias": "first broker login",
+  "config": {
+    "clientId": "${CEERAT_GOOGLE_CLIENT_ID}",
+    "clientSecret": "${CEERAT_GOOGLE_CLIENT_SECRET}",
+    "defaultScope": "openid profile email",
+    "syncMode": "IMPORT",
+    "useJwksUrl": "true"
+  }
+}

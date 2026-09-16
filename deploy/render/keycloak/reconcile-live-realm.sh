@@ -28,7 +28,7 @@ trap 'rm -f "$config_file"' EXIT
   -s offlineSessionMaxLifespan=5184000 \
   -s eventsEnabled=true \
   -s 'eventsListeners=["jboss-logging"]' \
-  -s 'enabledEventTypes=["LOGIN","LOGIN_ERROR","CODE_TO_TOKEN","CODE_TO_TOKEN_ERROR","REFRESH_TOKEN","REFRESH_TOKEN_ERROR","GRANT_CONSENT","GRANT_CONSENT_ERROR","DENY_CONSENT","UPDATE_CONSENT","UPDATE_CONSENT_ERROR","REVOKE_GRANT","REVOKE_GRANT_ERROR"]'
+  -s 'enabledEventTypes=["LOGIN","LOGIN_ERROR","CODE_TO_TOKEN","CODE_TO_TOKEN_ERROR","REFRESH_TOKEN","REFRESH_TOKEN_ERROR","GRANT_CONSENT","GRANT_CONSENT_ERROR","DENY_CONSENT","UPDATE_CONSENT","UPDATE_CONSENT_ERROR","REVOKE_GRANT","REVOKE_GRANT_ERROR","IDENTITY_PROVIDER_LOGIN","IDENTITY_PROVIDER_FIRST_LOGIN","IDENTITY_PROVIDER_LINK_ACCOUNT","IDENTITY_PROVIDER_LOGIN_ERROR","IDENTITY_PROVIDER_FIRST_LOGIN_ERROR","IDENTITY_PROVIDER_LINK_ACCOUNT_ERROR"]'
 
 reconcile_client_scope() {
   local definition="$1"
@@ -121,7 +121,7 @@ reconcile_client() {
     echo "Updated $client_id"
   fi
 
-  if [[ "$client_id" == "ceerat-mcp-chatgpt" || "$client_id" == "ceerat-mcp-codex-dev" ]]; then
+  if [[ "$client_id" == "ceerat-mcp-chatgpt" || "$client_id" == "ceerat-mcp-codex-dev" || "$client_id" == "ceerat-grpc-dev" ]]; then
     assign_mcp_optional_scopes "$internal_id"
     echo "Assigned optional product, order, and preference scopes to $client_id"
   fi
@@ -154,6 +154,7 @@ done
 for definition in \
   "$script_dir/clients/ceerat-mcp-chatgpt.json" \
   "$script_dir/clients/ceerat-mcp-codex-dev.json" \
+  "$script_dir/clients/ceerat-grpc-dev.json" \
   "$script_dir/clients/ceerat-gateway-revoker.json"; do
   reconcile_client "$definition"
 done

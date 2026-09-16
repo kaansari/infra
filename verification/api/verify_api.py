@@ -96,62 +96,14 @@ def grpc_json(rpc: str, data: dict[str, Any], token: str = "") -> tuple[subproce
 
 
 def acquire_local_identities() -> dict[str, Any]:
-    settings = local_settings()
     result: dict[str, Any] = {"status": "PASS", "profiles": {}}
-    credentials = {
-        "admin": (
-            settings.get("VERIFY_API_ADMIN_EMAIL", settings.get("INITIAL_ADMIN_EMAIL", "admin@ceerat.local")),
-            settings.get("VERIFY_API_ADMIN_PASSWORD", settings.get("INITIAL_ADMIN_PASSWORD", "admin123")),
-        ),
-        "agent": (
-            settings.get("VERIFY_API_AGENT_EMAIL", "phase2.agent@ceerat.local"),
-            settings.get("VERIFY_API_AGENT_PASSWORD", "phase2-agent-local-only"),
-        ),
-        "customer": (
-            settings.get("VERIFY_API_CUSTOMER_EMAIL", "phase2.customer@ceerat.local"),
-            settings.get("VERIFY_API_CUSTOMER_PASSWORD", "phase2-customer-local-only"),
-        ),
-    }
-
-    def login(profile: str) -> bool:
-        email, password = credentials[profile]
-        completed, payload = grpc_json("auth.Auth/Auth", {"email": email, "password": password})
-        token = payload.get("token", "")
-        if completed.returncode == 0 and isinstance(token, str) and token:
+    for profile, env_name in TOKEN_ENV.items():
+        token = os.getenv(env_name, "")
+        if profile == "agent" and not token:
+            token = os.getenv("CEERAT_TOKEN", "")
+        if token:
             RUNTIME_TOKENS[profile] = token
-            return True
-        return False
-
-    if os.getenv("CEERAT_ADMIN_TOKEN"):
-        RUNTIME_TOKENS["admin"] = os.environ["CEERAT_ADMIN_TOKEN"]
-    elif not login("admin"):
-        result["profiles"]["admin"] = "unavailable"
-    else:
-        result["profiles"]["admin"] = "acquired"
-
-    if os.getenv("CEERAT_CUSTOMER_TOKEN"):
-        RUNTIME_TOKENS["customer"] = os.environ["CEERAT_CUSTOMER_TOKEN"]
-    elif not login("customer"):
-        email, password = credentials["customer"]
-        completed, payload = grpc_json("auth.Auth/RegisterCustomer", {
-            "firstName": "Phase Two", "lastName": "Customer", "company": "Ceerat Verification",
-            "email": email, "password": password,
-        })
-        token = payload.get("token", {}).get("token", "") if isinstance(payload.get("token"), dict) else ""
-        if completed.returncode == 0 and token:
-            RUNTIME_TOKENS["customer"] = token
-    result["profiles"]["customer"] = "acquired" if RUNTIME_TOKENS.get("customer") else "unavailable"
-
-    if os.getenv("CEERAT_AGENT_TOKEN") or os.getenv("CEERAT_TOKEN"):
-        RUNTIME_TOKENS["agent"] = os.getenv("CEERAT_AGENT_TOKEN", os.getenv("CEERAT_TOKEN", ""))
-    elif not login("agent") and RUNTIME_TOKENS.get("admin"):
-        email, password = credentials["agent"]
-        grpc_json("admin.AdminService/CreateUser", {
-            "name": "Phase Two Agent", "company": "Ceerat Verification", "email": email,
-            "password": password, "role": "agent", "status": "active",
-        }, RUNTIME_TOKENS["admin"])
-        login("agent")
-    result["profiles"]["agent"] = "acquired" if RUNTIME_TOKENS.get("agent") else "unavailable"
+        result["profiles"][profile] = "provided" if token else "unavailable"
     if not RUNTIME_TOKENS:
         result["status"] = "SKIP"
     return result

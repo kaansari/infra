@@ -37,6 +37,16 @@ Phase 1-B also defines Google federation and verified native email. Supply
 https://<keycloak-host>/realms/ceerat/broker/google/endpoint
 ```
 
+The canonical setup and collision policy are documented in
+`docs/security/google-identity-broker-operations.md`. For an existing local
+realm, export only the development Google credentials and run:
+
+```bash
+deploy/render/keycloak/reconcile-google-provider.rb
+```
+
+The reconciler is loopback-only unless live mutation is explicitly enabled.
+
 Existing realms are not changed by startup import. Use the idempotent live-realm
 procedure in `deploy/render/README.md` rather than assuming a redeploy updated
 PostgreSQL-backed realm state.

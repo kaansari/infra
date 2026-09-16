@@ -225,8 +225,8 @@ The runner should discover the live service surface with `grpcurl` and compare i
 
 Coverage should include:
 
-- public auth methods;
-- `auth.Auth/ValidateToken`;
+- public health methods and denial of unauthenticated protected methods;
+- verified OAuth identity resolution through protected `auth.Auth/Get`;
 - customer profile and ownership methods;
 - service/product/catalog/cart methods;
 - order and pricing methods;

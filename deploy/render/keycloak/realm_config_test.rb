@@ -4,6 +4,7 @@ require "minitest/autorun"
 ROOT = File.expand_path("../../..", __dir__)
 REALM = JSON.parse(File.read(File.join(ROOT, "dev/keycloak/ceerat-realm.json")))
 CLIENTS = REALM.fetch("clients").to_h { |client| [client.fetch("clientId"), client] }
+IDENTITY_PROVIDERS = REALM.fetch("identityProviders").to_h { |provider| [provider.fetch("alias"), provider] }
 
 class RealmConfigTest < Minitest::Test
   HOSTED_CALLBACK = "https://chatgpt.com/connector_platform_oauth_redirect"
@@ -68,14 +69,25 @@ class RealmConfigTest < Minitest::Test
     assert_public_pkce_client(client)
   end
 
+  def test_direct_grpc_client_is_public_pkce_with_canonical_audience
+    client = CLIENTS.fetch("ceerat-grpc-dev")
+    assert_equal LOOPBACK_CALLBACKS, client["redirectUris"]
+    assert_public_pkce_client(client)
+    audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
+    assert_equal "ceerat-api", audience.dig("config", "included.custom.audience")
+    assert_equal %w[profile email], client["defaultClientScopes"]
+    assert_equal client, JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/clients/ceerat-grpc-dev.json")))
+  end
+
   def test_mcp_clients_have_explicit_scopes_and_audience
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
       assert_equal REQUIRED_SCOPES, client["defaultClientScopes"]
       assert_equal ["offline_access", *PRODUCT_SCOPES, *ORDER_SCOPES, *PREFERENCE_SCOPES], client["optionalClientScopes"]
-      audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
-      refute_nil audience
-      assert_equal "https://ceerat-agent-gateway.onrender.com/mcp", audience.dig("config", "included.custom.audience")
+      audiences = client.fetch("protocolMappers")
+        .select { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
+        .map { |mapper| mapper.dig("config", "included.custom.audience") }
+      assert_equal ["ceerat-api", "https://ceerat-agent-gateway.onrender.com/mcp"], audiences.sort
     end
   end
 
@@ -105,6 +117,9 @@ class RealmConfigTest < Minitest::Test
     assert_equal true, REALM["eventsEnabled"]
     assert_includes REALM["eventsListeners"], "jboss-logging"
     %w[LOGIN_ERROR CODE_TO_TOKEN_ERROR GRANT_CONSENT DENY_CONSENT UPDATE_CONSENT].each do |event|
+      assert_includes REALM["enabledEventTypes"], event
+    end
+    %w[IDENTITY_PROVIDER_LOGIN IDENTITY_PROVIDER_FIRST_LOGIN IDENTITY_PROVIDER_LINK_ACCOUNT IDENTITY_PROVIDER_LOGIN_ERROR].each do |event|
       assert_includes REALM["enabledEventTypes"], event
     end
   end
@@ -149,6 +164,36 @@ class RealmConfigTest < Minitest::Test
     assert_includes script, 'get "clients/$internal_id/client-secret"'
     assert_includes script, '-s "secret=$existing_secret"'
     refute_includes script, "echo $existing_secret"
+  end
+
+  def test_google_broker_is_minimal_and_secret_indirected
+    provider = IDENTITY_PROVIDERS.fetch("google")
+    assert_equal "google", provider["providerId"]
+    assert_equal true, provider["enabled"]
+    assert_equal true, provider["trustEmail"]
+    assert_equal false, provider["storeToken"]
+    assert_equal false, provider["addReadTokenRoleOnCreate"]
+    assert_equal false, provider["authenticateByDefault"]
+    assert_equal false, provider["linkOnly"]
+    assert_equal "first broker login", provider["firstBrokerLoginFlowAlias"]
+    assert_equal "openid profile email", provider.dig("config", "defaultScope")
+    assert_equal "IMPORT", provider.dig("config", "syncMode")
+    assert_equal "${CEERAT_GOOGLE_CLIENT_ID}", provider.dig("config", "clientId")
+    assert_equal "${CEERAT_GOOGLE_CLIENT_SECRET}", provider.dig("config", "clientSecret")
+    template = JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/identity-providers/google.json")))
+    assert_equal provider, template
+  end
+
+  def test_google_reconciliation_is_local_by_default_and_never_logs_secrets
+    script = File.read(File.join(ROOT, "deploy/render/keycloak/reconcile-google-provider.rb"))
+    assert_includes script, "CEERAT_ALLOW_LIVE_GOOGLE_RECONCILE"
+    assert_includes script, "localhost|127\\.0\\.0\\.1"
+    assert_includes script, "/broker/google/endpoint"
+    refute_includes script, 'puts(google_secret)'
+    refute_includes script, 'puts(admin_password)'
+    assert_includes script, "ACCOUNT_DEFAULT_SCOPES"
+    assert_includes script, "default-client-scopes"
+    assert_includes script, "%w[account account-console]"
   end
 
 

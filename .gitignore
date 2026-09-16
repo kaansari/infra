@@ -30,6 +30,7 @@ vendor/
 .env.*
 deploy/chatgpt/public.env
 deploy/chatgpt/.build-context/
+client_secret_*.apps.googleusercontent.com.json
 
 # Project-specific
 .run/

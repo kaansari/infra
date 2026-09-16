@@ -4,6 +4,10 @@ Repository: `infra` and Keycloak realm configuration
 Depends on: PR 03  
 Required before: PR 04 local end-to-end acceptance
 
+Implementation status: local Google consent, Keycloak-issued CEERAT token
+validation, and idempotent JIT identity resolution complete; direct gRPC/MCP
+and negative security acceptance remain pending
+
 ## Objective
 
 Allow a new customer to authenticate with Google while keeping exactly one
@@ -112,3 +116,42 @@ Update Keycloak identity-provider operations, local secret setup, account
 collision policy, JIT identity flow, OAuth security, testing, and incident
 documentation. Update builder standards only after automated and human local
 validation confirms the reusable broker pattern.
+
+## Implemented result
+
+- Added a secret-free Google provider template and idempotent reconciler that
+  defaults to loopback and requires explicit live-mutation opt-in.
+- Kept scopes at `openid profile email`, disabled upstream-token storage and
+  read-token roles, and retained Keycloak's explicit first-login linking flow.
+- Added static realm/provider/template tests, broker audit events, exact local
+  and production callback documentation, collision/incident operations, and a
+  read-only local flow verifier that rejects automatic account linking.
+- Confirmed no provider-specific CEERAT schema or direct Google-token path was
+  added. PR 03 remains the only JIT account authority.
+- Extended real-token identity acceptance to prove repeated resolution is
+  idempotent.
+- Added an interactive, loopback-only PKCE runner that uses a temporary client,
+  validates a Google-brokered Keycloak token with the shared CEERAT validator,
+  exercises identity resolution twice in an isolated PostgreSQL schema, never
+  prints sensitive OAuth material, and removes its temporary client.
+- Restored Keycloak's standard scopes only on the built-in `account` and
+  `account-console` clients after local acceptance exposed an incomplete realm
+  import. CEERAT API client scope assignments and RBAC remain unchanged.
+
+## Automated evidence
+
+```text
+realm/provider tests: 188 assertions, PASS
+local first-broker flow: explicit confirmation present, auto-link absent, PASS
+Google browser consent and CEERAT-audience token validation: PASS
+idempotent JIT identity resolution (isolated PostgreSQL schema): PASS
+ceerat-builder RBAC/SQL/drift: PASS
+repository secret/config scan: PASS
+```
+
+The uncommitted Google development credential was reconciled into local
+Keycloak. Browser consent, token exchange, shared validation, and isolated JIT
+resolution now pass. Direct protected gRPC/MCP calls and the negative security
+matrix in `verification/oauth-grpc/google-human-acceptance.md` remain blocking
+local gates for the interceptor work. Do not reconcile Google credentials to
+Render until those checks pass.

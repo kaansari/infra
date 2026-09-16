@@ -11,7 +11,8 @@ gRPC service and database remain private. Kubernetes is not used.
 - A production OAuth/OIDC provider that supports authorization code + PKCE
   (`S256`), discovery, and either ChatGPT CIMD, DCR, or a predefined
   confidential client.
-- The OAuth access-token audience must be the exact MCP resource URL.
+- The OAuth access token must include both the exact MCP resource URL and the
+  canonical private-gRPC audience `ceerat-api`.
 
 Do not expose the gRPC service, PostgreSQL, Keycloak admin interface, or a
 development-mode identity provider to the internet.
@@ -20,7 +21,7 @@ development-mode identity provider to the internet.
 
 Configure the provider with:
 
-- resource/audience: `https://YOUR_MCP_DOMAIN/mcp`
+- audiences: `https://YOUR_MCP_DOMAIN/mcp` and `ceerat-api`
 - scopes: `openid profile email offline_access ceerat.profile.read ceerat.profile.write ceerat.connections.read ceerat.connections.revoke ceerat.products.read ceerat.products.cart.read ceerat.products.cart.write ceerat.orders.read ceerat.orders.checkout ceerat.orders.write ceerat.preferences.read ceerat.preferences.write`
 - assign `offline_access` as an optional client scope; ChatGPT requests it for
   refresh-token access and Keycloak rejects the entire authorization request if

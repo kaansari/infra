@@ -3,6 +3,8 @@
 Repositories: `infra`, `contracts-repo` documentation/security inventory  
 Depends on: none
 
+Implementation status: complete (local static gates passed; no live mutation)
+
 ## Objective
 
 Freeze the single end-user authentication contract before runtime code changes.
@@ -57,3 +59,38 @@ Update the contract security inventory, gRPC security documentation, OAuth
 deployment runbook, and this plan with the frozen identifiers and test result.
 This documentation-only PR may be pushed after its static gates; runtime PRs
 must obey the local-first gate in the parent plan.
+
+## Frozen result
+
+- Canonical end-user audience: `ceerat-api`.
+- Contract inventory: 160 known RPCs; every protected method has an explicit
+  scope policy and remains subject to RBAC and ownership.
+- Public review: nine current entries; two health checks are steady-state and
+  seven `auth.Auth` password/token/bootstrap methods are removal candidates for
+  PR 07.
+- Inventory comparison: contracts and service documentation contain the same
+  160 method names. The nine preference methods are not yet runtime-registered,
+  as already recorded by their Phase 3 implementation status.
+- Planned clients: `ceerat-grpc-dev`, `ceerat-mcp-codex-dev`, and
+  `ceerat-mcp-chatgpt`; workload clients cannot represent an end user.
+- Planned Keycloak definitions are isolated under
+  `deploy/render/keycloak/design/oauth-grpc/` and are not consumed by live
+  reconciliation in this PR.
+- Canonical policy: `contracts-repo/docs/oauth-grpc-security-policy.md`.
+- Deployment architecture:
+  `infra/docs/security/canonical-oauth-grpc-architecture.md`.
+- Deployment and rollback gates:
+  `infra/docs/security/oauth-grpc-deployment-runbook.md`.
+- `start-stack.sh` now fails before side effects when its environment or target
+  variables identify Render/live resources.
+
+## Local evidence
+
+```text
+go test ./security/...     PASS
+go test ./...              PASS
+go build ./...             PASS
+ceerat-builder rbac check  PASS
+ceerat-builder check sql   PASS
+ceerat-builder check drift PASS
+```

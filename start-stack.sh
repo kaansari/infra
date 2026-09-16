@@ -8,6 +8,10 @@ source "$SCRIPT_DIR/common.sh"
 # the legacy agent and browser applications do not need to be built or started.
 CEERAT_MCP_ONLY="${CEERAT_MCP_ONLY:-false}"
 
+# This lifecycle is destructive to disposable local state. Never let inherited
+# shell variables point it at Render or another production environment.
+require_local_development_targets
+
 start_detached() {
   local log_file="$1"
   local pid_file="$2"
@@ -102,11 +106,11 @@ start_user_service() {
     DB_USER="$CEERAT_DB_USER" \
     DB_PASSWORD="$CEERAT_DB_PASSWORD" \
     DB_NAME="$CEERAT_DB_NAME" \
-    JWT_SECRET="$CEERAT_JWT_SECRET" \
-    JWT_AUTH_ENABLED="$JWT_AUTH_ENABLED" \
-    CEERAT_GATEWAY_WORKLOAD_SECRET="$CEERAT_GATEWAY_WORKLOAD_SECRET" \
     CEERAT_USER_ADMIN_PORT="$CEERAT_USER_ADMIN_PORT" \
     CEERAT_ENV="$CEERAT_ENV" \
+	CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+	CEERAT_OAUTH_AUDIENCE="${CEERAT_GRPC_OAUTH_AUDIENCE:-ceerat-api}" \
+	CEERAT_OAUTH_ALLOWED_CLIENTS="${CEERAT_OAUTH_ALLOWED_CLIENTS:-ceerat-grpc-dev,ceerat-mcp-codex-dev,ceerat-mcp-chatgpt}" \
     TYPESENSE_HOST="${TYPESENSE_HOST:-}" \
     TYPESENSE_PORT="${TYPESENSE_PORT:-}" \
     TYPESENSE_PROTOCOL="${TYPESENSE_PROTOCOL:-http}" \
@@ -190,7 +194,6 @@ start_agent_gateway() {
     CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
     CEERAT_OAUTH_AUDIENCE="$CEERAT_OAUTH_AUDIENCE" \
     CEERAT_MCP_RESOURCE="$CEERAT_MCP_RESOURCE" \
-    CEERAT_GATEWAY_WORKLOAD_SECRET="$CEERAT_GATEWAY_WORKLOAD_SECRET" \
     "$BIN_DIR/ceerat-agent-gateway"
   sleep 1
 }

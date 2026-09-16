@@ -3,6 +3,9 @@
 Repository: `contracts-repo`  
 Depends on: PR 01
 
+Implementation status: complete (synthetic local gates passed; local Keycloak
+acceptance remains a required pre-push gate)
+
 ## Objective
 
 Implement a reusable OAuth access-token validator and principal context without
@@ -58,3 +61,33 @@ runtime validator activation, and live deployment.
 
 Update contract security docs and inventory with validator inputs, principal
 fields, cache/rotation behavior, and error contract.
+
+## Implemented result
+
+- Added a dependency-free RSA/RS256 validator with exact issuer,
+  `ceerat-api` audience, approved `azp`, `sub`, `jti`, `sid`, time, signature,
+  token-size, claim-size, and key-type checks.
+- Added immutable `OAuthPrincipal` accessors for issuer, subject, client ID,
+  normalized scopes, safe token/session IDs, expiry, and verified identity
+  attributes, plus context helpers for later interceptors.
+- Added bounded JWKS request timeout, response and key-count limits, cache TTL,
+  single-flight refresh, rotation on unknown `kid`, and known-key-only bounded
+  stale fallback.
+- Added stable sanitized validation codes whose public error text never embeds
+  token, claim, signature, or key content.
+- Did not change `NewJWTInterceptor`, service wiring, gateway behavior, or live
+  Keycloak state.
+
+## Automated evidence
+
+```text
+go test -race ./security/... PASS
+go test ./...                PASS
+go build ./...               PASS
+ceerat-builder rbac check    PASS
+ceerat-builder check drift   PASS
+```
+
+The remaining local Keycloak token test cannot be replaced by synthetic
+fixtures and must pass before these commits are pushed, as required by the
+parent local-first gate.

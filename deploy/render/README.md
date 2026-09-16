@@ -24,9 +24,7 @@ one Render PostgreSQL database and the `public` schema. This means they share
 credentials, capacity, backups and failure scope, and generic table names can
 collide: Keycloak's `user_role_mapping` was observed during the Phase 1 test.
 
-Phase 1-B generates `CEERAT_GATEWAY_WORKLOAD_SECRET` on the private user service
-and references that exact value from the gateway. Do not generate independent
-values. Google, SMTP, and `CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET` use
+Google, SMTP, and `CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET` use
 `sync: false`; set them manually on existing services because Render only
 prompts for these values during initial Blueprint creation. The same revoker
 secret is referenced by the gateway service through Render's service reference
@@ -54,7 +52,9 @@ not need access to the separate private contracts repository during a build.
 
 The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
 `CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing common
-audience/issuer mismatches.
+audience/issuer mismatches. MCP clients issue tokens with both the MCP resource
+audience and canonical `ceerat-api` audience so the same bearer can be
+revalidated by private gRPC.
 
 `CEERAT_TRUST_PROXY_HEADERS=true` is set only for the Render gateway because
 Render is the trusted ingress and replaces the client forwarding chain. This

@@ -38,8 +38,8 @@ run_check profile_write_static "expiry, replay, content binding, conflict, and u
   env GOWORK=off GOCACHE=/tmp/ceerat-pr08-go-cache go -C "$workspace_root/apps-repo/ai/ceerat-agent-gateway" test ./internal/gateway -run 'TestPreparationExpiresUsingInjectedClock|TestPreparationContentCannotBeSubstituted|TestProfileConfirmationRejectsReplay|TestProfileConfirmationRejectsVersionConflict|TestProfileUpdateFailureReportsUnknownOutcome' -count=1
 run_check revocation_static "local block, authorization-server invocation, owner isolation, and uncertain outcome" \
   env GOWORK=off GOCACHE=/tmp/ceerat-pr08-go-cache go -C "$workspace_root/apps-repo/ai/ceerat-agent-gateway" test ./internal/gateway -run 'TestLogoutRevokesCurrentConnection|TestLogoutBlocksLocallyWhenAuthorizationServerIsUnavailable|TestCannotRevokeAnotherUsersConnection' -count=1
-run_check identity_static "gateway authentication, verified-email, and provisioning contract tests" \
-  env GOWORK=off GOCACHE=/tmp/ceerat-pr08-go-cache go -C "$workspace_root/services-repo/services/ceerat-user-service" test ./user -run TestExchangeExternalIdentityRequiresGatewayAndProvisions -count=1
+run_check identity_static "verified OAuth identity and customer resolution contract tests" \
+  env GOWORK=off GOCACHE=/tmp/ceerat-pr08-go-cache go -C "$workspace_root/services-repo/services/ceerat-user-service" test ./user -run TestGetUsesAuthenticatedOAuthIdentity -count=1
 run_check rate_audit_static "independent/reset/concurrent limits plus audit fields and credential redaction" \
   env GOWORK=off GOCACHE=/tmp/ceerat-pr08-go-cache go -C "$workspace_root/apps-repo/ai/ceerat-agent-gateway" test ./internal/gateway -run 'TestRateLimiter|TestConcurrentRequestsCannotBypassLimit|TestRateLimitedEnvelopeIsActionable|TestAuthenticationFailuresUseTighterSourceBucket|TestAuditEventHasRequiredFieldsAndNoCredentials|TestCentralLogRedaction' -count=1
 
