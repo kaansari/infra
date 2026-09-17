@@ -50,7 +50,7 @@ class RealmConfigTest < Minitest::Test
     assert_equal true, REALM["verifyEmail"]
     assert_equal 600, REALM["accessTokenLifespan"]
     assert_equal true, REALM["revokeRefreshToken"]
-    assert_equal 0, REALM["refreshTokenMaxReuse"]
+    assert_equal 1, REALM["refreshTokenMaxReuse"]
     assert_operator REALM["offlineSessionIdleTimeout"], :<=, 2_592_000
     assert_operator REALM["offlineSessionMaxLifespan"], :<=, 5_184_000
   end
@@ -88,6 +88,22 @@ class RealmConfigTest < Minitest::Test
         .select { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
         .map { |mapper| mapper.dig("config", "included.custom.audience") }
       assert_equal ["ceerat-api", "https://ceerat-agent-gateway.onrender.com/mcp"], audiences.sort
+    end
+  end
+
+  def test_oauth_clients_emit_stable_subject_in_access_tokens
+    template = {
+      "name" => "subject",
+      "protocol" => "openid-connect",
+      "protocolMapper" => "oidc-sub-mapper",
+      "consentRequired" => false,
+      "config" => {"access.token.claim" => "true", "id.token.claim" => "true"}
+    }
+    %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev ceerat-grpc-dev].each do |client_id|
+      client = CLIENTS.fetch(client_id)
+      subject_mappers = client.fetch("protocolMappers").select { |mapper| mapper["protocolMapper"] == "oidc-sub-mapper" }
+      assert_equal 1, subject_mappers.length, client_id
+      assert_equal template, subject_mappers.first, client_id
     end
   end
 

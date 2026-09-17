@@ -20,7 +20,7 @@ trap 'rm -f "$config_file"' EXIT
   -s verifyEmail=true \
   -s accessTokenLifespan=600 \
   -s revokeRefreshToken=true \
-  -s refreshTokenMaxReuse=0 \
+  -s refreshTokenMaxReuse=1 \
   -s ssoSessionIdleTimeout=1800 \
   -s ssoSessionMaxLifespan=28800 \
   -s offlineSessionIdleTimeout=2592000 \

@@ -18,6 +18,13 @@
   },
   "protocolMappers": [
     {
+      "name": "subject",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-sub-mapper",
+      "consentRequired": false,
+      "config": {"access.token.claim": "true", "id.token.claim": "true"}
+    },
+    {
       "name": "CEERAT user id",
       "protocol": "openid-connect",
       "protocolMapper": "oidc-usermodel-attribute-mapper",

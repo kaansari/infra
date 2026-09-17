@@ -216,6 +216,12 @@ After reconciliation, configure ChatGPT with client ID
 public client `ceerat-mcp-codex-dev` and token endpoint authentication method
 `none`.
 
+Refresh-token rotation remains enabled with a maximum reuse of one. This
+bounded compatibility window permits a single overlapping refresh by hosted
+and native MCP clients without allowing unrestricted refresh-token replay.
+After changing this setting, clients whose refresh-token family was already
+invalidated must disconnect and complete authorization again.
+
 Run the static policy tests before deployment:
 
 ```bash

@@ -20,7 +20,7 @@
   "sslRequired": "external",
   "accessTokenLifespan": 600,
   "revokeRefreshToken": true,
-  "refreshTokenMaxReuse": 0,
+  "refreshTokenMaxReuse": 1,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 28800,
   "offlineSessionIdleTimeout": 2592000,
@@ -69,6 +69,13 @@
         "access.token.lifespan": "600"
       },
       "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {"access.token.claim": "true", "id.token.claim": "true"}
+        },
         {
           "name": "CEERAT user id",
           "protocol": "openid-connect",
@@ -142,6 +149,13 @@
         "access.token.lifespan": "600"
       },
       "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {"access.token.claim": "true", "id.token.claim": "true"}
+        },
         {
           "name": "CEERAT user id",
           "protocol": "openid-connect",
