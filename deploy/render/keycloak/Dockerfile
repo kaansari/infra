@@ -11,6 +11,8 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY --chown=keycloak:keycloak dev/keycloak/ceerat-realm.json /opt/keycloak/data/import/ceerat-realm.json
 COPY --chmod=0755 deploy/render/keycloak/reconcile-live-realm.sh /opt/keycloak/reconcile-live-realm.sh
 COPY --chmod=0755 deploy/render/keycloak/entrypoint.sh /opt/keycloak/ceerat-entrypoint.sh
+COPY deploy/render/keycloak/client-scopes /opt/keycloak/client-scopes
+COPY deploy/render/keycloak/clients /opt/keycloak/clients
 
 ENTRYPOINT ["/opt/keycloak/ceerat-entrypoint.sh"]
 CMD ["start", "--optimized", "--import-realm"]
