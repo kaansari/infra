@@ -75,7 +75,7 @@ services:
     branch: main
     rootDir: services/ceerat-user-service
     buildCommand: go build -mod=vendor -trimpath -o bin/dbbootstrap ./cmd/dbbootstrap && go build -mod=vendor -trimpath -o bin/ceerat-user-service .
-    preDeployCommand: ./scripts/db-migrate.sh && ./scripts/db-preflight.sh && ./scripts/db-status.sh
+    preDeployCommand: ./bin/dbbootstrap && ./scripts/db-migrate.sh && ./scripts/db-preflight.sh && ./scripts/db-status.sh
     startCommand: ./bin/ceerat-user-service
     autoDeployTrigger: commit
     envVars:
