@@ -660,21 +660,25 @@ Requirements:
 3. After changing a user's role, the user should log out and log back in so the browser receives a fresh JWT with the latest role claim.
 4. The gRPC RBAC interceptor may still use the authenticated role from JWT context, so fresh login after role changes remains important.
 
-Default seeded admin:
+Administrator bootstrap:
 
 ```text
-email: admin@ceerat.local
-password: admin123
+issuer: INITIAL_ADMIN_ISSUER
+subject: INITIAL_ADMIN_SUBJECT
 ```
 
 Override with:
 
 ```env
-RBAC_SEED_ADMIN_EMAIL=your-admin@example.com
-RBAC_SEED_ADMIN_PASSWORD=change-me
+INITIAL_ADMIN_EMAIL=your-admin@example.com
+INITIAL_ADMIN_ISSUER=https://keycloak.example/realms/ceerat
+INITIAL_ADMIN_SUBJECT=<issuer subject>
+INITIAL_ADMIN_CLIENT_ID=ceerat-admin
 ```
 
-Restart the user service after setting these values.
+The seed binds the explicit issuer and subject to the administrator. A local
+password or matching email does not establish OAuth identity. Restart the user
+service after setting these values.
 
 ---
 
@@ -1246,7 +1250,7 @@ First inspect the repository and follow existing package, migration, routing, an
 
 Implement JWT authentication for protected gRPC calls using a shared interceptor. Public auth and health methods must bypass authentication. Protected calls must accept authorization: Bearer <jwt> and x-auth-token. Validate tokens through the user service or local token service, inject AuthenticatedUser into context, and never log token values.
 
-Add role support across auth proto, domain models, persistence, JWT claims, ValidateToken, and authenticated context. Default new registrations to customer. Seed admin, agent, and customer roles. Seed/promote the configured bootstrap admin user. Use RBAC_SEED_ADMIN_EMAIL and RBAC_SEED_ADMIN_PASSWORD overrides.
+Add role support across auth proto, domain models, persistence, JWT claims, ValidateToken, and authenticated context. Default new registrations to customer. Seed admin, agent, and customer roles. Seed/promote the configured bootstrap admin user. Bind the first administrator only from the explicit INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_ISSUER, INITIAL_ADMIN_SUBJECT, and optional INITIAL_ADMIN_CLIENT_ID settings.
 
 Implement RBAC authorization after JWT. Store role permissions in roles and role_permissions tables, support wildcard "*", cache permissions in memory, load the cache on startup, support optional RBAC_CACHE_REFRESH_INTERVAL, and expose an admin-only cache refresh endpoint. JWT interceptor must run before RBAC. Public methods bypass RBAC. Missing auth returns codes.Unauthenticated; valid users without permission return codes.PermissionDenied.
 

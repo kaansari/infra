@@ -15,3 +15,11 @@ How it works
 Notes
 - For private repos the PAT secret must have access; for public repos you can use the default `GITHUB_TOKEN` or no token.
 - You can extend the workflow to run tests, publish Docker images, or deploy artifacts.
+## Contracts module path
+
+The canonical Go module path for contracts is `github.com/kaansari/ceerat-contracts`.
+Local checkouts may use a `replace` directive to point at
+`contracts-repo/packages/ceerat-contracts`, while imports, protobuf `go_package`
+options, generated code, inventories, and builder plans must use the canonical
+module identity. Run `make verify-contract-path` after changing contracts or
+their consumers.

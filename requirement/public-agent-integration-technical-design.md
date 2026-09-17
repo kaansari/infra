@@ -466,12 +466,17 @@ External OAuth token
         v
 Gateway AgentPrincipal
         |
-        | token exchange OR short-lived internally signed assertion
+        | original bearer over authenticated private TLS/mTLS transport
         v
-ceerat-user-service JWT/RBAC/ownership checks
+        ceerat-user-service JWT/RBAC/ownership checks
 ```
 
-The internal assertion should have a private-service audience, a lifetime measured in minutes or less, and claims for user ID, customer ID, external client ID, grant ID, scopes, and original token ID. The user service validates it using a gateway-specific trust configuration and still performs method-level RBAC and record ownership checks. It must reject ordinary public OAuth tokens presented directly to gRPC.
+The gateway does not mint an internal identity assertion or exchange the user
+token. It forwards the original bearer only to the designated user service over
+authenticated private TLS/mTLS transport. The user service independently
+validates issuer, canonical audience, signature, client, time, provider subject,
+scope, RBAC, account state, and record ownership. OAuth `sub`, CEERAT user ID,
+issuer, session ID, and client ID remain separate audit fields.
 
 The audit trail retains both identities:
 
@@ -1464,3 +1469,10 @@ These MCP/OAuth references apply directly to phase one. ChatGPT-specific publica
 - [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0-18.html)
 
 Protocol URLs should be reviewed when implementation begins. The repository should pin a tested MCP revision and SDK version rather than relying on an unversioned interpretation of the latest specification.
+### Canonical gateway policy projection
+
+The gateway policy is generated from `ceerat-contracts/security.GatewayToolPolicies`.
+Each exposed downstream tool must resolve to a known RPC and canonical OAuth
+scope, with mutability, confirmation, and safe operation state metadata. CI
+must run the gateway projection drift test so method and scope changes cannot
+silently diverge from the contracts security policy.

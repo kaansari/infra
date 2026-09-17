@@ -108,10 +108,10 @@ design:
 - The `ceerat_user_id` token mapper and MCP audience mapper are required on the
   pre-registered client. The gateway never accepts user or customer IDs as
   tool arguments.
-- Keycloak access tokens observed in this deployment can omit `sub`. After
-  issuer, signature and audience validation, the gateway uses the configured
-  `ceerat_user_id` as the principal and stable subject fallback. It still
-  requires the configured client claim (`azp`).
+- Gateway validation requires both the provider `sub` and configured
+  `ceerat_user_id` claim. They remain separate fields: `sub` identifies the
+  authorization-server subject and `ceerat_user_id` identifies the CEERAT user.
+  The configured client claim (`azp`) is also required.
 - Codex and ChatGPT attach standard MCP `_meta` fields to tool-call parameters.
   The gateway accepts this reserved metadata while continuing to reject other
   unknown fields.

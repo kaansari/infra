@@ -9,7 +9,7 @@ syntax = "proto3";
 
 package ai;
 
-option go_package = "github.com/kaansari/ceerat-platform/packages/ceerat-contracts/proto/ai";
+option go_package = "github.com/kaansari/ceerat-contracts/proto/ai";
 
 service AIThreadService {
   rpc GetOrCreateThread(GetOrCreateThreadRequest) returns (Thread);
@@ -64,26 +64,23 @@ message ThreadMessage {
 }
 
 message GetOrCreateThreadRequest {
-  string user_id = 1;
-  ThreadProfile profile = 2;
-  string external_thread_id = 3;
-  string title = 4;
+  ThreadProfile profile = 1;
+  string external_thread_id = 2;
+  string title = 3;
 }
 
 message GetThreadRequest {
-  string user_id = 1;
-  ThreadProfile profile = 2;
-  string external_thread_id = 3;
+  ThreadProfile profile = 1;
+  string external_thread_id = 2;
 
   // Defaults to recent messages only.
-  int32 message_limit = 4;
+  int32 message_limit = 3;
 }
 
 message ListThreadsRequest {
-  string user_id = 1;
-  ThreadProfile profile = 2;
-  int32 page_size = 3;
-  string page_token = 4;
+  ThreadProfile profile = 1;
+  int32 page_size = 2;
+  string page_token = 3;
 }
 
 message ListThreadsResponse {
@@ -92,19 +89,17 @@ message ListThreadsResponse {
 }
 
 message AppendMessageRequest {
-  string user_id = 1;
-  ThreadProfile profile = 2;
-  string external_thread_id = 3;
-  ThreadMessageRole role = 4;
-  string content = 5;
-  string metadata_json = 6;
+  ThreadProfile profile = 1;
+  string external_thread_id = 2;
+  ThreadMessageRole role = 3;
+  string content = 4;
+  string metadata_json = 5;
 }
 
 message ReplaceThreadMessagesRequest {
-  string user_id = 1;
-  ThreadProfile profile = 2;
-  string external_thread_id = 3;
-  repeated NewThreadMessage messages = 4;
+  ThreadProfile profile = 1;
+  string external_thread_id = 2;
+  repeated NewThreadMessage messages = 3;
 }
 
 message NewThreadMessage {

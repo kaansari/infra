@@ -69,7 +69,6 @@ jobs:
             ./services-repo/services/ceerat-user-service
           )
 
-          replace github.com/kaansari/ceerat-platform/packages/ceerat-contracts => ./contracts-repo/packages/ceerat-contracts
           EOF
 
           mkdir -p bin
