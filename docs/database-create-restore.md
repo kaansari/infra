@@ -19,6 +19,10 @@ Set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME`, and `DB_PASSWORD`. Set
 the separate `keycloak` schema; the gateway owns `ceerat_agent_gateway`. Never put passwords in commands,
 Git, logs, or migration files.
 
+The bootstrap, migration, preflight, and status scripts export `DB_SSLMODE` to
+the PostgreSQL client. If it is omitted for local development, they use
+`prefer`; Render must set it to `require`.
+
 ## Brand-new empty database
 
 From `services-repo/services/ceerat-user-service`:
