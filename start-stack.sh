@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/common.sh"
 # The current platform is MCP/gRPC-first. Set this for backend development when
 # the legacy agent and browser applications do not need to be built or started.
 CEERAT_MCP_ONLY="${CEERAT_MCP_ONLY:-false}"
+CEERAT_ADMIN_ONLY="${CEERAT_ADMIN_ONLY:-false}"
 
 # This lifecycle is destructive to disposable local state. Never let inherited
 # shell variables point it at Render or another production environment.
@@ -108,9 +109,15 @@ start_user_service() {
     DB_NAME="$CEERAT_DB_NAME" \
     CEERAT_USER_ADMIN_PORT="$CEERAT_USER_ADMIN_PORT" \
     CEERAT_ENV="$CEERAT_ENV" \
+	INITIAL_ADMIN_EMAIL="${INITIAL_ADMIN_EMAIL:-admin@ceerat.local}" \
+	INITIAL_ADMIN_NAME="${INITIAL_ADMIN_NAME:-Admin User}" \
+	INITIAL_ADMIN_ISSUER="${INITIAL_ADMIN_ISSUER:-}" \
+	INITIAL_ADMIN_SUBJECT="${INITIAL_ADMIN_SUBJECT:-}" \
+	INITIAL_ADMIN_CLIENT_ID="${INITIAL_ADMIN_CLIENT_ID:-ceerat-admin-ui}" \
 	CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
 	CEERAT_OAUTH_AUDIENCE="${CEERAT_GRPC_OAUTH_AUDIENCE:-ceerat-api}" \
-	CEERAT_OAUTH_ALLOWED_CLIENTS="${CEERAT_OAUTH_ALLOWED_CLIENTS:-ceerat-grpc-dev,ceerat-mcp-codex-dev,ceerat-mcp-chatgpt}" \
+	CEERAT_OAUTH_ALLOWED_CLIENTS="${CEERAT_OAUTH_ALLOWED_CLIENTS:-ceerat-grpc-dev,ceerat-admin-ui,ceerat-mcp-codex-dev,ceerat-mcp-chatgpt,ceerat-web-ui,ceerat-customer-ui}" \
+	CEERAT_OAUTH_PROVISIONING_POLICIES="${CEERAT_OAUTH_PROVISIONING_POLICIES:-ceerat-grpc-dev:customer:active:true,ceerat-admin-ui:agent:pending:false,ceerat-mcp-codex-dev:customer:active:true,ceerat-mcp-chatgpt:customer:active:true,ceerat-web-ui:agent:pending:false,ceerat-customer-ui:customer:active:true}" \
     TYPESENSE_HOST="${TYPESENSE_HOST:-}" \
     TYPESENSE_PORT="${TYPESENSE_PORT:-}" \
     TYPESENSE_PROTOCOL="${TYPESENSE_PROTOCOL:-http}" \
@@ -135,6 +142,9 @@ start_agent_service() {
     USER_SERVICE_ADDR="$USER_SERVICE_ADDR" \
     CEERAT_USER_SERVICE_ADDR="$USER_SERVICE_ADDR" \
     CEERAT_USER_SERVICE_TLS_MODE="${CEERAT_USER_SERVICE_TLS_MODE:-insecure}" \
+    CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+    CEERAT_OAUTH_AUDIENCE="$CEERAT_OAUTH_AUDIENCE" \
+    CEERAT_AGENT_OAUTH_CLIENT_ID="${CEERAT_AGENT_OAUTH_CLIENT_ID:-ceerat-web-ui}" \
     OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
     OPENAI_MODEL="${OPENAI_MODEL:-gpt-4.1-mini}" \
     "$BIN_DIR/ceerat-agent-service"
@@ -213,6 +223,9 @@ start_web_ui() {
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
     CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
     CEERAT_WEB_UI_ROOT="$ROOT_DIR/apps-repo/apps/ceerat-web-ui" \
+	CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+	CEERAT_WEB_OAUTH_CLIENT_ID="${CEERAT_WEB_OAUTH_CLIENT_ID:-ceerat-web-ui}" \
+	CEERAT_WEB_OAUTH_REDIRECT_URL="${CEERAT_WEB_OAUTH_REDIRECT_URL:-http://localhost:$CEERAT_WEB_UI_PORT/oauth/callback}" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-web-ui"
   sleep 1
@@ -228,7 +241,10 @@ start_admin_ui() {
   cd "$ROOT_DIR"
   start_detached "$ADMIN_LOG" "$ADMIN_PID" env \
     CEERAT_ADMIN_UI_PORT="$CEERAT_ADMIN_UI_PORT" \
-    CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
+    CEERAT_USER_GRPC_TARGET="localhost:$CEERAT_SERVICE_PORT" \
+    CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+    CEERAT_ADMIN_OAUTH_CLIENT_ID="${CEERAT_ADMIN_OAUTH_CLIENT_ID:-ceerat-admin-ui}" \
+    CEERAT_ADMIN_OAUTH_REDIRECT_URL="${CEERAT_ADMIN_OAUTH_REDIRECT_URL:-http://localhost:$CEERAT_ADMIN_UI_PORT/oauth/callback}" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-admin-ui"
   sleep 1
@@ -245,8 +261,10 @@ start_customer_ui() {
   start_detached "$CUSTOMER_LOG" "$CUSTOMER_PID" env \
     PORT="$CEERAT_CUSTOMER_UI_PORT" \
     CEERAT_API_BASE_URL="localhost:$CEERAT_SERVICE_PORT" \
-    CEERAT_AGENT_BASE_URL="$CEERAT_AGENT_BASE_URL" \
     CEERAT_CUSTOMER_UI_ROOT="$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" \
+    CEERAT_OAUTH_ISSUER="$CEERAT_OAUTH_ISSUER" \
+    CEERAT_CUSTOMER_OAUTH_CLIENT_ID="${CEERAT_CUSTOMER_OAUTH_CLIENT_ID:-ceerat-customer-ui}" \
+    CEERAT_CUSTOMER_OAUTH_REDIRECT_URL="${CEERAT_CUSTOMER_OAUTH_REDIRECT_URL:-http://localhost:$CEERAT_CUSTOMER_UI_PORT/oauth/callback}" \
     CEERAT_ENV="$CEERAT_ENV" \
     "$BIN_DIR/ceerat-customer-ui"
   sleep 1
@@ -278,7 +296,9 @@ fi
 
 echo "Building apps..."
 # public MCP gateway
-if [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" ]]; then
+if [[ "$CEERAT_ADMIN_ONLY" == "true" ]]; then
+  echo "Skipping agent gateway build (CEERAT_ADMIN_ONLY=true)"
+elif [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" ]]; then
   (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" && GOWORK=off GOCACHE="${TMPDIR:-/tmp}/ceerat-agent-gateway-go-cache" go test ./... && GOWORK=off GOCACHE="${TMPDIR:-/tmp}/ceerat-agent-gateway-go-cache" go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-gateway" .) || {
     echo "Agent gateway build failed" >&2
     exit 1
@@ -287,9 +307,9 @@ else
   echo "Agent gateway directory not found: $ROOT_DIR/apps-repo/ai/ceerat-agent-gateway" >&2
 fi
 
-# agent service
-if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
-  echo "Skipping legacy agent service and browser applications (CEERAT_MCP_ONLY=true)"
+# agent/admin chat service
+if [[ "$CEERAT_MCP_ONLY" == "true" || "$CEERAT_ADMIN_ONLY" == "true" ]]; then
+  echo "Skipping agent chat service and browser applications (CEERAT_MCP_ONLY=true)"
 elif [[ -d "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" ]]; then
   (cd "$ROOT_DIR/apps-repo/ai/ceerat-agent-service" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-agent-service" .) || {
     echo "Agent build failed" >&2
@@ -300,7 +320,7 @@ else
 fi
 
 # web UI
-if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" || "$CEERAT_ADMIN_ONLY" == "true" ]]; then
   :
 elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-web-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-web-ui" .) || {
@@ -312,7 +332,7 @@ else
 fi
 
 # admin UI
-if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" && "$CEERAT_ADMIN_ONLY" != "true" ]]; then
   :
 elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-admin-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-admin-ui" .) || {
@@ -324,7 +344,7 @@ else
 fi
 
 # customer UI
-if [[ "$CEERAT_MCP_ONLY" == "true" ]]; then
+if [[ "$CEERAT_MCP_ONLY" == "true" || "$CEERAT_ADMIN_ONLY" == "true" ]]; then
   :
 elif [[ -d "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" ]]; then
   (cd "$ROOT_DIR/apps-repo/apps/ceerat-customer-ui" && go test ./... && go build -buildvcs=false -o "$BIN_DIR/ceerat-customer-ui" .) || {
@@ -335,12 +355,34 @@ else
   echo "Customer UI directory not found: $ROOT_DIR/apps-repo/apps/ceerat-customer-ui" >&2
 fi
 
+# A successful build must be followed by a launch of that exact binary. Without
+# this step, a process left by an earlier run keeps its port open and causes the
+# start functions below to silently reuse stale application code.
+restart_managed_process "user service" "$SERVICE_PID"
+if [[ "$CEERAT_ADMIN_ONLY" != "true" ]]; then
+  restart_managed_process "agent gateway" "$GATEWAY_PID"
+fi
+if [[ "$CEERAT_ADMIN_ONLY" == "true" ]]; then
+  restart_managed_process "admin UI" "$ADMIN_PID"
+elif [[ "$CEERAT_MCP_ONLY" != "true" ]]; then
+  restart_managed_process "agent service" "$AGENT_PID"
+  restart_managed_process "web UI" "$WEB_PID"
+  restart_managed_process "admin UI" "$ADMIN_PID"
+  restart_managed_process "customer UI" "$CUSTOMER_PID"
+fi
+
 ensure_postgres
 start_typesense
 start_keycloak
+CEERAT_KEYCLOAK_SERVER="http://localhost:$CEERAT_KEYCLOAK_PORT" \
+  "$SCRIPT_DIR/dev/keycloak/reconcile-browser-clients.rb"
 start_user_service
-start_agent_gateway
-if [[ "$CEERAT_MCP_ONLY" != "true" ]]; then
+if [[ "$CEERAT_ADMIN_ONLY" != "true" ]]; then
+  start_agent_gateway
+fi
+if [[ "$CEERAT_ADMIN_ONLY" == "true" ]]; then
+  start_admin_ui
+elif [[ "$CEERAT_MCP_ONLY" != "true" ]]; then
   start_agent_service
   start_web_ui
   start_admin_ui

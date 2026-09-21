@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.jobs.read",
+  "description": "CEERAT permission: jobs read",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access jobs read"
+  },
+  "protocolMappers": []
+}

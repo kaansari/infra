@@ -1,0 +1,69 @@
+{
+  "clientId": "ceerat-web-ui",
+  "name": "CEERAT Agent UI",
+  "enabled": true,
+  "publicClient": true,
+  "clientAuthenticatorType": "none",
+  "standardFlowEnabled": true,
+  "implicitFlowEnabled": false,
+  "directAccessGrantsEnabled": false,
+  "serviceAccountsEnabled": false,
+  "consentRequired": true,
+  "redirectUris": [
+    "http://localhost:3000/oauth/callback",
+    "http://127.0.0.1:3000/oauth/callback",
+    "https://ceerat-web-ui.onrender.com/oauth/callback"
+  ],
+  "webOrigins": [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://ceerat-web-ui.onrender.com"
+  ],
+  "attributes": {
+    "pkce.code.challenge.method": "S256",
+    "access.token.lifespan": "600"
+  },
+  "protocolMappers": [
+    {
+      "name": "subject",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-sub-mapper",
+      "consentRequired": false,
+      "config": {
+        "access.token.claim": "true",
+        "id.token.claim": "true"
+      }
+    },
+    {
+      "name": "CEERAT API audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "consentRequired": false,
+      "config": {
+        "included.custom.audience": "ceerat-api",
+        "access.token.claim": "true"
+      }
+    }
+  ],
+  "defaultClientScopes": [
+    "profile",
+    "email"
+  ],
+  "optionalClientScopes": [
+    "offline_access",
+    "ceerat.applications.admin",
+    "ceerat.connections.write",
+    "ceerat.customers.read",
+    "ceerat.customers.write",
+    "ceerat.jobs.admin",
+    "ceerat.jobs.read",
+    "ceerat.orders.admin",
+    "ceerat.products.admin",
+    "ceerat.products.read",
+    "ceerat.profile.read",
+    "ceerat.profile.write",
+    "ceerat.services.read",
+    "ceerat.threads.read",
+    "ceerat.threads.write"
+  ]
+}

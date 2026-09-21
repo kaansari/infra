@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.calendar.write",
+  "description": "CEERAT permission: calendar write",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access calendar write"
+  },
+  "protocolMappers": []
+}

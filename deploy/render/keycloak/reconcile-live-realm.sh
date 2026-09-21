@@ -88,6 +88,25 @@ assign_mcp_optional_scopes() {
   done
 }
 
+assign_browser_optional_scopes() {
+  local client_internal_id="$1"
+  local client_id="$2"
+  local scope_name scope_internal_id scopes
+  if [[ "$client_id" == "ceerat-web-ui" ]]; then
+    scopes="ceerat.applications.admin ceerat.connections.write ceerat.customers.read ceerat.customers.write ceerat.jobs.admin ceerat.jobs.read ceerat.orders.admin ceerat.products.admin ceerat.products.read ceerat.profile.read ceerat.profile.write ceerat.services.read ceerat.threads.read ceerat.threads.write"
+  else
+    scopes="ceerat.applications.read ceerat.applications.write ceerat.calendar.read ceerat.calendar.write ceerat.career.read ceerat.career.write ceerat.connections.read ceerat.customers.read ceerat.jobs.cart.read ceerat.jobs.cart.write ceerat.jobs.read ceerat.orders.checkout ceerat.orders.read ceerat.orders.write ceerat.preferences.read ceerat.preferences.write ceerat.products.cart.read ceerat.products.cart.write ceerat.products.read ceerat.profile.read ceerat.profile.write ceerat.services.read ceerat.threads.read ceerat.threads.write"
+  fi
+  for scope_name in $scopes; do
+    scope_internal_id="$(client_scope_id "$scope_name")" || {
+      echo "Unable to find reconciled client scope $scope_name" >&2
+      return 1
+    }
+    "$kcadm" update "clients/$client_internal_id/optional-client-scopes/$scope_internal_id" \
+      --config "$config_file" -r "$realm"
+  done
+}
+
 reconcile_client() {
   local definition="$1"
   local client_id internal_id existing_secret=""
@@ -126,6 +145,11 @@ reconcile_client() {
     echo "Assigned optional product, order, and preference scopes to $client_id"
   fi
 
+  if [[ "$client_id" == "ceerat-web-ui" || "$client_id" == "ceerat-customer-ui" ]]; then
+    assign_browser_optional_scopes "$internal_id" "$client_id"
+    echo "Assigned canonical browser scopes to $client_id"
+  fi
+
   if [[ "$client_id" == "ceerat-gateway-revoker" ]]; then
     "$kcadm" update "clients/$internal_id" --config "$config_file" -r "$realm" \
       -s "secret=$revoker_secret"
@@ -155,6 +179,8 @@ for definition in \
   "$script_dir/clients/ceerat-mcp-chatgpt.json" \
   "$script_dir/clients/ceerat-mcp-codex-dev.json" \
   "$script_dir/clients/ceerat-grpc-dev.json" \
+  "$script_dir/clients/ceerat-web-ui.json" \
+  "$script_dir/clients/ceerat-customer-ui.json" \
   "$script_dir/clients/ceerat-gateway-revoker.json"; do
   reconcile_client "$definition"
 done

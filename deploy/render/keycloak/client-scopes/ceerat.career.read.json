@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.career.read",
+  "description": "CEERAT permission: career read",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access career read"
+  },
+  "protocolMappers": []
+}

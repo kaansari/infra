@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.products.admin",
+  "description": "CEERAT permission: products admin",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access products admin"
+  },
+  "protocolMappers": []
+}

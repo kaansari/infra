@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.jobs.admin",
+  "description": "CEERAT permission: jobs admin",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access jobs admin"
+  },
+  "protocolMappers": []
+}

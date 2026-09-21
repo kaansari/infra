@@ -79,6 +79,33 @@ class RealmConfigTest < Minitest::Test
     assert_equal client, JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/clients/ceerat-grpc-dev.json")))
   end
 
+  def test_browser_clients_are_separate_public_pkce_clients
+
+    expected = {
+      "ceerat-web-ui" => {
+        "redirectUris" => ["http://localhost:3000/oauth/callback", "http://127.0.0.1:3000/oauth/callback", "https://ceerat-web-ui.onrender.com/oauth/callback"],
+        "webOrigins" => ["http://localhost:3000", "http://127.0.0.1:3000", "https://ceerat-web-ui.onrender.com"]
+      },
+      "ceerat-customer-ui" => {
+        "redirectUris" => ["http://localhost:3005/oauth/callback", "http://127.0.0.1:3005/oauth/callback", "https://ceerat-customer-ui.onrender.com/oauth/callback"],
+        "webOrigins" => ["http://localhost:3005", "http://127.0.0.1:3005", "https://ceerat-customer-ui.onrender.com"]
+      }
+    }
+    expected.each do |client_id, urls|
+      client = CLIENTS.fetch(client_id)
+      assert_public_pkce_client(client, empty_origins: false)
+      assert_equal "none", client["clientAuthenticatorType"]
+      assert_equal urls["redirectUris"], client["redirectUris"]
+      assert_equal urls["webOrigins"], client["webOrigins"]
+      assert_equal %w[profile email], client["defaultClientScopes"]
+      assert_includes client["optionalClientScopes"], "ceerat.profile.read"
+      audience = client.fetch("protocolMappers").find { |mapper| mapper["protocolMapper"] == "oidc-audience-mapper" }
+      assert_equal "ceerat-api", audience.dig("config", "included.custom.audience")
+      template = JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/clients/#{client_id}.json")))
+      assert_equal client, template
+    end
+  end
+
   def test_mcp_clients_have_explicit_scopes_and_audience
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
@@ -125,7 +152,7 @@ class RealmConfigTest < Minitest::Test
     domain_scopes = PRODUCT_SCOPES + ORDER_SCOPES + PREFERENCE_SCOPES
     assert_empty domain_scopes & Array(REALM["defaultDefaultClientScopes"])
     assert_empty domain_scopes & Array(REALM["defaultOptionalClientScopes"])
-    refute scopes.key?("ceerat.orders.admin")
+    assert scopes.key?("ceerat.orders.admin")
     refute scopes.key?("ceerat.preferences.admin")
   end
 
@@ -162,7 +189,7 @@ class RealmConfigTest < Minitest::Test
   end
 
   def test_reconciliation_templates_match_realm_clients
-    %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev ceerat-gateway-revoker].each do |client_id|
+    %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev ceerat-gateway-revoker ceerat-web-ui ceerat-customer-ui].each do |client_id|
       path = File.join(ROOT, "deploy/render/keycloak/clients/#{client_id}.json")
       assert_equal CLIENTS.fetch(client_id), JSON.parse(File.read(path))
     end
@@ -241,7 +268,7 @@ class RealmConfigTest < Minitest::Test
     refute client.key?("secret")
   end
 
-  def assert_public_pkce_client(client)
+  def assert_public_pkce_client(client, empty_origins: true)
     assert_equal true, client["enabled"]
     assert_equal true, client["publicClient"]
     assert_equal true, client["standardFlowEnabled"]
@@ -249,7 +276,7 @@ class RealmConfigTest < Minitest::Test
     assert_equal false, client["directAccessGrantsEnabled"]
     assert_equal false, client["serviceAccountsEnabled"]
     assert_equal "S256", client.dig("attributes", "pkce.code.challenge.method")
-    assert_empty client["webOrigins"]
+    assert_empty client["webOrigins"] if empty_origins
     refute client.key?("secret")
   end
 end

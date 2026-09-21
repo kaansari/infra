@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.calendar.read",
+  "description": "CEERAT permission: calendar read",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access calendar read"
+  },
+  "protocolMappers": []
+}

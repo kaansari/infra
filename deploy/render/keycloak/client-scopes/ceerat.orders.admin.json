@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.orders.admin",
+  "description": "CEERAT permission: orders admin",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access orders admin"
+  },
+  "protocolMappers": []
+}

@@ -133,6 +133,34 @@ is_pid_running() {
   [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1
 }
 
+restart_managed_process() {
+  local name="$1"
+  local pidfile="$2"
+  local pid=""
+  local attempt
+
+  if [[ -f "$pidfile" ]]; then
+    pid="$(cat "$pidfile")"
+  fi
+
+  if is_pid_running "$pid"; then
+    echo "Stopping previously managed $name (pid $pid)"
+    kill "$pid"
+    for attempt in {1..50}; do
+      if ! is_pid_running "$pid"; then
+        break
+      fi
+      sleep 0.1
+    done
+    if is_pid_running "$pid"; then
+      echo "Previously managed $name did not stop" >&2
+      return 1
+    fi
+  fi
+
+  rm -f "$pidfile"
+}
+
 pid_for_port() {
   local port="$1"
   lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null | head -n 1 || true

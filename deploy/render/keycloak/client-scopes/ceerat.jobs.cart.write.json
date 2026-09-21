@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.jobs.cart.write",
+  "description": "CEERAT permission: jobs cart write",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access jobs cart write"
+  },
+  "protocolMappers": []
+}

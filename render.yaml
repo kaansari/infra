@@ -114,7 +114,15 @@ services:
       - key: CEERAT_OAUTH_AUDIENCE
         value: ceerat-api
       - key: CEERAT_OAUTH_ALLOWED_CLIENTS
-        value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev
+        value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev,ceerat-admin-ui,ceerat-web-ui,ceerat-customer-ui
+      - key: CEERAT_OAUTH_PROVISIONING_POLICIES
+        value: ceerat-mcp-chatgpt:customer:active:true,ceerat-mcp-codex-dev:customer:active:true,ceerat-admin-ui:agent:pending:false,ceerat-web-ui:agent:pending:false,ceerat-customer-ui:customer:active:true
+      - key: CEERAT_GRPC_TLS_MODE
+        value: tls
+      - key: CEERAT_GRPC_TLS_CERT_FILE
+        value: /etc/secrets/ceerat-user-service.crt
+      - key: CEERAT_GRPC_TLS_KEY_FILE
+        value: /etc/secrets/ceerat-user-service.key
 
   - type: web
     name: ceerat-agent-gateway
@@ -157,6 +165,127 @@ services:
           property: connectionString
       - key: CEERAT_TRUST_PROXY_HEADERS
         value: "true"
+
+  - type: pserv
+    name: ceerat-agent-service
+    plan: 0.5c-512mb
+    runtime: go
+    repo: https://github.com/kaansari/apps-repo
+    branch: main
+    rootDir: ai/ceerat-agent-service
+    buildCommand: ./scripts/render-build.sh
+    startCommand: ./scripts/render-start.sh
+    autoDeployTrigger: commit
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CEERAT_USER_SERVICE_ADDR
+        value: ceerat-user-service:10000
+      - key: CEERAT_USER_SERVICE_TLS_MODE
+        value: tls
+      - key: CEERAT_USER_SERVICE_TLS_CA_FILE
+        value: /etc/secrets/ceerat-grpc-ca.pem
+      - key: CEERAT_USER_SERVICE_TLS_SERVER_NAME
+        value: ceerat-user-service
+      - key: CEERAT_OAUTH_ISSUER
+        value: https://ceerat-keycloak.onrender.com/realms/ceerat
+      - key: CEERAT_OAUTH_AUDIENCE
+        value: ceerat-api
+      - key: CEERAT_AGENT_OAUTH_CLIENT_ID
+        value: ceerat-web-ui
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: ceerat-admin-ui
+    plan: free
+    runtime: go
+    repo: https://github.com/kaansari/apps-repo
+    branch: main
+    rootDir: apps/ceerat-admin-ui
+    buildCommand: ./scripts/render-build.sh
+    startCommand: ./scripts/render-start.sh
+    autoDeployTrigger: commit
+    healthCheckPath: /login
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: CEERAT_USER_GRPC_TARGET
+        value: ceerat-user-service:10000
+      - key: CEERAT_GRPC_TLS_MODE
+        value: tls
+      - key: CEERAT_GRPC_TLS_CA_FILE
+        value: /etc/secrets/ceerat-grpc-ca.pem
+      - key: CEERAT_GRPC_TLS_SERVER_NAME
+        value: ceerat-user-service
+      - key: CEERAT_OAUTH_ISSUER
+        value: https://ceerat-keycloak.onrender.com/realms/ceerat
+      - key: CEERAT_ADMIN_OAUTH_CLIENT_ID
+        value: ceerat-admin-ui
+      - key: CEERAT_ADMIN_OAUTH_REDIRECT_URL
+        value: https://ceerat-admin-ui.onrender.com/oauth/callback
+
+  - type: web
+    name: ceerat-web-ui
+    plan: free
+    runtime: go
+    repo: https://github.com/kaansari/apps-repo
+    branch: main
+    rootDir: apps/ceerat-web-ui
+    buildCommand: ./scripts/render-build.sh
+    startCommand: ./scripts/render-start.sh
+    autoDeployTrigger: commit
+    healthCheckPath: /login
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: CEERAT_API_BASE_URL
+        value: ceerat-user-service:10000
+      - key: CEERAT_AGENT_BASE_URL
+        value: http://ceerat-agent-service:10000
+      - key: CEERAT_GRPC_TLS_MODE
+        value: tls
+      - key: CEERAT_GRPC_TLS_CA_FILE
+        value: /etc/secrets/ceerat-grpc-ca.pem
+      - key: CEERAT_GRPC_TLS_SERVER_NAME
+        value: ceerat-user-service
+      - key: CEERAT_OAUTH_ISSUER
+        value: https://ceerat-keycloak.onrender.com/realms/ceerat
+      - key: CEERAT_WEB_OAUTH_CLIENT_ID
+        value: ceerat-web-ui
+      - key: CEERAT_WEB_OAUTH_REDIRECT_URL
+        value: https://ceerat-web-ui.onrender.com/oauth/callback
+
+  - type: web
+    name: ceerat-customer-ui
+    plan: free
+    runtime: go
+    repo: https://github.com/kaansari/apps-repo
+    branch: main
+    rootDir: apps/ceerat-customer-ui
+    buildCommand: ./scripts/render-build.sh
+    startCommand: ./scripts/render-start.sh
+    autoDeployTrigger: commit
+    healthCheckPath: /health
+    envVars:
+      - key: CEERAT_ENV
+        value: production
+      - key: CEERAT_API_BASE_URL
+        value: ceerat-user-service:10000
+      - key: CEERAT_GRPC_TLS_MODE
+        value: tls
+      - key: CEERAT_GRPC_TLS_CA_FILE
+        value: /etc/secrets/ceerat-grpc-ca.pem
+      - key: CEERAT_GRPC_TLS_SERVER_NAME
+        value: ceerat-user-service
+      - key: CEERAT_OAUTH_ISSUER
+        value: https://ceerat-keycloak.onrender.com/realms/ceerat
+      - key: CEERAT_CUSTOMER_OAUTH_CLIENT_ID
+        value: ceerat-customer-ui
+      - key: CEERAT_CUSTOMER_OAUTH_REDIRECT_URL
+        value: https://ceerat-customer-ui.onrender.com/oauth/callback
 
 databases:
   - name: ceerat-postgres

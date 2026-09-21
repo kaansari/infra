@@ -27,7 +27,9 @@
   "offlineSessionMaxLifespanEnabled": true,
   "offlineSessionMaxLifespan": 5184000,
   "eventsEnabled": true,
-  "eventsListeners": ["jboss-logging"],
+  "eventsListeners": [
+    "jboss-logging"
+  ],
   "enabledEventTypes": [
     "LOGIN",
     "LOGIN_ERROR",
@@ -62,7 +64,9 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "consentRequired": true,
-      "redirectUris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+      "redirectUris": [
+        "https://chatgpt.com/connector_platform_oauth_redirect"
+      ],
       "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -74,7 +78,10 @@
           "protocol": "openid-connect",
           "protocolMapper": "oidc-sub-mapper",
           "consentRequired": false,
-          "config": {"access.token.claim": "true", "id.token.claim": "true"}
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
         },
         {
           "name": "CEERAT user id",
@@ -142,7 +149,10 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "consentRequired": true,
-      "redirectUris": ["http://127.0.0.1:*", "http://localhost:*"],
+      "redirectUris": [
+        "http://127.0.0.1:*",
+        "http://localhost:*"
+      ],
       "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -154,7 +164,10 @@
           "protocol": "openid-connect",
           "protocolMapper": "oidc-sub-mapper",
           "consentRequired": false,
-          "config": {"access.token.claim": "true", "id.token.claim": "true"}
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
         },
         {
           "name": "CEERAT user id",
@@ -222,32 +235,109 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "consentRequired": true,
-      "redirectUris": ["http://127.0.0.1:*", "http://localhost:*"],
+      "redirectUris": [
+        "http://127.0.0.1:*",
+        "http://localhost:*"
+      ],
       "webOrigins": [],
-      "attributes": {"pkce.code.challenge.method": "S256", "access.token.lifespan": "600"},
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "600"
+      },
       "protocolMappers": [
         {
           "name": "subject",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-sub-mapper",
           "consentRequired": false,
-          "config": {"access.token.claim": "true", "id.token.claim": "true"}
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
         },
         {
           "name": "CEERAT API audience",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
-          "config": {"included.custom.audience": "ceerat-api", "access.token.claim": "true"}
+          "config": {
+            "included.custom.audience": "ceerat-api",
+            "access.token.claim": "true"
+          }
         }
       ],
-      "defaultClientScopes": ["profile", "email"],
+      "defaultClientScopes": [
+        "profile",
+        "email"
+      ],
       "optionalClientScopes": [
-        "offline_access", "ceerat.profile.read", "ceerat.profile.write",
-        "ceerat.connections.read", "ceerat.connections.revoke",
-        "ceerat.products.read", "ceerat.products.cart.read", "ceerat.products.cart.write",
-        "ceerat.orders.read", "ceerat.orders.checkout", "ceerat.orders.write",
-        "ceerat.preferences.read", "ceerat.preferences.write"
+        "offline_access",
+        "ceerat.profile.read",
+        "ceerat.profile.write",
+        "ceerat.connections.read",
+        "ceerat.connections.revoke",
+        "ceerat.products.read",
+        "ceerat.products.cart.read",
+        "ceerat.products.cart.write",
+        "ceerat.orders.read",
+        "ceerat.orders.checkout",
+        "ceerat.orders.write",
+        "ceerat.preferences.read",
+        "ceerat.preferences.write"
+      ]
+    },
+    {
+      "clientId": "ceerat-admin-ui",
+      "name": "CEERAT Admin UI",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": [
+        "http://localhost:3010/oauth/callback",
+        "http://127.0.0.1:3010/oauth/callback"
+      ],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "600"
+      },
+      "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "CEERAT API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "ceerat-api",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "ceerat.admin.read",
+        "ceerat.admin.users.read",
+        "ceerat.admin.users.write",
+        "ceerat.admin.rbac.read",
+        "ceerat.admin.rbac.write",
+        "ceerat.admin.operations.write"
       ]
     },
     {
@@ -267,6 +357,154 @@
       "webOrigins": [],
       "defaultClientScopes": [],
       "optionalClientScopes": []
+    },
+    {
+      "clientId": "ceerat-web-ui",
+      "name": "CEERAT Agent UI",
+      "enabled": true,
+      "publicClient": true,
+      "clientAuthenticatorType": "none",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": [
+        "http://localhost:3000/oauth/callback",
+        "http://127.0.0.1:3000/oauth/callback",
+        "https://ceerat-web-ui.onrender.com/oauth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://ceerat-web-ui.onrender.com"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "600"
+      },
+      "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "CEERAT API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "ceerat-api",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "ceerat.applications.admin",
+        "ceerat.connections.write",
+        "ceerat.customers.read",
+        "ceerat.customers.write",
+        "ceerat.jobs.admin",
+        "ceerat.jobs.read",
+        "ceerat.orders.admin",
+        "ceerat.products.admin",
+        "ceerat.products.read",
+        "ceerat.profile.read",
+        "ceerat.profile.write",
+        "ceerat.services.read",
+        "ceerat.threads.read",
+        "ceerat.threads.write"
+      ]
+    },
+    {
+      "clientId": "ceerat-customer-ui",
+      "name": "CEERAT Customer UI",
+      "enabled": true,
+      "publicClient": true,
+      "clientAuthenticatorType": "none",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": [
+        "http://localhost:3005/oauth/callback",
+        "http://127.0.0.1:3005/oauth/callback",
+        "https://ceerat-customer-ui.onrender.com/oauth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3005",
+        "http://127.0.0.1:3005",
+        "https://ceerat-customer-ui.onrender.com"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "600"
+      },
+      "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "CEERAT API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "ceerat-api",
+            "access.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "ceerat.applications.read",
+        "ceerat.applications.write",
+        "ceerat.calendar.read",
+        "ceerat.calendar.write",
+        "ceerat.career.read",
+        "ceerat.career.write",
+        "ceerat.connections.read",
+        "ceerat.customers.read",
+        "ceerat.jobs.cart.read",
+        "ceerat.jobs.cart.write",
+        "ceerat.jobs.read",
+        "ceerat.orders.checkout",
+        "ceerat.orders.read",
+        "ceerat.orders.write",
+        "ceerat.preferences.read",
+        "ceerat.preferences.write",
+        "ceerat.products.cart.read",
+        "ceerat.products.cart.write",
+        "ceerat.products.read",
+        "ceerat.profile.read",
+        "ceerat.profile.write",
+        "ceerat.services.read",
+        "ceerat.threads.read",
+        "ceerat.threads.write"
+      ]
     }
   ],
   "identityProviders": [
@@ -292,38 +530,127 @@
   ],
   "clientScopes": [
     {
+      "name": "ceerat.admin.read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Access CEERAT administration"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.admin.users.read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View CEERAT users"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.admin.users.write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Manage CEERAT users"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.admin.rbac.read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View CEERAT roles and permissions"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.admin.rbac.write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Manage CEERAT roles and permissions"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.admin.operations.write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Run CEERAT administrative operations"
+      },
+      "protocolMappers": []
+    },
+    {
       "name": "profile",
       "description": "OpenID Connect profile claims",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Basic profile information"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Basic profile information"
+      },
       "protocolMappers": [
         {
           "name": "full name",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-full-name-mapper",
           "consentRequired": false,
-          "config": {"access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         },
         {
           "name": "given name",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
           "consentRequired": false,
-          "config": {"user.attribute": "firstName", "claim.name": "given_name", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "user.attribute": "firstName",
+            "claim.name": "given_name",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         },
         {
           "name": "family name",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
           "consentRequired": false,
-          "config": {"user.attribute": "lastName", "claim.name": "family_name", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "user.attribute": "lastName",
+            "claim.name": "family_name",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         },
         {
           "name": "username",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
           "consentRequired": false,
-          "config": {"user.attribute": "username", "claim.name": "preferred_username", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "user.attribute": "username",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         }
       ]
     },
@@ -331,21 +658,39 @@
       "name": "email",
       "description": "OpenID Connect email claims",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Email address"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Email address"
+      },
       "protocolMappers": [
         {
           "name": "email",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
           "consentRequired": false,
-          "config": {"user.attribute": "email", "claim.name": "email", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "user.attribute": "email",
+            "claim.name": "email",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         },
         {
           "name": "email verified",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
           "consentRequired": false,
-          "config": {"user.attribute": "emailVerified", "claim.name": "email_verified", "jsonType.label": "boolean", "access.token.claim": "true", "id.token.claim": "true", "userinfo.token.claim": "true"}
+          "config": {
+            "user.attribute": "emailVerified",
+            "claim.name": "email_verified",
+            "jsonType.label": "boolean",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
         }
       ]
     },
@@ -353,84 +698,341 @@
       "name": "ceerat.profile.read",
       "description": "Read the customer's CEERAT profile",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Read your CEERAT profile"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Read your CEERAT profile"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.profile.write",
       "description": "Update allowlisted CEERAT profile fields",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Update your CEERAT profile after confirmation"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Update your CEERAT profile after confirmation"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.connections.read",
       "description": "List the customer's CEERAT agent connections",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "List your CEERAT agent connections"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "List your CEERAT agent connections"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.connections.revoke",
       "description": "Revoke the customer's CEERAT agent connections",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Disconnect CEERAT agent connections after confirmation"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Disconnect CEERAT agent connections after confirmation"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.products.read",
       "description": "Read the public CEERAT product catalog",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View products available from CEERAT"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View products available from CEERAT"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.products.cart.read",
       "description": "Read the authenticated customer's CEERAT cart",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your CEERAT shopping cart"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View your CEERAT shopping cart"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.products.cart.write",
       "description": "Modify the authenticated customer's CEERAT cart",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.orders.read",
       "description": "Read the authenticated customer's CEERAT orders and cart pricing quotes",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your CEERAT orders and checkout pricing"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View your CEERAT orders and checkout pricing"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.orders.checkout",
       "description": "Create an order from the authenticated customer's CEERAT cart after confirmation",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Create CEERAT orders from your cart after confirmation"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Create CEERAT orders from your cart after confirmation"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.orders.write",
       "description": "Update or cancel the authenticated customer's eligible CEERAT orders after confirmation",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.preferences.read",
       "description": "Read the authenticated customer's saved CEERAT preferences and preference definitions",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "View your saved CEERAT preferences"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "View your saved CEERAT preferences"
+      },
       "protocolMappers": []
     },
     {
       "name": "ceerat.preferences.write",
       "description": "Save, update, or remove the authenticated customer's CEERAT preferences after confirmation",
       "protocol": "openid-connect",
-      "attributes": {"include.in.token.scope": "true", "display.on.consent.screen": "true", "consent.screen.text": "Save, update, or remove your CEERAT preferences after confirmation"},
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Save, update, or remove your CEERAT preferences after confirmation"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.applications.admin",
+      "description": "CEERAT permission: applications admin",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access applications admin"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.applications.read",
+      "description": "CEERAT permission: applications read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access applications read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.applications.write",
+      "description": "CEERAT permission: applications write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access applications write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.calendar.read",
+      "description": "CEERAT permission: calendar read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access calendar read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.calendar.write",
+      "description": "CEERAT permission: calendar write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access calendar write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.career.read",
+      "description": "CEERAT permission: career read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access career read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.career.write",
+      "description": "CEERAT permission: career write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access career write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.connections.write",
+      "description": "CEERAT permission: connections write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access connections write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.customers.read",
+      "description": "CEERAT permission: customers read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access customers read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.customers.write",
+      "description": "CEERAT permission: customers write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access customers write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.jobs.admin",
+      "description": "CEERAT permission: jobs admin",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access jobs admin"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.jobs.cart.read",
+      "description": "CEERAT permission: jobs cart read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access jobs cart read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.jobs.cart.write",
+      "description": "CEERAT permission: jobs cart write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access jobs cart write"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.jobs.read",
+      "description": "CEERAT permission: jobs read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access jobs read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.orders.admin",
+      "description": "CEERAT permission: orders admin",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access orders admin"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.products.admin",
+      "description": "CEERAT permission: products admin",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access products admin"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.services.read",
+      "description": "CEERAT permission: services read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access services read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.threads.read",
+      "description": "CEERAT permission: threads read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access threads read"
+      },
+      "protocolMappers": []
+    },
+    {
+      "name": "ceerat.threads.write",
+      "description": "CEERAT permission: threads write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Allow CEERAT to access threads write"
+      },
       "protocolMappers": []
     }
   ],
@@ -448,7 +1050,10 @@
   },
   "roles": {
     "realm": [
-      {"name": "customer", "description": "CEERAT customer"}
+      {
+        "name": "customer",
+        "description": "CEERAT customer"
+      }
     ]
   }
 }

@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.applications.write",
+  "description": "CEERAT permission: applications write",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access applications write"
+  },
+  "protocolMappers": []
+}

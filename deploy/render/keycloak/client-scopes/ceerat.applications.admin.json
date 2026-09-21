@@ -1,0 +1,11 @@
+{
+  "name": "ceerat.applications.admin",
+  "description": "CEERAT permission: applications admin",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "Allow CEERAT to access applications admin"
+  },
+  "protocolMappers": []
+}
