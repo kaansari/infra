@@ -1,0 +1,12 @@
+{
+  "name": "ceerat.admin.rbac.read",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "true",
+    "consent.screen.text": "View CEERAT roles and permissions"
+  },
+  "protocolMappers": [
+
+  ]
+}

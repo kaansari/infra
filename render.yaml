@@ -214,7 +214,7 @@ services:
     buildCommand: ./scripts/render-build.sh
     startCommand: ./scripts/render-start.sh
     autoDeployTrigger: commit
-    healthCheckPath: /login
+    healthCheckPath: /healthz
     envVars:
       - key: CEERAT_ENV
         value: production
@@ -243,7 +243,7 @@ services:
     buildCommand: ./scripts/render-build.sh
     startCommand: ./scripts/render-start.sh
     autoDeployTrigger: commit
-    healthCheckPath: /login
+    healthCheckPath: /healthz
     envVars:
       - key: CEERAT_ENV
         value: production
@@ -274,7 +274,7 @@ services:
     buildCommand: ./scripts/render-build.sh
     startCommand: ./scripts/render-start.sh
     autoDeployTrigger: commit
-    healthCheckPath: /health
+    healthCheckPath: /healthz
     envVars:
       - key: CEERAT_ENV
         value: production

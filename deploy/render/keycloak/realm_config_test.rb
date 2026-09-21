@@ -106,6 +106,17 @@ class RealmConfigTest < Minitest::Test
     end
   end
 
+  def test_admin_client_is_public_pkce_with_exact_scopes_and_hosted_callback
+    client = CLIENTS.fetch("ceerat-admin-ui")
+    assert_public_pkce_client(client, empty_origins: false)
+    assert_equal "none", client["clientAuthenticatorType"]
+    assert_equal ["http://localhost:3010/oauth/callback", "http://127.0.0.1:3010/oauth/callback", "https://ceerat-admin-ui.onrender.com/oauth/callback"], client["redirectUris"]
+    assert_equal ["http://localhost:3010", "http://127.0.0.1:3010", "https://ceerat-admin-ui.onrender.com"], client["webOrigins"]
+    assert_equal %w[profile email], client["defaultClientScopes"]
+    assert_equal %w[ceerat.admin.read ceerat.admin.users.read ceerat.admin.users.write ceerat.admin.rbac.read ceerat.admin.rbac.write ceerat.admin.operations.write], client["optionalClientScopes"]
+    assert_equal client, JSON.parse(File.read(File.join(ROOT, "deploy/render/keycloak/clients/ceerat-admin-ui.json")))
+  end
+
   def test_mcp_clients_have_explicit_scopes_and_audience
     %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev].each do |client_id|
       client = CLIENTS.fetch(client_id)
@@ -189,7 +200,7 @@ class RealmConfigTest < Minitest::Test
   end
 
   def test_reconciliation_templates_match_realm_clients
-    %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev ceerat-gateway-revoker ceerat-web-ui ceerat-customer-ui].each do |client_id|
+    %w[ceerat-mcp-chatgpt ceerat-mcp-codex-dev ceerat-gateway-revoker ceerat-admin-ui ceerat-web-ui ceerat-customer-ui].each do |client_id|
       path = File.join(ROOT, "deploy/render/keycloak/clients/#{client_id}.json")
       assert_equal CLIENTS.fetch(client_id), JSON.parse(File.read(path))
     end
