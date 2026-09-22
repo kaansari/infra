@@ -82,6 +82,21 @@ can take about a minute to wake; warm both public URLs before a ChatGPT test.
 Free PostgreSQL is limited to 1 GB and expires after 30 days, so upgrade it or
 replace it before retaining real users or treating the deployment as durable.
 
+## Portal deployment readiness
+
+The customer, admin, and agent (`ceerat-web-ui`) portals use `/readyz` as
+their Render health check. It establishes a fresh backend gRPC
+connection using the application's TLS credentials, including CA trust, hostname verification, and the HTTP/2 handshake.
+The check returns 503 if the connection fails or cannot become ready within
+two seconds. It requires no login token and does not expose connection details
+in the response. `/healthz` remains a process-only liveness check.
+
+This detects incorrect backend certificates before a new portal deployment is
+accepted. It also makes a running portal unhealthy during backend outages;
+Render's health-check policy applies. It does not validate OAuth configuration,
+account permissions, or database operations. Keep the backend and client CA
+files aligned when rotating certificates.
+
 ## Fast refresh on push
 
 The Blueprint uses `autoDeployTrigger: commit` for both services:
