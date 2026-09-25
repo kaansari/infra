@@ -2,6 +2,9 @@
 
 This folder contains helper scripts to start a local development stack for Ceerat.
 
+For source-level documentation across contracts, services, gateways, and apps,
+follow the [Go workspace and pkgsite guide](docs/go-documentation.md).
+
 Files:
 - `start-stack.sh` — waits for a Postgres instance (local by default) and launches services (user service, agent, web UI) using `go run` in the background. Logs are written to `logs/` and PIDs are stored in `pids`.
 - `stop-stack.sh` — stops background processes recorded in `pids` and removes the Postgres Docker container if one was started by the script.
