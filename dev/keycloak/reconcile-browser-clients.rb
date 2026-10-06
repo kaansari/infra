@@ -32,7 +32,7 @@ def request(method, url, headers: {}, form: nil, json: nil)
 end
 
 token_response = nil
-30.times do
+120.times do
   begin
     token_response = request(:post, "#{server}/realms/master/protocol/openid-connect/token", form: {
       "grant_type" => "password", "client_id" => "admin-cli", "username" => admin_user, "password" => admin_password
@@ -41,7 +41,7 @@ token_response = nil
   rescue EOFError, Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout, Net::ReadTimeout
     # Keycloak is still starting.
   end
-  sleep 1
+  sleep 2
 end
 abort("Keycloak admin authentication failed") unless token_response&.code.to_i == 200
 headers = { "Authorization" => "Bearer #{JSON.parse(token_response.body).fetch("access_token")}" }
