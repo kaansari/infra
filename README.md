@@ -48,6 +48,165 @@ Notes:
 - The scripts start processes with `go run .` — if you prefer built binaries, replace the `go run` lines in `start-stack.sh` with `go build` + `./binary` runs.
 - You can edit `ROOT_DIR` environment variable if your repositories are in a different path.
 
+## Production setup: Keycloak, OAuth, and admin seeding
+
+Use the production flow when the stack is deployed to Render or another shared environment. The important rule is that production environment values must be explicit and environment-specific; do not reuse a local or test realm with a production issuer or client configuration.
+
+### Production identity model
+
+There are three distinct identities to keep separate:
+
+- Keycloak server admin: the login used to manage the realm itself.
+- Ceerat app admin: a user inside the `ceerat` realm that can access the admin portal.
+- Ceerat customer or agent users: users who authenticate through OAuth and are provisioned by the user service based on the client ID and policy.
+
+The Ceerat backend does not grant admin access based on email alone. The first admin seed is bound by:
+
+- `INITIAL_ADMIN_EMAIL`
+- `INITIAL_ADMIN_ISSUER`
+- `INITIAL_ADMIN_SUBJECT`
+- `INITIAL_ADMIN_CLIENT_ID`
+
+The seed uses the exact Keycloak `sub` value, not the email or username.
+
+### Production checklist
+
+Before deploying or starting a production-like environment, ensure:
+
+1. The Keycloak realm is created and configured for the target environment.
+2. The OAuth issuer matches the actual realm URL, for example:
+   ```env
+   CEERAT_OAUTH_ISSUER=https://<your-keycloak-host>/realms/ceerat
+   ```
+3. The browser client definitions match the live redirect URIs exactly:
+   - `ceerat-admin-ui`
+   - `ceerat-web-ui`
+   - `ceerat-customer-ui`
+4. The Google or social identity provider is configured and uses the correct client ID and secret for that environment.
+5. The initial admin user exists in the realm, is email-verified, and has its Keycloak user ID recorded.
+6. The backend is started with the admin seed values, such as:
+   ```env
+   INITIAL_ADMIN_EMAIL=admin@ceerat.local
+   INITIAL_ADMIN_ISSUER=https://<your-keycloak-host>/realms/ceerat
+   INITIAL_ADMIN_SUBJECT=<exact-keycloak-user-id>
+   INITIAL_ADMIN_CLIENT_ID=ceerat-admin-ui
+   ```
+7. The app and backend are restarted after those values are added.
+
+### Production login behavior
+
+- The Keycloak server admin password and the Ceerat app admin password are different.
+- A Google or social login can only be used for the app role it is provisioned for. A Google identity used for a customer flow must map to a customer account, not to an admin or agent account.
+- A new social-only user does not automatically become an admin. The app service provisions users based on the client and policy, and the admin must be explicitly seeded or bound.
+- When the admin seed is created, the issuer and subject are the authoritative binding. Email-only matching is never sufficient.
+
+### Production deployment quick checklist
+
+Use this as the short release checklist before opening the production app:
+
+```text
+1. Configure the target Keycloak realm and keep the production issuer distinct from local or test issuers.
+2. Ensure the exact browser redirect URIs exist for ceerat-admin-ui, ceerat-web-ui, and ceerat-customer-ui.
+3. Configure Google or other social providers with the production client ID and secret.
+4. Create the Ceerat app admin user in the realm and capture the exact Keycloak user ID.
+5. Set INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_ISSUER, INITIAL_ADMIN_SUBJECT, and INITIAL_ADMIN_CLIENT_ID in the backend environment.
+6. Restart the backend/user-service and browser UIs after the values are added.
+7. Sign in with the admin user through the Ceerat app, not the Keycloak server admin account.
+8. Verify customer social sign-in uses ceerat-customer-ui, and web/agent sign-in uses ceerat-web-ui with agent/pending provisioning.
+```
+
+## Development / local setup: Keycloak and the Ceerat admin account
+
+The local stack is intentionally similar to production, but uses a local Keycloak container and loopback URLs.
+
+There are two different admin identities in the local stack, and this is easy to confuse:
+
+- The Keycloak server admin is the login you use at `http://localhost:8080/admin/` to manage the realm. This is the administrator for Keycloak itself; the password is generated locally and stored in `.run/keycloak-admin-password` by `start-stack.sh`.
+- The Ceerat app admin is a user inside the `ceerat` realm used to sign in to the Ceerat app. It is not the same thing as the Keycloak server admin. It is created by the bootstrap helper or by a manual user setup in the realm.
+
+The imported realm file in `dev/keycloak/ceerat-realm.json` sets up the OAuth clients and realm configuration, but it does not automatically create the app admin account. The app admin must be created in the `ceerat` realm and bound by its exact Keycloak `sub` value via `INITIAL_ADMIN_ISSUER` and `INITIAL_ADMIN_SUBJECT`.
+
+### Bootstrap the local Ceerat admin user
+
+```bash
+cd infra
+make start-stack
+ruby dev/keycloak/bootstrap-local-admin.rb
+cat .run/admin-login-password
+```
+
+This helper creates or updates `admin@ceerat.local`, verifies and enables it, sets a non-temporary password, and prints the four values needed for the backend seed:
+
+```env
+INITIAL_ADMIN_EMAIL=admin@ceerat.local
+INITIAL_ADMIN_ISSUER=http://localhost:8080/realms/ceerat
+INITIAL_ADMIN_SUBJECT=<Keycloak-user-id>
+INITIAL_ADMIN_CLIENT_ID=ceerat-admin-ui
+```
+
+Add those values to `infra/.env` (or export them in your shell) before restarting the stack.
+
+### Local `.env` example
+
+```env
+# Core local stack
+CEERAT_ENV=development
+
+# Postgres
+CEERAT_DB_HOST=localhost
+CEERAT_DB_PORT=55434
+CEERAT_DB_USER=postgres
+CEERAT_DB_PASSWORD=postgres
+CEERAT_DB_NAME=postgres
+
+# Keycloak / OAuth
+CEERAT_KEYCLOAK_PORT=8080
+CEERAT_OAUTH_ISSUER=http://localhost:8080/realms/ceerat
+
+# App admin seed
+INITIAL_ADMIN_EMAIL=admin@ceerat.local
+INITIAL_ADMIN_ISSUER=http://localhost:8080/realms/ceerat
+INITIAL_ADMIN_SUBJECT=<exact-keycloak-user-sub>
+INITIAL_ADMIN_CLIENT_ID=ceerat-admin-ui
+
+# Optional explicit browser values
+CEERAT_WEB_OAUTH_CLIENT_ID=ceerat-web-ui
+CEERAT_WEB_OAUTH_REDIRECT_URL=http://localhost:3000/oauth/callback
+CEERAT_ADMIN_OAUTH_CLIENT_ID=ceerat-admin-ui
+CEERAT_ADMIN_OAUTH_REDIRECT_URL=http://localhost:3010/oauth/callback
+
+# Optional Typesense
+TYPESENSE_DISABLED=true
+```
+
+For local-only domains such as `ceerat.local`, Keycloak can mark the email as verified directly in the user settings. This is the expected behavior for non-public or test domains: the app does not require a publicly routable email domain to work locally.
+
+The important values are `CEERAT_OAUTH_ISSUER` and the admin seed values. `INITIAL_ADMIN_SUBJECT` must be the exact Keycloak `sub` value for the admin user, not just the email address.
+
+Then restart the stack:
+
+```bash
+make stop-stack
+make start-stack
+```
+
+### Manual local setup
+
+If you do not use the helper, create the user manually in the `ceerat` realm in the Keycloak admin UI:
+
+1. Log in as the Keycloak server admin at `http://localhost:8080/admin/`.
+2. In the `ceerat` realm, create a user with email `admin@ceerat.local`.
+3. Mark the email as verified and set a password. This is expected for local/test domains like `ceerat.local` because the app is using Keycloak-managed local identities, not a real public email provider.
+4. Copy the user's Keycloak ID (`sub`), then set the env vars above.
+5. Restart the user service and UI stack so the backend seed binds the admin account.
+
+### Local social login behavior
+
+- Social login is still tied to the Keycloak identity and the client policy.
+- A social login for the customer portal must be configured for the `ceerat-customer-ui` client and match the customer identity path.
+- A social login for the web/agent portal is provisioned as an `agent/pending` account and is not automatically an admin.
+- The same strict principle used in production applies locally: the user service provisions based on the client and the exact identity binding, not by email alone.
+
 ## Kubernetes
 
 The Kubernetes manifests live in `infra/k8s`. The deploy flow builds two Ceerat images:
