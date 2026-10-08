@@ -101,3 +101,55 @@ registered.
 Operator deployment record: `20260914_phase3_preferences.sql` was applied to
 the target database before this PR was pushed. The production service preflight
 therefore remains the authoritative deployment verification.
+
+## Acceptance completion (2026-10-07)
+
+Service implementation commit: `b4868d7` (`services-repo`).
+
+The September record above described the initial foundation; its skipped
+PostgreSQL gate is now superseded by real local acceptance verification.
+
+Added `20261007_phase3_preferences_hardening.sql` and matching preflight and
+separate development rollback. The already-applied September migration,
+preflight, and rollback files remain unchanged. The correction aligns typed
+bounds with PR02, uses zero for the absent custom definition version, preserves
+exact decimals/money, enforces `(customer_id,idempotency_key)` uniqueness across
+operation kinds, and binds canonical writes to reviewed server metadata. It
+also audits existing catalog/TXSE bindings and rejects incompatible records
+transactionally rather than deleting them. Non-overwriting seeds preserve
+operator-reviewed catalog edits and older valid display/version snapshots.
+
+Repository fixes lock the current profile version and serialize concurrent
+profile creation. Typed array codecs and PR02 hooks validate complete preference
+and definition records on writes/reads; customer predicates remain on every
+owned read. Bounded cleanup removes expired history before unreferenced terminal
+operations and retains pending/unknown outcomes. SQL logging and dependency
+errors are redacted. Lock order and deployment/rollback rules are documented in
+`services/ceerat-user-service/preferences/README.md`.
+
+Runtime and operator preflight share the same SQL, checking schema/table
+ownership, validated constraints, enabled catalog guard, exact logical and
+operation uniqueness, and pagination index shape. Tests exercise missing,
+unvalidated, foreign-schema, disabled, and incorrectly shaped objects.
+
+Verified with Go 1.27.1 and a disposable PostgreSQL 14.20 cluster using isolated
+test schemas, with `CEERAT_TEST_DATABASE_URL` set:
+
+- Full user-service `go test ./... -count=1` and `go build ./...` pass.
+- Full `go test -race ./... -count=1` passes; the final storage/preflight changes
+  also pass a fresh `go test -race ./preferences . -count=1`.
+- Real preference tests cover apply/reapply/rollback/reapply, startup failure,
+  exact typed round trips (false, zero, large decimal/money), legacy exact-value
+  repair, catalog edit preservation, logical uniqueness and profile concurrency,
+  customer isolation, stable pagination, bounded concurrent retention cleanup,
+  callback rollback/redaction, and authority/metadata rejection.
+- `ceerat-builder check drift --output json` passes with no issues.
+- Independent review findings were corrected and the final review is accepted.
+
+No preference RPC handler, tool, or REST route is registered. No new production
+database was created or production migration applied during this completion.
+Deployment remains gated: apply the corrective migration through the existing
+checksum-ledger runner and run the full preflight before deploying dependent
+code. Record `20261007_phase3_preferences_hardening.sql` and its checksum in the
+operator schema ledger, without customer contents. Incompatible existing data
+requires explicit operator review/remediation before retrying.
