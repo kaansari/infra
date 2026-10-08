@@ -46,6 +46,28 @@ Run `make migrate`. Existing idempotent migrations safely reconcile their
 objects and are then recorded with checksums. Run `make db-verify` immediately.
 Never manually insert migration-ledger rows or change an applied SQL file.
 
+## Preference storage prerequisite
+
+Both clean creation and existing-database adoption must include
+`20261007_phase3_preferences_hardening.sql` after the immutable September
+preference foundation. `make migrate` discovers the correction in order and
+records version `20261007` with its SHA-256 checksum. `make preflight-schema`
+also discovers its matching hardening preflight automatically. No manual ledger
+insertion or standalone preference bootstrap is needed.
+
+The matching service binary requires this correction. It audits existing
+catalog/TXSE bindings and fails transactionally on incompatible data. If a
+migration fails, preserve the backup, review the sanitized failure, and explicitly
+remediate incompatible records before retrying. Never delete data or edit an
+applied migration to bypass verification. Only schema versions/checksums and
+aggregate integrity evidence belong in the deployment record.
+
+The additive `20261008_phase3_preferences_restore.sql` repair must follow
+hardening. It pins validator/trigger function lookup to the owning schema so
+logical restore can evaluate constraints with the cleared caller `search_path`.
+Do not edit `20261007` to add this repair: it may already be recorded in the
+ledger. The full runner and runtime also check the repair's matching preflight.
+
 ## Backup
 
 Enable the provider's automated backups/PITR and confirm retention matches the

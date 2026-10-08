@@ -153,3 +153,14 @@ checksum-ledger runner and run the full preflight before deploying dependent
 code. Record `20261007_phase3_preferences_hardening.sql` and its checksum in the
 operator schema ledger, without customer contents. Incompatible existing data
 requires explicit operator review/remediation before retrying.
+
+
+## Lifecycle follow-up (2026-10-07)
+
+PR03B now includes the hardening migration in the complete database setup.
+The local development ledger records it and the additive
+`20261008_phase3_preferences_restore.sql` repair. The repair pins stored
+validator/trigger schema lookup after the real logical restore drill exposed a
+caller-path dependency. Matching preflight is required before deployment.
+See `03b-database-lifecycle.md` for verified clean creation, adoption, restore,
+and aggregate integrity evidence. Applied migration checksums remain unchanged.
