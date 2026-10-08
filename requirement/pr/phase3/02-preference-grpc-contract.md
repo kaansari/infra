@@ -96,3 +96,45 @@ entitlement, health, classification, formula, position, warning-suppression, or
 trading-authority selector. `make proto`, `go test ./...`, `go build ./...`,
 builder RBAC, and builder drift checks pass. No database, handler, MCP tool,
 public method, runtime registration, or compatibility route was added.
+
+## Acceptance completion (2026-10-07)
+
+Closed the remaining contract acceptance gaps with reusable request/value/scope,
+definition/projection/preview/operation-status, and response-envelope validators
+in the contracts package. Bounds and selector policy are documented in
+`contracts-repo/packages/ceerat-contracts/proto/preference/README.md`. Validators
+reject recursively unknown wire fields; the strict JSON adapter rejects unknown
+members and ambiguous oneof input. Errors contain fixed field paths only.
+
+Contract tests now cover all seven value kinds, exact canonical decimal/money
+handling, scope exclusivity, allowlisted filters/consumer purposes, IDs and list
+bounds, positive versions and the create-only resource-version absence sentinel,
+canonical/custom input combinations, reviewed fingerprints/expiry, normalized
+before/after consistency, compact match kinds, and operation/error-envelope
+invariants. A closed request-graph reflection test prevents nested identity,
+arbitrary JSON, and TXSE authority fields. TXSE context tests reject environment,
+entitlement, classification, health/provenance/formula/position/trading and
+warning-suppression selectors while allowing bounded instrument/watchlist refs.
+
+The shared domain value union and validated mappers preserve false, zero, exact
+decimals and canonical money, copy mutable lists, and reject malformed values.
+The contract inventory includes the complete preference message surface and the
+new domain types/mappers. No field numbers were retired or reassigned and no
+compatibility aliases were introduced.
+
+Builder impact guidance now projects the existing nine reviewed RPCs instead
+of proposing generic preference CRUD. Regression tests check this behavior,
+contract/service inventory parity, customer-only protected permissions and the
+unchanged generic hints for other capabilities.
+
+Verified locally: `make proto`, `go test ./...`, `go test -race ./...`,
+`go build ./...`, all 19 builder unit tests, and the required builder impact,
+RBAC and drift commands. RBAC/drift reported no issues. An independent code
+review found no critical or important defects; its two minor projection/error
+bound findings were corrected and covered by regression tests.
+
+These are contract checks, not live service acceptance. The owning service must
+invoke the helpers and independently enforce authentication, ownership, current
+definition policy, signed subject/filter-bound pagination, fingerprint/expiry
+binding and transactional idempotency in later PRs. Runtime handlers, schema,
+public tools and deployment remain outside PR 02.
