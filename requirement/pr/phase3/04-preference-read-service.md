@@ -73,3 +73,43 @@ then use authenticated grpcurl/service smoke tests before public tools exist.
 
 Writes, MCP, model inference, embeddings, cross-customer/admin reads, REST,
 browser UI, legacy or parallel implementation.
+
+
+## Implementation record (2026-10-08)
+
+The existing user service registers all four private reads through its unchanged
+OAuth/identity/scope/RBAC/logging chain. Read-only repeatable-read transactions
+resolve customer ownership and profile version together. Lists and enabled
+catalog searches use bounded literal filters, stable ordering and encrypted
+15-minute subject/filter/method/snapshot-bound cursors. Profile or matching-row
+changes invalidate continuation with ABORTED, including direct maintenance SQL.
+Disabled/older linked definition snapshots remain renderable.
+
+Context preserves exact typed projections, entity/context/global ordering and
+all conflicts, explicit global inclusion, deterministic counts-only summary,
+profile/resource versions and row/128-KiB truncation. Custom strings remain data
+without executable guidance. TXSE admits only reviewed catalog/options and
+bounded opaque references; static hints cannot override market-data controls.
+Reads insert no profiles and supply no fallback. Two-second deadlines and
+PostgreSQL statement timeouts bound dependency failures; errors and audit logs
+exclude request/response contents, raw IDs, query text, tokens and database detail.
+
+Verification used real isolated PostgreSQL schemas: preference race tests, full
+service tests and build, contract tests and build, Render vendor build and
+vendor-backed preference race tests, signed JWT/scopes/RBAC gRPC
+tests with two customers, cursor mutation/expiry/tampering, byte-limit pagination,
+blocked-dependency deadline, typed zero/false/decimal/money/options, disabled
+catalog/version snapshots, custom prompt-like strings and authority rejection.
+Builder contract-and-service returned its verification checklist; RBAC and drift
+checks passed without issues. Independent read-only review found no remaining
+actionable issues after correcting startup constructor handling.
+
+The Render blueprint declares `CEERAT_PREFERENCE_PAGE_TOKEN_KEY` as an operator
+secret: standard base64 of 32 random bytes, shared across replicas. The missing
+preference protobuf/validator package is added to the checked-in vendor bundle
+without refreshing unrelated contracts. Production
+startup fails closed without it. Module/API/security/logging/architecture/testing
+docs and the nine-method inventory describe four implemented reads and five
+planned mutation/reconciliation methods. No schema migration or live deployment
+was performed for PR04. Hosted release remains gated on live PR03 schema
+preflight, configured pagination secret and authenticated service smoke tests.

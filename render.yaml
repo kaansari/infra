@@ -109,6 +109,9 @@ services:
         value: require
       - key: DB_SCHEMA
         value: ceerat
+      # Standard base64 for a random 32-byte key; share across service replicas.
+      - key: CEERAT_PREFERENCE_PAGE_TOKEN_KEY
+        sync: false
       - key: CEERAT_OAUTH_ISSUER
         value: https://ceerat-keycloak.onrender.com/realms/ceerat
       - key: CEERAT_OAUTH_AUDIENCE
