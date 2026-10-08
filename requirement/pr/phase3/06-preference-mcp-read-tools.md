@@ -70,3 +70,35 @@ hosted ChatGPT app because a new conversation does not guarantee schema refresh.
 
 Write tools, natural-language parsing, recommendation execution, REST/browser,
 legacy tools, direct database access, or duplicated preference logic.
+
+## Implementation record — 2026-10-08
+
+Implemented locally in the existing gateway: all five authenticated read tools,
+canonical scope/private-method policies, Preferences discovery/domain grouping,
+closed bounded schemas, strict duplicate/null/alias rejection, and a narrow
+read-only gRPC adapter. Requests and private responses use the shared contract
+validators. Public projections omit owner, database, timestamp, history and
+internal definition metadata; compact context omits names/guidance/summary.
+Exact integer and money values use decimal strings. Responses mark all preference
+content as untrusted and constrain usage to presentation/query defaults.
+
+Standard failures retain `not_started`, safe actionable messages and OAuth
+challenges. Audit events include safe method/domain/count/version/outcome metadata
+without names, values, summaries, queries, pagination or raw operation keys.
+Catalog snapshots and app inventory document the new 0.3.0 gateway surface.
+
+Verification passed: `GOWORK=off go test ./...`, race-enabled gateway suite,
+`GOWORK=off go build ./...`, canonical security/preference contract tests, builder
+app-context, apps and drift checks. Coverage includes signed JWT expiry/audience,
+missing tokens/scopes, revocation, throttling, deadlines/dependencies, malformed
+and mismatched responses, two users across actual gRPC transport, foreign IDs,
+page tokens and operation keys, exact values and bounded prompt-like text. The
+TXSE mock consumer demonstrably applies preference defaults before competing
+explicit inputs, while retaining mandatory intelligence fields. Fresh review
+findings were resolved and rechecked.
+
+The gRPC test uses an authenticated ownership fixture; production SQL ownership
+and token integrity remain covered by the private service's integration suite.
+No hosted deployment was performed. Authenticated live private reads, live scope
+metadata/tools-list acceptance and hosted ChatGPT catalog refresh remain required
+before release; a local catalog version bump does not satisfy those live gates.

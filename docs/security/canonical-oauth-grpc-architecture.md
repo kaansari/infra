@@ -76,3 +76,20 @@ Runtime PRs cannot deploy until local direct gRPC/OAuth and MCP/OAuth tests pass
 There is no dual-validator mode. A rollback uses a matched known-good release
 and configuration; it never restores password grants, obsolete clients,
 fallback headers, or the CEERAT JWT path.
+
+## Phase 3 PR06 preference MCP reads — local implementation
+
+The inventory freeze above describes the original PR01 state. PR04/05 implemented
+the private preference read/write/reconciliation handlers. PR06 adds five gateway
+read tools under the Preferences domain, each requiring `ceerat.preferences.read`
+and forwarding the original bearer credential to its corresponding private RPC.
+There is no public preference write, REST, browser or direct database surface.
+Closed contract validation precedes deliberate customer projections. Preference
+text stays untrusted quoted data and cannot change scopes, routing or TXSE
+health/freshness/classification/provenance/warnings. TXSE consumes presentation
+and query defaults only, with explicit instructions taking precedence.
+
+Gateway catalog version 0.3.0 records the new tools. Local tests/build and builder
+checks passed; hosted private read smoke, protected-resource scope/tool-list checks
+and ChatGPT app catalog refresh remain release gates. See the gateway README in
+apps-repo for inputs, projection bounds and operational acceptance steps.
