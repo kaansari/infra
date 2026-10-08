@@ -637,3 +637,15 @@ grpcurl -plaintext \
 ```
 
 The rebuild response returns counts only: processed, succeeded, and failed.
+
+
+### Database architecture and operations
+
+- [Architecture and domain relationships](docs/database-architecture.md)
+- [Complete object models, columns, constraints and indexes](docs/database-object-models.md)
+- [Browsable schema reference](docs/database-schema.html)
+- [Start/stop, bootstrap, migration, backup and restore runbook](docs/database-create-restore.md)
+
+The user-service schema is governed by ordered SQL and a checksum ledger;
+application startup performs preflight. Render, local and isolated restore targets
+have distinct connection and process-control routines described in the runbook.
