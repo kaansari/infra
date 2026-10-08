@@ -93,3 +93,16 @@ Gateway catalog version 0.3.0 records the new tools. Local tests/build and build
 checks passed; hosted private read smoke, protected-resource scope/tool-list checks
 and ChatGPT app catalog refresh remain release gates. See the gateway README in
 apps-repo for inputs, projection bounds and operational acceptance steps.
+
+## Phase 3 PR07 preference prepare/confirm — local implementation
+
+Four preference write-scope tools extend the Preferences domain. Prepare calls
+private preview only and stores the reviewed request in the private gateway
+preparation table. Confirm accepts only ID plus explicit true, rechecks delegation
+and binding, and atomically consumes the preparation before a single private
+write. Customer text never selects tools or changes authorization/TXSE controls.
+Consumed preparations cannot be retried, including after restart or lost reply;
+reconcile using private operation status and the original operation key. Logs and
+errors omit that key and all preference/preparation content. The private service
+continues enforcing catalog and personal-data/Exchange Data policy. Live write
+path/schema acceptance and hosted app catalog 0.3.1 refresh remain release gates.
