@@ -1,6 +1,6 @@
 # CEERAT database architecture
 
-Reference date: 2026-10-07. Read this with the [object model catalog](database-object-models.md), [HTML schema reference](database-schema.html), and [operations runbook](database-create-restore.md). The catalog was verified against the local database after all 16 application migrations; hosted verification is recorded separately.
+Reference date: 2026-10-08. Read this with the [object model catalog](database-object-models.md), [HTML schema reference](database-schema.html), and [operations runbook](database-create-restore.md). The catalog was verified against the local database after all 17 application migrations; hosted verification is recorded separately.
 
 ## Ownership and connections
 
@@ -28,7 +28,7 @@ Render consumers use the same-region internal hostname; operator workstations us
 
 ## Domain and object models
 
-The [catalog](database-object-models.md) maps every local application table to its Go model or SQL record and lists all 542 columns, defaults, nullability, physical constraints and indexes. Actual FK declarations are distinguished from application-level associations there; a field named `customer_id` does not itself prove a FK exists.
+The [catalog](database-object-models.md) maps every local application table to its Go model or SQL record and lists all 543 columns, defaults, nullability, physical constraints and indexes. Actual FK declarations are distinguished from application-level associations there; a field named `customer_id` does not itself prove a FK exists.
 
 | Domain | Principal objects | Relationship and invariants |
 |---|---|---|
@@ -91,3 +91,12 @@ so another runner cannot begin after expiry. Back up the entire database so appl
 - `services-repo/services/ceerat-user-service/scripts/db-*.sh` and `Makefile`: bootstrap guard, ledger, preflight, status and verification routines.
 - `apps-repo/ai/ceerat-agent-gateway/internal/gateway/state.go`: gateway-owned state schema.
 - `infra/render.yaml`: hosted database wiring and deployment commands.
+
+
+PR05 adds `preference_operations.result_sealed bytea` with a validated size/state
+constraint. Completed mutation snapshots use authenticated encryption, tied to
+customer/operation, and persist for 30 days even after the active preference is
+changed/deleted. History and idempotency/request keys are keyed digests, not raw
+content. Restoring replay requires the retained shared service secret separately
+from the SQL backup. See the user-service preference module for supported custom
+personal schemas, reconciliation and trusted cleanup.

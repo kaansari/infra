@@ -309,3 +309,20 @@ metadata and record its source/environment. Verify HTML links and that no
 credentials, DSNs or customer values were copied into documentation. Re-run
 restore drills with representative synthetic records so constraint functions and
 triggers are exercised during actual data load.
+
+
+PR05 release `20261009_phase3_preferences_replay.sql` is an additive seventeenth
+application migration. Run the normal checksum-ledger migration runner and all
+preflights before starting the matching binary. It introduces a bounded encrypted
+replay snapshot column; no applied migration was edited. The local migration and
+all preflights passed on 2026-10-08. This is not hosted deployment evidence.
+
+Preference replay/history retention is 30 days. Back up the shared
+`CEERAT_PREFERENCE_PAGE_TOKEN_KEY` in the secret-management system separately
+from database artifacts and preserve it for the retention/recovery window. All
+service replicas need the same key. SQL backup/restore alone cannot decrypt
+replay snapshots. Do not rotate/remove the only retained key during that window.
+On an uncertain mutation response, reconcile original operation kind/key; never
+retry mutation automatically. Completed restores preserve encrypted bytes and
+original customer/operation IDs. Missing/expired/cleaned records mean outcome
+unknown, not failure. Cleanup remains history-first, bounded and terminal-only.

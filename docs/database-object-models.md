@@ -1,6 +1,6 @@
 # Database object model catalog
 
-Verified on 2026-10-07 from the local `public` schema after all 16 migrations.
+Verified on 2026-10-08 from the local `public` schema after all 17 migrations.
 Hosted deployments use `ceerat`; this is a physical local schema inventory, not
 a claim that Render has been migrated. It contains metadata only, no row values.
 
@@ -1140,8 +1140,11 @@ Model: `OperationRow`.
 | `created_at` | `timestamp with time zone` | no | `now()` |
 | `updated_at` | `timestamp with time zone` | no | `now()` |
 | `result_profile_version` | `bigint` | yes | `—` |
+| `result_sealed` | `bytea` | yes | `—` |
 
 Constraints:
+
+- `preference_operations_replay_check`: `CHECK (((result_sealed IS NULL) OR (((state)::text = 'completed'::text) AND ((octet_length(result_sealed) >= 29) AND (octet_length(result_sealed) <= 16384)))))`
 
 - `preference_operations_customer_id_fkey`: `FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE`
 - `preference_operations_customer_identity_unique`: `UNIQUE (customer_id, id)`

@@ -75,3 +75,62 @@ ceerat-builder check drift --output json
 
 Direct unpreviewed writes, definition mutation, hard audit erasure claims,
 cross-customer operations, REST/browser/legacy/fallback paths.
+
+
+## Implementation record (2026-10-08)
+
+All five write/preview/reconciliation RPCs are implemented in the existing
+registered preference service through the unchanged OAuth/identity/scope/RBAC
+chain. Previews are read-only and return complete normalized before/after,
+static warnings, versions, fingerprint and 15-minute expiry. Purpose-separated
+HMAC authenticates user/customer, normalized input/key, full before/after and
+catalog metadata. Definition metadata changes invalidate review even without a
+version bump. Create is explicit; updates cannot retarget identity or scope.
+
+Confirmation serializes on the customer profile and locks preference/catalog
+before atomically applying active data, profile increment, digest-only history
+and a replayable encrypted result. Same key/digest replays the original snapshot
+after updates/deletion/restart; changed input/kind conflicts. Known rejected
+confirmations can persist a safe failed record without active data/history
+changes. Dependency failure rolls back. Deadline or uncertainty after dispatch
+instructs self-scoped reconciliation with the original kind/key, never automatic
+retry. Status supports completed/failed/pending/unknown; missing, foreign or
+expired results are unknown, never proof of failure.
+
+Additive immutable `20261009_phase3_preferences_replay.sql` introduces bounded
+nullable AEAD result bytes, plus development rollback and strict runtime/operator
+preflight. Original applied files remain unchanged. The local checksum-ledger
+runner applied migration 17 and all preflights passed. Operation keys, request
+and before/after/actor content persist only as keyed digests; the exact replay
+projection is encrypted/authenticated to customer/operation. Retention is 30
+days; bounded history-before-operation SKIP LOCKED cleanup remains safe across
+instances. A SQL restore requires the separately retained configured secret to
+recover encrypted replay. No cleanup scheduler or hosted deployment was added.
+
+Independent review found keyword-only custom filtering could admit unnamed
+market records. It was replaced with documented closed personal schemas:
+`custom.<personal category>.note/enabled/rating/weight/budget/style/attributes`,
+fixed safe labels, global scope, reviewed descriptor strings/options, bounded
+rank/relative weight and whole-dollar USD personal budgets. Arbitrary text,
+encoded records, market/control keys and market-bearing references are rejected.
+Existing custom records remain readable/deletable; updates must meet the new
+policy. Expanding custom writes requires server review. Canonical TXSE writes
+remain limited to reviewed catalog/options and never grant control authority.
+
+Verification covers real PostgreSQL canonical/custom lifecycle, typed values,
+invalid catalog/type/scope/key/value, stale resource/profile/definition/metadata,
+tampered/expired/foreign fingerprints, exact replay after deletion/restart,
+changed payload/kind, atomic rollback/lost reply/deadline reconciliation,
+completed/failed/pending/unknown status, encrypted result corruption/logical
+record restore, retention, migration apply/reapply/rollback/preflight, and the
+specified mutation/definition-disable races. Signed JWT/scopes/RBAC tests cover
+all nine RPCs and two-customer isolation. Required preference race/full service
+tests and builds passed, including the Render vendor build/race tests; contract
+and builder RBAC/drift/app checks passed. The builder verification command
+returned its contract/service checklist. Review issues were corrected with
+value-level regression coverage; no remaining confirmed runtime findings.
+
+Inventory and API/security/logging/architecture/testing/module docs now describe
+all nine implemented methods and recovery policy. Hosted deployment remains a
+separate gate: apply replay migration and all live preflights, configure/preserve
+the shared secret, then perform authenticated authorized smoke tests.
