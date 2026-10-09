@@ -85,3 +85,40 @@ tuple. All failures must be fixed before PR 09; do not waive them with docs.
 
 New product features, UI, performance scale certification, REST, legacy,
 fallback, or parallel implementations.
+
+## Local implementation and repeatable gate
+
+Run `make verify-phase3-preferences` from `infra`. The disposable PostgreSQL
+runner, real cross-repository integration module, matrix index, and redacted
+result schema are in `verification/phase3/preferences/`. It bootstraps an empty
+cluster, applies all migrations/preflight, executes the owning security/race/
+build/fuzz suites and platform/builder gates, then removes its own database.
+Missing/skipped required tests and source-tuple changes fail acceptance.
+
+Gateway `/readyz` now checks caller OAuth/read scope, durable revocation/schema,
+and an authenticated bounded private preference read. Gateway/private service
+and local/Render settings share the canonical `ceerat-api` audience. Use an
+already-linked customer for a readiness probe because canonical identity
+resolution can provision first-time OAuth identities.
+
+The exact committed contract/service/gateway tuple is recorded in
+`verification/phase3/preferences/evidence/latest.json`. Successful owning data
+is explicitly allowed only in the authorized projection; errors, logs, audit/
+trace captures and persisted evidence exclude private content and raw tokens,
+keys, cursors, SQL and topology. Foreign completed-operation reconciliation is
+tested through the real MCP and private service boundary.
+
+TXSE is an explicit reduced test consumer: these repositories contain no live
+TXSE ingest/book engine. The test invokes production preference RPCs and proves
+opaque-reference isolation, prompt exclusion, independent preference failure,
+documented defaults and immutable safety fields. It does not certify a live
+exchange system. Hosted deployment and human acceptance remain PR09 work.
+
+Final local acceptance passed all 30 checks on 2026-10-09, with no required test
+skips and a stable clean commit tuple: contracts `6961331`, service `fddee2c`,
+gateway `4cca58d`. This includes proto generation, full race/build suites,
+eight bounded fuzz campaigns, real PostgreSQL security/restart/outcome tests,
+`make verify-platform`, and all four required builder commands. Fresh review's
+missing/skipped-coverage finding was reproduced and fixed with regression tests;
+the harness requires every expected parent test to pass. Nine harness unit tests
+and Render realm configuration tests also passed.

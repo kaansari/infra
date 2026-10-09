@@ -151,6 +151,8 @@ services:
         value: ceerat-user-service
       - key: CEERAT_MCP_RESOURCE
         value: https://ceerat-agent-gateway.onrender.com/mcp
+      - key: CEERAT_OAUTH_AUDIENCE
+        value: ceerat-api
       - key: CEERAT_OAUTH_ISSUER
         value: https://ceerat-keycloak.onrender.com/realms/ceerat
       - key: CEERAT_OAUTH_JWKS_URL

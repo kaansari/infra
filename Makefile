@@ -163,6 +163,10 @@ verify-phase1-live:
 verify-phase2-live:
 	@./verification/phase2/run-live-product-cart-acceptance.sh
 
+.PHONY: verify-phase3-preferences
+verify-phase3-preferences:
+	@PYTHONDONTWRITEBYTECODE=1 python3 verification/phase3/preferences/run.py
+
 reconcile-keycloak-live:
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_USERNAME:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_USERNAME" >&2; exit 1)
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_PASSWORD:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_PASSWORD" >&2; exit 1)

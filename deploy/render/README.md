@@ -50,11 +50,10 @@ not need access to the separate private contracts repository during a build.
    update `KC_HOSTNAME`, the three `CEERAT_*` gateway URLs, and the realm's MCP
    audience before interoperability testing.
 
-The gateway derives `CEERAT_OAUTH_AUDIENCE` from `CEERAT_MCP_RESOURCE` and
-`CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`, preventing common
-audience/issuer mismatches. MCP clients issue tokens with both the MCP resource
-audience and canonical `ceerat-api` audience so the same bearer can be
-revalidated by private gRPC.
+The gateway requires the canonical `CEERAT_OAUTH_AUDIENCE=ceerat-api` and
+derives `CEERAT_AUTHORIZATION_SERVER` from `CEERAT_OAUTH_ISSUER`. The same bearer
+is revalidated by private gRPC with that canonical audience. The protected MCP
+resource URL remains `CEERAT_MCP_RESOURCE`; it is not the API audience.
 
 `CEERAT_TRUST_PROXY_HEADERS=true` is set only for the Render gateway because
 Render is the trusted ingress and replaces the client forwarding chain. This

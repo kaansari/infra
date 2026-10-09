@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PR08 redacted local security gate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "gate", "started_utc", "finished_utc", "tuple", "checks"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "status": {"enum": ["passed", "failed", "diagnostic_passed"]},
+    "gate": {"enum": ["full", "diagnostic"]},
+    "started_utc": {"type": "string", "format": "date-time"},
+    "finished_utc": {"type": "string", "format": "date-time"},
+    "tuple": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract", "service", "gateway"],
+      "properties": {
+        "contract": {"$ref": "#/$defs/revision"},
+        "service": {"$ref": "#/$defs/revision"},
+        "gateway": {"$ref": "#/$defs/revision"}
+      }
+    },
+    "checks": {"type": "array", "items": {"$ref": "#/$defs/check"}}
+  },
+  "$defs": {
+    "revision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["commit", "dirty", "source_sha256"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "dirty": {"type": "boolean"},
+        "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "check": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "status"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[A-Za-z0-9_]+$"},
+        "status": {"enum": ["passed", "failed"]},
+        "seconds": {"type": "number", "minimum": 0},
+        "failure_code": {"enum": ["timeout", "command_failed", "integration_coverage_missing", "owning_coverage_missing", "required_database_test_skipped", "source_changed_during_gate", "uncommitted_source"]},
+        "tests_passed": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z0-9_/=-]{1,220}$"}},
+        "tests_failed": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z0-9_/=-]{1,220}$"}},
+        "failure_locations": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["file", "line"], "properties": {"file": {"enum": ["fixture_test.go", "integration_test.go", "txse_boundary_test.go"]}, "line": {"type": "integer", "minimum": 1, "maximum": 99999}}}},
+        "required_skips": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z0-9_/=-]{1,220}$"}}
+      }
+    }
+  }
+}
