@@ -1,0 +1,655 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PR09 redacted operator-reviewed hosted-client evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "supported_tuple",
+    "operator",
+    "clients"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "supported_tuple": {
+      "const": {
+        "contract": "69613314fd44dafb7c8724bd795af6996893d3be",
+        "service": "fddee2c12bad4c33e826c7bd639e3201617678c0",
+        "gateway": "4cca58df129480624b6ea76fa43593fe6879e9d9"
+      }
+    },
+    "operator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deployed_tuple",
+        "database_preflight",
+        "keycloak_policy",
+        "private_rpc",
+        "hosted_versions",
+        "logs_privacy",
+        "builder_gates",
+        "supported_replay_procedure",
+        "controlled_failure_procedure"
+      ],
+      "properties": {
+        "deployed_tuple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "database_preflight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "keycloak_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "private_rpc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "hosted_versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "logs_privacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "builder_gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "supported_replay_procedure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        },
+        "controlled_failure_procedure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FAIL",
+                "MANUAL_REQUIRED",
+                "PASS"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "clients": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chatgpt",
+        "codex"
+      ],
+      "properties": {
+        "chatgpt": {
+          "$ref": "#/$defs/client"
+        },
+        "codex": {
+          "$ref": "#/$defs/client"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "app_version_id",
+        "fresh_consent",
+        "reconnected",
+        "operator_reviewed",
+        "checks"
+      ],
+      "properties": {
+        "app_version_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{0,128}$"
+        },
+        "fresh_consent": {
+          "type": "boolean"
+        },
+        "reconnected": {
+          "type": "boolean"
+        },
+        "operator_reviewed": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "discovery",
+            "definitions",
+            "empty_state",
+            "create_preview",
+            "create_confirm",
+            "read_projections",
+            "replay",
+            "changed_payload_conflict",
+            "stale_update",
+            "fresh_update_preview",
+            "fresh_update_confirm",
+            "version_increments",
+            "customer_isolation",
+            "independent_logical_key_preview",
+            "independent_logical_key_confirm",
+            "delete_preview",
+            "delete_confirm",
+            "deletion_absent",
+            "unknown_prepare",
+            "unknown_confirm",
+            "unknown_status",
+            "token_refresh",
+            "scope_denial",
+            "revocation",
+            "rate_limit",
+            "dependency_failure",
+            "prompt_fixture",
+            "cleanup",
+            "txse_presentation",
+            "txse_explicit_override",
+            "txse_entitlement_denial",
+            "txse_safety_fields"
+          ],
+          "properties": {
+            "discovery": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "definitions": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "empty_state": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "create_preview": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "create_confirm": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "human_confirmed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "read_projections": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "replay": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "replayed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "changed_payload_conflict": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "stale_update": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "fresh_update_preview": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "fresh_update_confirm": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "human_confirmed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "version_increments": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "customer_isolation": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "independent_logical_key_preview": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "independent_logical_key_confirm": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "human_confirmed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "delete_preview": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "delete_confirm": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "human_confirmed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "deletion_absent": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "unknown_prepare": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "unknown_confirm": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "human_confirmed": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "unknown_status": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "token_refresh": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "scope_denial": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "revocation": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "rate_limit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "dependency_failure": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "prompt_fixture": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "cleanup": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false,
+              "properties": {
+                "original_state_restored": {
+                  "type": "boolean"
+                },
+                "initial_count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "final_count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            },
+            "txse_presentation": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "txse_explicit_override": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "txse_entitlement_denial": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            },
+            "txse_safety_fields": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/check"
+                }
+              ],
+              "unevaluatedProperties": false
+            }
+          }
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "FAIL",
+            "MANUAL_REQUIRED",
+            "PASS"
+          ]
+        },
+        "request_ids": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "pattern": "^(req_[0-9a-f]{32}|[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12})$"
+          }
+        },
+        "operation_state": {
+          "enum": [
+            "completed",
+            "dispatching",
+            "failed",
+            "not_started",
+            "outcome_unknown",
+            "prepared"
+          ]
+        },
+        "error_code": {
+          "enum": [
+            "ALREADY_EXISTS",
+            "CONFLICT",
+            "DEPENDENCY_UNAVAILABLE",
+            "FORBIDDEN",
+            "GRANT_REVOKED",
+            "IDEMPOTENCY_CONFLICT",
+            "IDENTITY_VERIFICATION_REQUIRED",
+            "INSUFFICIENT_SCOPE",
+            "INTERNAL",
+            "INVALID_ARGUMENT",
+            "NONE",
+            "NOT_FOUND",
+            "OUTCOME_UNKNOWN",
+            "PERMISSION_DENIED",
+            "PRECONDITION_FAILED",
+            "RATE_LIMITED",
+            "TOKEN_EXPIRED",
+            "UNAUTHENTICATED"
+          ]
+        },
+        "profile_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "resource_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "write_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "preview_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "confirmed_write_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    }
+  }
+}

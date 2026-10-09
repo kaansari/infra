@@ -16,7 +16,7 @@ documentation/inventories, and freeze the milestone.
 2. Reconcile Keycloak, run OAuth policy smoke tests, verify protected-resource
    metadata includes both preference scopes, and obtain fresh consent.
 3. Verify authenticated private gRPC and live MCP `tools/list` schemas.
-4. Create/refresh the hosted ChatGPT development app version and record its new
+4. Create/refresh the hosted codex/chatgpt development app version and record its new
    Version ID; reconnect Codex. A new chat alone is insufficient.
 5. Prepare two disposable customers and non-sensitive fixtures; capture initial
    preference state for cleanup.
@@ -77,3 +77,32 @@ Automated tests alone do not close Phase 3. One client passing does not close
 Phase 3. Phase 3 closes only after both ChatGPT and Codex pass the complete live
 matrix, cleanup passes, evidence is redacted, and builder/inventory drift is
 zero.
+
+## Execution status: acceptance remains open (2026-10-09)
+
+`verification/phase3/live/` now contains the exact operator/client prompt runbook,
+read-only live preflight, closed redacted evidence schema and two-client freeze
+validator. Run `make verify-phase3-live`; create a private evidence template and
+use `acceptance.py validate` / `freeze-check` as documented in its README.
+Missing client/version/consent/reconnection, any missing case, an unconfirmed
+write, contradictory outcome evidence or incomplete cleanup prevents freeze.
+Twelve regression tests pass; the RBAC, apps, drift and preference contract/
+service builder commands pass. Durable builder standards now describe the
+preference ownership, privacy, confirmation, recovery and release boundary.
+
+Live prerequisites remain unverified: Render CLI reports an expired token and
+gateway HTTPS requests time out. Keycloak's public OIDC endpoint returned HTTP
+200, which does not prove realm reconciliation or preference scope assignment.
+Run `render login` to restore operator inspection. Auto-deploying pushes are
+pending live configuration/database inspection, including canonical audience.
+Fresh ChatGPT/Codex Version IDs, reconnections, per-write human confirmations,
+approved controlled failure/TXSE procedures and live cleanup evidence are pending.
+No live write, milestone freeze or tag has been performed.
+
+There is an unresolved acceptance/contract discrepancy: private exact same-key/
+same-digest confirmation replay returns `replayed=true`, while public MCP
+consumes preparation once and private preview rejects already-used keys. The
+current hosted-client flow cannot obtain that replay result by reprepare or
+reconfirm. Agree an explicit private-RPC operator companion proof with public
+consumed-preparation rejection, or revise/reverify the earlier public contract.
+Until resolved, replay and its prerequisite must remain `MANUAL_REQUIRED`.

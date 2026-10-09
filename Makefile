@@ -167,6 +167,10 @@ verify-phase2-live:
 verify-phase3-preferences:
 	@PYTHONDONTWRITEBYTECODE=1 python3 verification/phase3/preferences/run.py
 
+.PHONY: verify-phase3-live
+verify-phase3-live:
+	@PYTHONDONTWRITEBYTECODE=1 python3 verification/phase3/live/acceptance.py preflight --output .verification/phase3-preflight.json
+
 reconcile-keycloak-live:
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_USERNAME:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_USERNAME" >&2; exit 1)
 	@test -n "$${CEERAT_KEYCLOAK_ADMIN_PASSWORD:-}" || (echo "set CEERAT_KEYCLOAK_ADMIN_PASSWORD" >&2; exit 1)
