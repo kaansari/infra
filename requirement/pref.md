@@ -5,6 +5,14 @@ Primary clients: ChatGPT, Codex, Claude, Gemini, and compatible MCP hosts
 Canonical interfaces: public HTTPS MCP and authenticated private gRPC  
 Persistence owner: `ceerat-user-service`
 
+## Subsequent browser extension (2026-10-21)
+
+[Human preference management](pr/phase3/10-browser-preference-management.md) is a
+user-authorized extension of the browser exclusion in this original Phase 3
+requirement. It uses the existing customer UI server and the same private
+PreferenceService with the original OAuth token, independently of MCP. It adds
+no domain/storage implementation and does not change the MCP acceptance gates.
+
 ## 1. Product purpose
 
 CEERAT Preferences is customer-owned, portable structured memory. A customer

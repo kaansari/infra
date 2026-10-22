@@ -375,6 +375,7 @@ ensure_postgres
 start_typesense
 start_keycloak
 CEERAT_KEYCLOAK_SERVER="http://localhost:$CEERAT_KEYCLOAK_PORT" \
+CEERAT_MCP_RESOURCE="$CEERAT_MCP_RESOURCE" \
   "$SCRIPT_DIR/dev/keycloak/reconcile-browser-clients.rb"
 start_user_service
 if [[ "$CEERAT_ADMIN_ONLY" != "true" ]]; then

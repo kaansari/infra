@@ -1,0 +1,27 @@
+# Complete customer MCP consent, independent of admin tools.
+# Merge these sections into ~/.codex/config.toml; do not overwrite other settings.
+# Let MCP discovery supply resource; setting oauth_resource as well duplicates it.
+[mcp_servers.ceerat-local]
+url = "http://localhost:8090/mcp"
+scopes = [
+  "openid",
+  "profile",
+  "email",
+  "offline_access",
+  "ceerat.profile.read",
+  "ceerat.profile.write",
+  "ceerat.connections.read",
+  "ceerat.connections.revoke",
+  "ceerat.products.read",
+  "ceerat.products.cart.read",
+  "ceerat.products.cart.write",
+  "ceerat.orders.read",
+  "ceerat.orders.checkout",
+  "ceerat.orders.write",
+  "ceerat.preferences.read",
+  "ceerat.preferences.write",
+]
+
+[mcp_servers.ceerat-local.oauth]
+client_id = "ceerat-mcp-codex-dev"
+callback_url = "http://127.0.0.1/callback"

@@ -173,3 +173,43 @@ rejected. Repeat the check for `ceerat.orders.read`,
 `ceerat.orders.admin` is rejected. Never print or persist the token. These scopes do not grant cart
 ownership or authority over prices, inventory, checkout, or administration;
 the owning gRPC service makes those decisions.
+
+## Persistent Codex local connection
+
+Use [ceerat-local.codex.toml](ceerat-local.codex.toml) as the connection settings
+in `~/.codex/config.toml`. Merge its sections without replacing unrelated Codex
+settings. The `scopes` list requests the complete current customer MCP surface
+(profile, connections, products, cart, orders and preferences) together, plus
+`offline_access` for refresh. It excludes admin permissions. Tool-specific
+scopes, customer ownership, service RBAC and write confirmation remain enforced.
+
+Then authenticate with the saved settings:
+
+```bash
+codex mcp login ceerat-local
+```
+
+Do not narrow normal sign-in with a preference-only `--scopes` override. A
+narrower test grant is intentional only for scope-denial testing. Existing
+narrow tokens need one fresh consent to grant the complete customer set; saving
+configuration cannot silently expand a token's authority. Expiry, revocation,
+provider policy, newly added permissions or cleared credentials can still
+require sign-in later. OAuth links contain a short-lived state and callback
+listener; rerun the login command rather than reuse an old link.
+
+Do not set `oauth_resource` alongside discovery for this local connection: the
+installed CLI otherwise sends a duplicate `resource` parameter, rejected by
+Keycloak. The pre-registered client ID is required; use the local entry rather
+than the separate hosted `ceerat` connection when testing port 8090.
+
+Local startup's idempotent client reconciliation now also repairs the
+`ceerat-mcp-codex-dev` client in an existing realm, with PKCE S256, public-client
+code flow, loopback-only callbacks, customer optional scopes, canonical API
+audience and the configured local MCP resource audience. A startup import alone
+does not update an existing Keycloak realm.
+
+Regression check (uses a disposable API fixture; no real accounts or grants):
+
+```bash
+python3 dev/keycloak/test_reconcile_clients.py
+```

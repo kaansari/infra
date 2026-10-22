@@ -10,6 +10,14 @@ an accommodation boundary, not a TXSE data implementation: preferences may
 shape bounded presentation/query defaults but never market truth, entitlement,
 health, classification, formulas, or warnings.
 
+## Subsequent human browser extension
+
+The user-authorized [human preference management extension](10-browser-preference-management.md)
+adds a separate customer UI server adapter to the existing private gRPC service.
+It does not use MCP. The browser exclusion below describes the original Phase 3
+MCP release; this extension is the explicit scoped exception, not a second
+preference implementation or evidence of MCP live acceptance.
+
 ## Dependency order
 
 Before Phase 3 PR 04 is exposed, complete the canonical authentication cutover

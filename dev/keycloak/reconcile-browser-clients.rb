@@ -60,9 +60,23 @@ Dir[File.join(scope_dir, "*.json")].sort.each do |path|
   abort("Could not reconcile scope #{definition.fetch("name")}: HTTP #{response.code}") unless [201, 204].include?(response.code.to_i)
 end
 
+client_ids = %w[ceerat-web-ui ceerat-customer-ui ceerat-mcp-codex-dev]
+
 scope_ids = JSON.parse(request(:get, "#{admin_base}/client-scopes", headers: headers).body).to_h { |scope| [scope.fetch("name"), scope.fetch("id")] }
-%w[ceerat-web-ui ceerat-customer-ui].each do |client_id|
+client_ids.each do |client_id|
   definition = JSON.parse(File.read(File.join(infra, "deploy/render/keycloak/clients/#{client_id}.json")))
+  if client_id == "ceerat-mcp-codex-dev"
+    resource = ENV.fetch("CEERAT_MCP_RESOURCE", "http://localhost:8090/mcp")
+    resource_uri = URI(resource)
+    abort("Codex development resource must be loopback") unless
+      %w[http https].include?(resource_uri.scheme) && %w[localhost 127.0.0.1].include?(resource_uri.host) &&
+      resource_uri.userinfo.nil? && resource_uri.query.nil? && resource_uri.fragment.nil?
+    definition.fetch("protocolMappers").each do |mapper|
+      if mapper["name"] == "CEERAT MCP audience"
+        mapper.fetch("config")["included.custom.audience"] = resource
+      end
+    end
+  end
   candidates = JSON.parse(request(:get, "#{admin_base}/clients?clientId=#{URI.encode_www_form_component(client_id)}", headers: headers).body)
   existing = candidates.find { |client| client["clientId"] == client_id }
   response = if existing
@@ -81,7 +95,7 @@ scope_ids = JSON.parse(request(:get, "#{admin_base}/client-scopes", headers: hea
 end
 
 all_clients = JSON.parse(request(:get, "#{admin_base}/clients", headers: headers).body)
-%w[ceerat-web-ui ceerat-customer-ui].each do |client_id|
+client_ids.each do |client_id|
   count = all_clients.count { |client| client["clientId"] == client_id }
   abort("Expected one #{client_id} client, found #{count}") unless count == 1
 end
@@ -90,4 +104,4 @@ scope_counts = scope_names.each_with_object(Hash.new(0)) { |name, counts| counts
 duplicates = scope_counts.select { |_name, count| count > 1 }.keys
 abort("Duplicate client scopes found: #{duplicates.join(", ")}") unless duplicates.empty?
 
-puts("Reconciled ceerat-web-ui and ceerat-customer-ui for #{server}/realms/#{realm}")
+puts("Reconciled #{client_ids.join(", ")} for #{server}/realms/#{realm}")
