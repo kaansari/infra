@@ -213,3 +213,23 @@ Regression check (uses a disposable API fixture; no real accounts or grants):
 ```bash
 python3 dev/keycloak/test_reconcile_clients.py
 ```
+
+## Local session revocation setup
+
+The gateway's dedicated `ceerat-gateway-revoker` client is confidential and
+service-account-only. Its service account needs the explicitly approved
+`realm-management/manage-users` role; do not grant `realm-admin`. The client-role
+protocol mapper in the realm/client templates is required so that assigned
+permission is present in its access token. Empty default scopes alone do not
+project client roles into a token.
+
+Local gateway configuration reads `CEERAT_KEYCLOAK_REVOKER_CLIENT_ID` and
+`CEERAT_KEYCLOAK_REVOKER_CLIENT_SECRET` from the ignored private `infra/.env`.
+Keep that file mode 0600, never print/commit the credential, and restart the
+gateway after changing it. Obtaining a service token and checking its role
+claims verifies setup without revoking a user session.
+
+A real logout/revocation test needs explicit confirmation: it blocks the CEERAT
+connection and deletes its backing Keycloak session. Other clients sharing that
+SSO session can also be signed out. Finish test-data cleanup before revocation;
+then verify a protected read is denied and reconnect through normal OAuth.

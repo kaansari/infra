@@ -67,9 +67,7 @@
       "redirectUris": [
         "https://chatgpt.com/connector_platform_oauth_redirect"
       ],
-      "webOrigins": [
-
-      ],
+      "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "access.token.lifespan": "600"
@@ -155,9 +153,7 @@
         "http://127.0.0.1:*",
         "http://localhost:*"
       ],
-      "webOrigins": [
-
-      ],
+      "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "access.token.lifespan": "600"
@@ -243,9 +239,7 @@
         "http://127.0.0.1:*",
         "http://localhost:*"
       ],
-      "webOrigins": [
-
-      ],
+      "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "access.token.lifespan": "600"
@@ -365,17 +359,25 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,
       "consentRequired": false,
-      "redirectUris": [
-
-      ],
-      "webOrigins": [
-
-      ],
-      "defaultClientScopes": [
-
-      ],
-      "optionalClientScopes": [
-
+      "redirectUris": [],
+      "webOrigins": [],
+      "defaultClientScopes": [],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "CEERAT revoker client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
       ]
     },
     {
@@ -557,9 +559,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Access CEERAT administration"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.admin.users.read",
@@ -569,9 +569,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View CEERAT users"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.admin.users.write",
@@ -581,9 +579,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Manage CEERAT users"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.admin.rbac.read",
@@ -593,9 +589,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View CEERAT roles and permissions"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.admin.rbac.write",
@@ -605,9 +599,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Manage CEERAT roles and permissions"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.admin.operations.write",
@@ -617,9 +609,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Run CEERAT administrative operations"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "profile",
@@ -735,9 +725,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Read your CEERAT profile"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.profile.write",
@@ -748,9 +736,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Update your CEERAT profile after confirmation"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.connections.read",
@@ -761,9 +747,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "List your CEERAT agent connections"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.connections.revoke",
@@ -774,9 +758,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Disconnect CEERAT agent connections after confirmation"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.products.read",
@@ -787,9 +769,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View products available from CEERAT"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.products.cart.read",
@@ -800,9 +780,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View your CEERAT shopping cart"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.products.cart.write",
@@ -813,9 +791,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Add, update, or remove items in your CEERAT shopping cart"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.orders.read",
@@ -826,9 +802,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View your CEERAT orders and checkout pricing"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.orders.checkout",
@@ -839,9 +813,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Create CEERAT orders from your cart after confirmation"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.orders.write",
@@ -852,9 +824,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Update or cancel eligible CEERAT orders after confirmation"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.preferences.read",
@@ -865,9 +835,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "View your saved CEERAT preferences"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.preferences.write",
@@ -878,9 +846,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Save, update, or remove your CEERAT preferences after confirmation"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.applications.admin",
@@ -891,9 +857,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access applications admin"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.applications.read",
@@ -904,9 +868,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access applications read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.applications.write",
@@ -917,9 +879,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access applications write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.calendar.read",
@@ -930,9 +890,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access calendar read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.calendar.write",
@@ -943,9 +901,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access calendar write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.career.read",
@@ -956,9 +912,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access career read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.career.write",
@@ -969,9 +923,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access career write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.connections.write",
@@ -982,9 +934,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access connections write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.customers.read",
@@ -995,9 +945,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access customers read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.customers.write",
@@ -1008,9 +956,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access customers write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.jobs.admin",
@@ -1021,9 +967,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access jobs admin"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.jobs.cart.read",
@@ -1034,9 +978,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access jobs cart read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.jobs.cart.write",
@@ -1047,9 +989,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access jobs cart write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.jobs.read",
@@ -1060,9 +1000,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access jobs read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.orders.admin",
@@ -1073,9 +1011,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access orders admin"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.products.admin",
@@ -1086,9 +1022,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access products admin"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.services.read",
@@ -1099,9 +1033,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access services read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.threads.read",
@@ -1112,9 +1044,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access threads read"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     },
     {
       "name": "ceerat.threads.write",
@@ -1125,9 +1055,7 @@
         "display.on.consent.screen": "true",
         "consent.screen.text": "Allow CEERAT to access threads write"
       },
-      "protocolMappers": [
-
-      ]
+      "protocolMappers": []
     }
   ],
   "components": {

@@ -191,6 +191,16 @@ class RealmConfigTest < Minitest::Test
     refute client.key?("secret")
   end
 
+  def test_revoker_projects_assigned_client_roles_into_access_token
+    client = CLIENTS.fetch("ceerat-gateway-revoker")
+    mapper = Array(client["protocolMappers"]).find { |item| item["protocolMapper"] == "oidc-usermodel-client-role-mapper" }
+    refute_nil mapper, "revoker token must carry its assigned realm-management role"
+    assert_equal "resource_access.${client_id}.roles", mapper.fetch("config").fetch("claim.name")
+    assert_equal "true", mapper.fetch("config").fetch("access.token.claim")
+    assert_equal "true", mapper.fetch("config").fetch("multivalued")
+    assert_equal "String", mapper.fetch("config").fetch("jsonType.label")
+  end
+
   def test_smtp_uses_starttls_without_committed_secret
     smtp = REALM.fetch("smtpServer")
     assert_equal "true", smtp["auth"]

@@ -14,5 +14,21 @@
   "redirectUris": [],
   "webOrigins": [],
   "defaultClientScopes": [],
-  "optionalClientScopes": []
+  "optionalClientScopes": [],
+  "protocolMappers": [
+    {
+      "name": "CEERAT revoker client roles",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-client-role-mapper",
+      "consentRequired": false,
+      "config": {
+        "claim.name": "resource_access.${client_id}.roles",
+        "jsonType.label": "String",
+        "multivalued": "true",
+        "access.token.claim": "true",
+        "id.token.claim": "false",
+        "userinfo.token.claim": "false"
+      }
+    }
+  ]
 }
