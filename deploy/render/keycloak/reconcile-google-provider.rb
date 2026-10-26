@@ -18,7 +18,11 @@ admin_password = File.read(password_file).strip if admin_password.to_s.empty? &&
 abort("Keycloak admin password is required") if admin_password.to_s.empty?
 google_id = ENV["CEERAT_GOOGLE_CLIENT_ID"].to_s.strip
 google_secret = ENV["CEERAT_GOOGLE_CLIENT_SECRET"].to_s.strip
-abort("Google client ID and secret are required") if google_id.empty? || google_secret.empty?
+if google_id.empty? || google_secret.empty?
+  puts("Google broker is disabled for local development: set CEERAT_GOOGLE_CLIENT_ID and CEERAT_GOOGLE_CLIENT_SECRET to enable it.")
+  puts("For local browser login, configure Google credentials or remove the Google identity provider before continuing.")
+  exit 0
+end
 
 ACCOUNT_DEFAULT_SCOPES = %w[web-origins acr roles profile basic email].freeze
 

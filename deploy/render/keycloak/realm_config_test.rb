@@ -1,5 +1,6 @@
 require "json"
 require "minitest/autorun"
+require "open3"
 
 ROOT = File.expand_path("../../..", __dir__)
 REALM = JSON.parse(File.read(File.join(ROOT, "dev/keycloak/ceerat-realm.json")))
@@ -260,6 +261,13 @@ class RealmConfigTest < Minitest::Test
     assert_includes script, "%w[account account-console]"
   end
 
+  def test_google_reconciliation_skips_gracefully_without_credentials
+    script_path = File.join(ROOT, "deploy/render/keycloak/reconcile-google-provider.rb")
+    stdout, stderr, status = Open3.capture3({"CEERAT_KEYCLOAK_SERVER" => "http://localhost:8080"}, "ruby", script_path, chdir: ROOT)
+    assert status.success?, "Expected script to skip cleanly without Google credentials but got: #{stderr}"
+    assert_includes stdout, "Google broker is disabled"
+    assert_includes stdout, "CEERAT_GOOGLE_CLIENT_ID"
+  end
 
   def test_reconciliation_creates_scopes_before_updating_clients
     script = File.read(File.join(ROOT, "deploy/render/keycloak/reconcile-live-realm.sh"))
