@@ -5,7 +5,26 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$SCRIPT_DIR"
 
-K8S_DRIVER="${K8S_DRIVER:-colima}"
+detect_k8s_driver() {
+  if kubectl config get-contexts docker-desktop >/dev/null 2>&1; then
+    echo "docker-desktop"
+    return
+  fi
+
+  if command -v colima >/dev/null 2>&1; then
+    echo "colima"
+    return
+  fi
+
+  if command -v docker >/dev/null 2>&1; then
+    echo "docker-desktop"
+    return
+  fi
+
+  echo "none"
+}
+
+K8S_DRIVER="${K8S_DRIVER:-$(detect_k8s_driver)}"
 K8S_CONTEXT="${K8S_CONTEXT:-}"
 K8S_REGISTRY="${K8S_REGISTRY:-ceerat}"
 IMAGE_TAG="${IMAGE_TAG:-dev}"
@@ -127,7 +146,8 @@ start_cluster() {
       K8S_CONTEXT="${K8S_CONTEXT:-docker-desktop}"
       ;;
     none)
-      echo "Using the current kubectl context"
+      echo "No supported local Kubernetes driver is available. Install Colima or enable Docker Desktop Kubernetes." >&2
+      exit 1
       ;;
     *)
       echo "Unsupported K8S_DRIVER=$K8S_DRIVER. Use colima, docker-desktop, or none." >&2

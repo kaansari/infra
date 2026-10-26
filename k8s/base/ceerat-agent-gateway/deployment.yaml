@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceerat-agent-gateway
+  namespace: ceerat-backend
+  labels:
+    app.kubernetes.io/name: ceerat-agent-gateway
+    app.kubernetes.io/part-of: ceerat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ceerat-agent-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ceerat-agent-gateway
+        app.kubernetes.io/part-of: ceerat
+    spec:
+      containers:
+        - name: ceerat-agent-gateway
+          image: ceerat-apps-repo
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/ceerat-agent-gateway
+          ports:
+            - name: http
+              containerPort: 8090
+          env:
+            - name: PORT
+              value: "8090"
+            - name: CEERAT_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_ENV
+            - name: CEERAT_USER_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_API_BASE_URL
+            - name: CEERAT_USER_SERVICE_TLS_MODE
+              value: insecure
+            - name: CEERAT_OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_AUTHORIZATION_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_MCP_RESOURCE
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_MCP_RESOURCE
+            - name: CEERAT_OAUTH_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_AUDIENCE
+            - name: CEERAT_OAUTH_JWKS_URL
+              value: http://ceerat-keycloak.ceerat-backend.svc.cluster.local:8080/realms/ceerat/protocol/openid-connect/certs
+            - name: CEERAT_OAUTH_ALLOWED_CLIENT_IDS
+              value: ceerat-mcp-chatgpt,ceerat-mcp-codex-dev
+            - name: CEERAT_KEYCLOAK_REVOKER_CLIENT_ID
+              value: ceerat-gateway-revoker
+          readinessProbe:
+            httpGet:
+              path: /.well-known/oauth-protected-resource/mcp
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /.well-known/oauth-protected-resource/mcp
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 512Mi

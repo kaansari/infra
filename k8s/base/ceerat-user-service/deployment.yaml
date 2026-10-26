@@ -34,6 +34,8 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_ENV
+            - name: CEERAT_GRPC_TLS_MODE
+              value: insecure
             - name: DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -72,7 +74,7 @@ spec:
             - name: TYPESENSE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: typesense-client-api-key
+                  name: typesense-api-key
                   key: TYPESENSE_API_KEY
           readinessProbe:
             tcpSocket:

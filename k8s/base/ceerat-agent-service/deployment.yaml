@@ -29,11 +29,18 @@ spec:
           env:
             - name: PORT
               value: "8088"
+            - name: CEERAT_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_ENV
             - name: CEERAT_USER_SERVICE_ADDR
               valueFrom:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_API_BASE_URL
+            - name: CEERAT_USER_SERVICE_TLS_MODE
+              value: insecure
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -44,6 +51,16 @@ spec:
                 secretKeyRef:
                   name: ceerat-openai
                   key: OPENAI_MODEL
+            - name: CEERAT_OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_OAUTH_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_AUDIENCE
           readinessProbe:
             httpGet:
               path: /healthz

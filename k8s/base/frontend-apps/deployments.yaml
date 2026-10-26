@@ -36,6 +36,8 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_ENV
+            - name: CEERAT_GRPC_TLS_MODE
+              value: insecure
             - name: CEERAT_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -46,6 +48,18 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_AGENT_BASE_URL
+            - name: CEERAT_OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_WEB_OAUTH_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_WEB_OAUTH_CLIENT_ID
+            - name: CEERAT_WEB_OAUTH_REDIRECT_URL
+              value: http://localhost:3000/oauth/callback
           readinessProbe:
             tcpSocket:
               port: http
@@ -102,6 +116,8 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_ENV
+            - name: CEERAT_GRPC_TLS_MODE
+              value: insecure
             - name: CEERAT_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -112,6 +128,18 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_USER_GRPC_TARGET
+            - name: CEERAT_OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_ADMIN_OAUTH_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_ADMIN_OAUTH_CLIENT_ID
+            - name: CEERAT_ADMIN_OAUTH_REDIRECT_URL
+              value: http://localhost:3010/oauth/callback
           readinessProbe:
             tcpSocket:
               port: http
@@ -168,6 +196,8 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_ENV
+            - name: CEERAT_GRPC_TLS_MODE
+              value: insecure
             - name: CEERAT_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -178,6 +208,18 @@ spec:
                 configMapKeyRef:
                   name: ceerat-platform-config
                   key: CEERAT_AGENT_BASE_URL
+            - name: CEERAT_OAUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_OAUTH_ISSUER
+            - name: CEERAT_CUSTOMER_OAUTH_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ceerat-platform-config
+                  key: CEERAT_CUSTOMER_OAUTH_CLIENT_ID
+            - name: CEERAT_CUSTOMER_OAUTH_REDIRECT_URL
+              value: http://localhost:3005/oauth/callback
           readinessProbe:
             httpGet:
               path: /health

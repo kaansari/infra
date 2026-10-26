@@ -9,6 +9,11 @@ resources:
   - ceerat-user-service/typesense-secret.yaml
   - ceerat-agent-service/deployment.yaml
   - ceerat-agent-service/service.yaml
+  - ceerat-agent-gateway/deployment.yaml
+  - ceerat-agent-gateway/service.yaml
+  - keycloak/deployment.yaml
+  - keycloak/service.yaml
+  - keycloak/secret.yaml
   - frontend-apps/deployments.yaml
   - frontend-apps/services.yaml
   - ingress/ingress.yaml

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ceerat-agent-gateway
+  namespace: ceerat-backend
+  labels:
+    app.kubernetes.io/name: ceerat-agent-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ceerat-agent-gateway
+  ports:
+    - name: http
+      port: 8090
+      targetPort: http
