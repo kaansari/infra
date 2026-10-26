@@ -201,16 +201,16 @@ verify-api: verify-platform
 	@./verify-api.sh all
 
 start-k8:
-	@./k8s-start.sh
+	@./k8-scripts/k8s-start.sh
 
 stop-k8:
-	@./k8s-stop.sh
+	@./k8-scripts/k8s-stop.sh
 
 status-k8:
-	@./k8s-status.sh
+	@./k8-scripts/k8s-status.sh
 
 k8-logs:
-	@./k8s-logs.sh
+	@./k8-scripts/k8s-logs.sh
 
 k8-context:
 	@echo "Preparing Docker build context in $(K8S_CONTEXT_DIR)"
