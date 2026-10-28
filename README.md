@@ -257,9 +257,107 @@ You can also use Make aliases:
 
 ```bash
 make start-k8
+# Equivalent alias:
+make k8-start
 make status-k8
 make stop-k8
 ```
+
+### Local Kubernetes HTTPS reverse proxy
+
+The local TLS profile routes all portal/browser and OAuth traffic through one
+Nginx reverse proxy on loopback port 8443:
+
+| Application | URL |
+| --- | --- |
+| Customer | `https://customer.localhost:8443` |
+| Web / agent UI | `https://app.localhost:8443` |
+| CEERAT admin UI | `https://admin.localhost:8443` |
+| Authentication | `https://localhost:8443` |
+
+Start/deploy the local profile with `make start-k8`. Restore access without any
+image builds or deployments using:
+
+```bash
+make k8-forward
+make k8-forward-status
+make k8-forward-stop
+```
+
+`k8-forward` starts a detached supervisor and forwards only the proxy Service.
+It reconnects after its selected pod exits. It does not change certificate trust,
+OAuth configuration, deployments, or the selected Kubernetes context. It can
+replace the earlier recorded per-service tunnels; unrelated port listeners are
+left alone. Logs/state are under ignored `.run/k8s-local/forward.*`.
+The proxy must already be deployed and ready. These commands support only local
+`colima` / `docker-desktop` contexts; set `K8S_CONTEXT` to select either explicitly.
+
+Browsers and curl resolve `.localhost` names to loopback. Pods resolve the canonical
+`localhost` issuer to the proxy Service through an explicit host alias, so
+OAuth backchannel traffic uses the same proxy. Nginx verifies its upstream
+Keycloak HTTPS certificate. Private gRPC stays direct, with verified TLS and
+unchanged service authorization. Portal HTTP services remain private behind the
+proxy; this is TLS termination, not encryption of the proxy-to-portal HTTP hop.
+
+The proxy rejects unknown hosts. Keycloak realm/OIDC assets are routed, while its
+administration/management endpoints remain private. Proxy request/error logging
+is disabled to avoid recording OAuth codes, state, queries or cookies. Normal
+CEERAT admin access uses `admin.localhost`, not the Keycloak admin console.
+
+Local startup also loads Google credentials from the single ignored
+`client_secret_*.apps.googleusercontent.com.json` file at the repository root.
+Set `CEERAT_GOOGLE_CLIENT_FILE` to select a different file or disambiguate
+multiple downloads. Existing Google provider and account-link policies are
+preserved. Register this authorized redirect URI on the same Google OAuth web
+client in Google Cloud Console:
+`https://localhost:8443/realms/ceerat/broker/google/endpoint`.
+Updating the downloaded JSON alone does not change Google's registration.
+To reapply credentials without restarting the cluster, run
+`python3 k8-scripts/reconcile_proxy_clients.py`.
+
+All three browser clients use exact HTTPS callback URLs. Startup reconciles
+existing local clients while preserving PKCE/scopes; importing the realm fixture
+alone would not update clients already stored in Keycloak. The canonical issuer
+remains `https://localhost:8443/realms/ceerat`.
+
+Certificates reuse the local development CA. Only public CA certificates reach
+client pods; server keys are confined to their respective pods. Private material
+and rendered Secrets live under ignored `.run/k8s-local/`. Leaf renewal on setup
+triggers deployment reloads. An expiring CA stops setup for an explicit rotation.
+Browser trust is an operator decision; startup never installs a CA automatically.
+After reviewing a newly generated CA, macOS users can explicitly approve:
+
+```bash
+security add-trusted-cert -r trustRoot \
+  -k "$HOME/Library/Keychains/login.keychain-db" \
+  "$PWD/.run/k8s-local/tls/ca.crt"
+```
+
+Remove that user trust later with `security remove-trusted-cert "$PWD/.run/k8s-local/tls/ca.crt"`.
+Do not delete the CA directory as a troubleshooting shortcut. This workspace's CA
+was explicitly approved and installed during the TLS repair; the proxy reuses it.
+
+Use sufficient Colima resources (for example 6 GB RAM / four CPUs on a 16 GB Mac).
+The local profile uses one replica per Deployment and non-surging rollouts;
+production/base replica settings are unchanged. Keycloak uses its own persistent
+PostgreSQL schema. The user-service init container bootstraps only an empty
+schema, applies checksum-ledger migrations, and runs schema preflight.
+Existing native-stack users are not copied to the Kubernetes realm/database.
+
+To redeploy with existing images use `SKIP_BUILD=true make start-k8`.
+`LOCAL_PORT_FORWARD=false` leaves forwarding to the operator. `--expose` exposes
+only the shared proxy in this profile. `LOCAL_TLS=false` selects underlying
+operator-managed templates, which do not themselves supply valid portal HTTPS.
+
+Read-only checks, with certificate verification enabled:
+
+```bash
+python3 verification/k8s-local-tls.py
+curl --cacert .run/k8s-local/tls/ca.crt https://customer.localhost:8443/readyz
+```
+
+MCP, direct gRPC, database access and production ingress remain separate operator
+interfaces; they are not automatically exposed by this browser proxy.
 
 ### Test the Manifests
 
@@ -342,6 +440,9 @@ kubectl -n ceerat-frontend get events --sort-by=.metadata.creationTimestamp
 ```
 
 ### Local Browser Access
+
+The default local TLS profile uses the HTTPS proxy URLs and `make k8-forward`
+above. The per-service examples below are for operator-managed/legacy access.
 
 By default, the Ceerat frontend services are `ClusterIP` services. They are internal to Kubernetes until you choose an access mode.
 

@@ -36,17 +36,7 @@ RUN_DIR="$SCRIPT_DIR/.run"
 PORT_FORWARD_PID_FILE="$RUN_DIR/k8s-port-forwards.pid"
 
 stop_port_forwards() {
-  if [[ ! -f "$PORT_FORWARD_PID_FILE" ]]; then
-    return
-  fi
-
-  echo "Stopping Kubernetes port-forwards"
-  while read -r pid; do
-    if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
-      kill "$pid" >/dev/null 2>&1 || true
-    fi
-  done < "$PORT_FORWARD_PID_FILE"
-  rm -f "$PORT_FORWARD_PID_FILE"
+  python3 "$SCRIPT_DIR/forward.py" stop
 }
 
 if [[ "$K8S_DRIVER" == "colima" ]]; then

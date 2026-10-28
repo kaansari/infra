@@ -200,6 +200,19 @@ verify-api-security:
 verify-api: verify-platform
 	@./verify-api.sh all
 
+.PHONY: k8-start
+k8-start: start-k8
+
+.PHONY: k8-forward k8-forward-stop k8-forward-status
+k8-forward:
+	@python3 "$(ROOT_DIR)/k8-scripts/forward.py" start
+
+k8-forward-stop:
+	@python3 "$(ROOT_DIR)/k8-scripts/forward.py" stop
+
+k8-forward-status:
+	@python3 "$(ROOT_DIR)/k8-scripts/forward.py" status
+
 start-k8:
 	@./k8-scripts/k8s-start.sh
 
@@ -216,11 +229,19 @@ k8-context:
 	@echo "Preparing Docker build context in $(K8S_CONTEXT_DIR)"
 	@rm -rf "$(K8S_CONTEXT_DIR)"
 	@mkdir -p "$(K8S_CONTEXT_DIR)"
-	@sed '/\.\/atscrawler/d' "$(STACK_ROOT)/go.work" >"$(K8S_CONTEXT_DIR)/go.work"
 	@cp "$(STACK_ROOT)/go.work.sum" "$(K8S_CONTEXT_DIR)/go.work.sum"
 	@cp -R "$(STACK_ROOT)/contracts-repo" "$(K8S_CONTEXT_DIR)/contracts-repo"
 	@cp -R "$(STACK_ROOT)/apps-repo" "$(K8S_CONTEXT_DIR)/apps-repo"
 	@cp -R "$(STACK_ROOT)/services-repo" "$(K8S_CONTEXT_DIR)/services-repo"
+	@cd "$(K8S_CONTEXT_DIR)" && GOWORK=off go work init \
+		./apps-repo/ai/ceerat-agent-service \
+		./apps-repo/ai/ceerat-agent-gateway \
+		./apps-repo/apps/ceerat-web-ui \
+		./apps-repo/apps/ceerat-admin-ui \
+		./apps-repo/apps/ceerat-customer-ui \
+		./services-repo/services/ceerat-user-service \
+		./contracts-repo/packages/ceerat-contracts
+	@go work edit -go=$$(awk '/^go / {print $$2; exit}' "$(K8S_CONTEXT_DIR)/contracts-repo/packages/ceerat-contracts/go.mod") "$(K8S_CONTEXT_DIR)/go.work"
 	@rm -rf "$(K8S_CONTEXT_DIR)/contracts-repo/.git" "$(K8S_CONTEXT_DIR)/apps-repo/.git" "$(K8S_CONTEXT_DIR)/services-repo/.git"
 
 k8-build: k8-context

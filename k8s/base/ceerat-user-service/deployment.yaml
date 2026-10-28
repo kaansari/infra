@@ -74,7 +74,7 @@ spec:
             - name: TYPESENSE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: typesense-api-key
+                  name: typesense-client-api-key
                   key: TYPESENSE_API_KEY
           readinessProbe:
             tcpSocket:

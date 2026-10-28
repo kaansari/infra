@@ -33,7 +33,8 @@ REGION="${REGION:-us}"
 PUSH="${PUSH:-false}"
 SKIP_BUILD="${SKIP_BUILD:-false}"
 SKIP_DEPLOY="${SKIP_DEPLOY:-false}"
-LOCAL_PORT_FORWARD="${LOCAL_PORT_FORWARD:-false}"
+LOCAL_PORT_FORWARD="${LOCAL_PORT_FORWARD:-true}"
+LOCAL_TLS="${LOCAL_TLS:-true}"
 LOCAL_EXPOSE="${LOCAL_EXPOSE:-false}"
 RUN_DIR="$SCRIPT_DIR/.run"
 LOG_DIR="$SCRIPT_DIR/logs"
@@ -65,6 +66,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --expose)
       LOCAL_EXPOSE=true
+      LOCAL_PORT_FORWARD=false
       shift
       ;;
     -h|--help)
@@ -203,40 +205,34 @@ deploy_ceerat() {
   fi
 
   if [[ "$SKIP_DEPLOY" != "true" ]]; then
-    make -C "$ROOT_DIR" k8-deploy \
-      K8S_REGISTRY="$K8S_REGISTRY" \
-      IMAGE_TAG="$IMAGE_TAG" \
-      PROJECT_ID="$PROJECT_ID" \
-      REGION="$REGION" \
-      PUSH="$PUSH"
+    if [[ "$PUSH" == "true" ]]; then
+      make -C "$ROOT_DIR" k8-push K8S_REGISTRY="$K8S_REGISTRY" IMAGE_TAG="$IMAGE_TAG"
+    fi
+    if [[ "$LOCAL_TLS" == "true" ]]; then
+      python3 "$SCRIPT_DIR/local_tls.py" --registry "$K8S_REGISTRY" --tag "$IMAGE_TAG"
+      kubectl apply -f "$ROOT_DIR/.run/k8s-local/resources.json"
+    else
+      make -s -C "$ROOT_DIR" k8-render K8S_REGISTRY="$K8S_REGISTRY" IMAGE_TAG="$IMAGE_TAG" | kubectl apply -f -
+    fi
   fi
 }
 
 wait_for_local_targets() {
   echo "Waiting for frontend deployments before starting local port-forwards"
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=180s
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=180s
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=180s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=600s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=600s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=600s
 }
 
 wait_for_frontend_targets() {
   echo "Waiting for frontend deployments"
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=180s
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=180s
-  kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=180s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-web-ui --timeout=600s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-customer-ui --timeout=600s
+  kubectl -n ceerat-frontend rollout status deploy/ceerat-admin-ui --timeout=600s
 }
 
 stop_existing_port_forwards() {
-  if [[ ! -f "$PORT_FORWARD_PID_FILE" ]]; then
-    return
-  fi
-
-  while read -r pid; do
-    if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
-      kill "$pid" >/dev/null 2>&1 || true
-    fi
-  done < "$PORT_FORWARD_PID_FILE"
-  rm -f "$PORT_FORWARD_PID_FILE"
+  python3 "$SCRIPT_DIR/forward.py" cleanup-legacy
 }
 
 start_port_forward() {
@@ -244,11 +240,22 @@ start_port_forward() {
   local service="$2"
   local mapping="$3"
   local url="$4"
+  local namespace="${5:-ceerat-frontend}"
   local log_file="$LOG_DIR/k8s-port-forward-$name.log"
 
   echo "Port-forwarding $service at $url"
-  nohup kubectl -n ceerat-frontend port-forward "svc/$service" "$mapping" >"$log_file" 2>&1 </dev/null &
-  local pid="$!"
+  local pid
+  pid="$(python3 - "$log_file" "$namespace" "$service" "$mapping" <<'PY_FORWARD'
+import subprocess
+import sys
+with open(sys.argv[1], 'ab', buffering=0) as log:
+    process = subprocess.Popen(['kubectl', '-n', sys.argv[2], 'port-forward',
+                                'svc/' + sys.argv[3], sys.argv[4]],
+                               stdin=subprocess.DEVNULL, stdout=log,
+                               stderr=subprocess.STDOUT, start_new_session=True)
+print(process.pid)
+PY_FORWARD
+)"
   echo "$pid" >> "$PORT_FORWARD_PID_FILE"
   sleep 1
 
@@ -260,10 +267,22 @@ start_port_forward() {
 }
 
 start_local_port_forwards() {
+  if [[ "$LOCAL_TLS" == "true" ]]; then
+    kubectl -n ceerat-backend rollout status deploy/ceerat-keycloak --timeout=600s
+    kubectl -n ceerat-frontend rollout status deploy/ceerat-web-proxy --timeout=180s
+    wait_for_local_targets
+    python3 "$SCRIPT_DIR/reconcile_proxy_clients.py"
+    python3 "$SCRIPT_DIR/forward.py" start
+    return
+  fi
   mkdir -p "$RUN_DIR" "$LOG_DIR"
   stop_existing_port_forwards
   : > "$PORT_FORWARD_PID_FILE"
 
+  if [[ "$LOCAL_TLS" == "true" ]]; then
+    kubectl -n ceerat-backend rollout status deploy/ceerat-keycloak --timeout=600s
+    start_port_forward auth ceerat-keycloak 8443:8443 https://auth.localhost:8443 ceerat-backend
+  fi
   wait_for_local_targets
   start_port_forward web ceerat-web-ui 3000:3000 http://localhost:3000
   start_port_forward customer ceerat-customer-ui 3005:3005 http://localhost:3005
@@ -279,6 +298,11 @@ start_local_port_forwards() {
 }
 
 expose_frontend_load_balancers() {
+  if [[ "$LOCAL_TLS" == "true" ]]; then
+    start_local_port_forwards
+    kubectl -n ceerat-frontend patch svc ceerat-web-proxy --type merge -p '{"spec":{"type":"LoadBalancer"}}'
+    return
+  fi
   wait_for_frontend_targets
 
   echo "Exposing frontend services through Kubernetes LoadBalancer services"
@@ -299,6 +323,11 @@ expose_frontend_load_balancers() {
 require_command kubectl
 require_command make
 require_command docker
+require_command python3
+if [[ "$LOCAL_TLS" == "true" ]]; then
+  require_command ruby
+  require_command openssl
+fi
 
 start_cluster
 deploy_ceerat

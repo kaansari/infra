@@ -39,3 +39,7 @@ client_secret_*.apps.googleusercontent.com.json
 .verification/
 logs/
 go.work.sum
+
+# Python verification caches
+__pycache__/
+*.pyc

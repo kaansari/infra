@@ -10,7 +10,7 @@ data:
   CEERAT_AGENT_BASE_URL: http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
   CEERAT_OAUTH_ISSUER: http://ceerat-keycloak.ceerat-backend.svc.cluster.local:8080/realms/ceerat
   CEERAT_MCP_RESOURCE: http://ceerat-agent-gateway.ceerat-backend.svc.cluster.local:8090/mcp
-  CEERAT_OAUTH_AUDIENCE: http://ceerat-agent-gateway.ceerat-backend.svc.cluster.local:8090/mcp
+  CEERAT_OAUTH_AUDIENCE: ceerat-api
   CEERAT_WEB_OAUTH_CLIENT_ID: ceerat-web-ui
   CEERAT_ADMIN_OAUTH_CLIENT_ID: ceerat-admin-ui
   CEERAT_CUSTOMER_OAUTH_CLIENT_ID: ceerat-customer-ui
@@ -27,7 +27,7 @@ data:
   CEERAT_AGENT_BASE_URL: http://ceerat-agent-service.ceerat-backend.svc.cluster.local:8088
   CEERAT_OAUTH_ISSUER: http://ceerat-keycloak.ceerat-backend.svc.cluster.local:8080/realms/ceerat
   CEERAT_MCP_RESOURCE: http://ceerat-agent-gateway.ceerat-backend.svc.cluster.local:8090/mcp
-  CEERAT_OAUTH_AUDIENCE: http://ceerat-agent-gateway.ceerat-backend.svc.cluster.local:8090/mcp
+  CEERAT_OAUTH_AUDIENCE: ceerat-api
   CEERAT_WEB_OAUTH_CLIENT_ID: ceerat-web-ui
   CEERAT_ADMIN_OAUTH_CLIENT_ID: ceerat-admin-ui
   CEERAT_CUSTOMER_OAUTH_CLIENT_ID: ceerat-customer-ui

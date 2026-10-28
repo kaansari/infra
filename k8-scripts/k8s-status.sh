@@ -94,6 +94,16 @@ done
 echo
 echo "Local access"
 cat <<'EOF'
+Default local HTTPS reverse proxy:
+  make k8-forward
+  customer: https://customer.localhost:8443
+  web:      https://app.localhost:8443
+  admin:    https://admin.localhost:8443
+  auth:     https://localhost:8443
+  status:   make k8-forward-status
+  stop:     make k8-forward-stop
+
+Legacy access (only when local TLS is disabled):
 LoadBalancer mode:
   ./k8s-start.sh --expose
   web:      http://localhost:3000
